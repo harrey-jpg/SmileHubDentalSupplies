@@ -247,6 +247,37 @@ function handleRegister(event) {
   const lastName = document.getElementById('registerLastName').value.trim();
   const email = document.getElementById('registerEmail').value.trim().toLowerCase();
   const password = document.getElementById('registerPassword').value;
+
+  if (!firstName) {
+    showAuthMessage('First name is required.', true);
+    return;
+  }
+
+  if (!lastName) {
+    showAuthMessage('Last name is required.', true);
+    return;
+  }
+
+  if (!email) {
+    showAuthMessage('Email is required.', true);
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showAuthMessage('Enter a valid email address.', true);
+    return;
+  }
+
+  if (!password) {
+    showAuthMessage('Password is required.', true);
+    return;
+  }
+
+  if (password.length < 6) {
+    showAuthMessage('Password must be at least 6 characters.', true);
+    return;
+  }
+
   const accounts = getAccounts();
 
   const emailExists = accounts.some(function (account) {

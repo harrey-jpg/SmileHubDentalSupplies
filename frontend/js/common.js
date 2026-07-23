@@ -39,8 +39,7 @@ function showToast(message) {
 function customerIsLoggedIn() {
   if (!window.SmileHubAuth) return false;
 
-  const user = window.SmileHubAuth.getLoggedInUser();
-  return Boolean(user && user.role === 'customer');
+  return Boolean(window.SmileHubAuth.getLoggedInUser());
 }
 
 function askUserToLogin(returnPage) {
