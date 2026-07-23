@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" role="img" aria-labelledby="title">
+  <title id="title">SmileHub Dental Supplies</title>
+  <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#0e7490"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
+  <rect width="44" height="44" rx="14" fill="url(#g)"/>
+  <path d="M14 12c-3 4-2 15 2 20 2 2 4 1 5-2l1-5 1 5c1 3 3 4 5 2 4-5 5-16 2-20-2-3-6-3-8 0-2-3-6-3-8 0Z" fill="white" opacity=".96"/>
+  <text x="54" y="22" font-family="Manrope,Arial" font-size="20" font-weight="800" fill="#0f172a">SmileHub</text>
+  <text x="54" y="36" font-family="DM Sans,Arial" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="#0e7490">DENTAL SUPPLIES</text>
+</svg>

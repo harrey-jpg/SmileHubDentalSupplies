@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
+    <title>Product Details | SmileHub Dental Supplies</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js" defer></script>
+  </head>
+  <body class="">
+    <div class="topbar">
+      <div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
+    </div>
+    <header class="header">
+      <div class="container header-main">
+        <a class="logo" href="homepage.html">
+          <img src="assets/logo.svg" alt="SmileHub logo">
+          <span>
+            SmileHub
+            <br>
+            Dental Supplies
+          </span>
+        </a>
+        <form class="search-bar" action="products.html">
+          <input name="q" type="search" placeholder="Search dental products...">
+          <button type="submit">Search</button>
+        </form>
+        <div class="header-actions">
+          <button class="theme-button" type="button" title="Dark mode">◐</button>
+          <a class="icon-link" href="wishlist.html">♡ <span class="text-label">Wishlist</span></a>
+          <a class="icon-link" href="cart.html">🛒 <span class="text-label">Cart</span> <span class="cart-count">0</span></a>
+          <a class="icon-link" href="login.html">👤 <span class="text-label">Login</span></a>
+          <button class="menu-button" type="button">Menu</button>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="container">
+          <ul class="nav-list">
+            <li>
+              <a class="" href="homepage.html">Home</a>
+            </li>
+            <li>
+              <a class="active" href="products.html">Products</a>
+            </li>
+            <li>
+              <a class="" href="about.html">About</a>
+            </li>
+            <li>
+              <a class="" href="faq.html">FAQ</a>
+            </li>
+            <li>
+              <a class="" href="contact.html">Contact</a>
+            </li>
+            <li>
+              <a class="" href="developers.html">Developers</a>
+            </li>
+            <li>
+              <a href="admin.html">Admin Demo</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <section class="page-title">
+      <div class="container">
+        <div class="breadcrumbs">
+          <a href="homepage.html">Home</a>
+          / Product Details
+        </div>
+        <h1>Product Details</h1>
+        <p class="muted">View images, specifications, ratings, and stock information.</p>
+      </div>
+    </section>
+    <main class="section-sm">
+      <div class="container">
+        <div class="product-detail">
+          <section class="product-gallery">
+            <div class="product-gallery-main">
+              <img id="detailImage" src="assets/products/oral-care.svg" alt="Product image">
+            </div>
+            <div class="thumbnails">
+              <button class="thumbnail">
+                <img src="assets/products/oral-care.svg" alt="Front view">
+              </button>
+              <button class="thumbnail">
+                <img src="assets/products/oral-care.svg" alt="Side view">
+              </button>
+              <button class="thumbnail">
+                <img src="assets/products/oral-care.svg" alt="Package view">
+              </button>
+              <button class="thumbnail">
+                <img src="assets/products/oral-care.svg" alt="Detail view">
+              </button>
+            </div>
+          </section>
+          <section class="product-info">
+            <div class="eyebrow" id="detailCategory">Oral Care</div>
+            <h1 id="detailName">ProClean Soft Toothbrush 4-Pack</h1>
+            <div class="rating-line"><span class="stars">★★★★★</span> <span class="muted">4.8 rating • 42 reviews</span></div>
+            <p class="muted">Brand: <strong id="detailBrand">SmilePro</strong> • SKU: <strong id="detailSku">SH-OC-001</strong></p>
+            <div class="big-price" id="detailPrice">₱189.00</div>
+            <span class="stock-box" id="detailStock">86 pieces available</span>
+            <p id="detailDescription">Soft rounded bristles for gentle daily plaque removal and comfortable gum care.</p>
+            <h3>Specifications</h3>
+            <ul class="spec-list" id="detailSpecs">
+              <li>4 toothbrushes</li>
+              <li>Soft nylon bristles</li>
+              <li>Ergonomic handle</li>
+            </ul>
+            <div class="buy-row">
+              <input class="qty-input" id="detailQuantity" type="number" min="1" value="1">
+              <button class="btn btn-primary" id="detailAddCart">Add to Cart</button>
+              <button class="btn btn-light" id="detailWishlist">♡ Wishlist</button>
+            </div>
+          </section>
+        </div>
+        <section class="tabs">
+          <div class="tab-buttons">
+            <button class="tab-button active" data-tab="descriptionTab">Description</button>
+            <button class="tab-button" data-tab="reviewsTab">Reviews</button>
+            <button class="tab-button" data-tab="shippingTab">Shipping</button>
+          </div>
+          <div class="tab-panel" id="descriptionTab">
+            <h3>Product Information</h3>
+            <p>This product page contains a full HTML layout. JavaScript only changes the displayed product when an ID appears in the URL.</p>
+          </div>
+          <div class="tab-panel hidden" id="reviewsTab">
+            <h3>Customer Reviews</h3>
+            <p><span class="stars">★★★★★</span> Comfortable, practical, and arrived in good condition.</p>
+            <form class="demo-form form-card card">
+              <div class="form-group">
+                <label>Your rating</label>
+                <select>
+                  <option>5 Stars</option>
+                  <option>4 Stars</option>
+                  <option>3 Stars</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Review</label>
+                <textarea required></textarea>
+              </div>
+              <button class="btn btn-primary">Submit Review</button>
+            </form>
+          </div>
+          <div class="tab-panel hidden" id="shippingTab">
+            <h3>Delivery Information</h3>
+            <p>Metro Manila orders normally arrive in 1–3 business days in this frontend demonstration.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+    <section class="newsletter">
+      <div class="container newsletter-box">
+        <div>
+          <h2>Dental deals in your inbox</h2>
+          <p>Receive product updates, clinic essentials, and student-friendly offers.</p>
+        </div>
+        <form class="newsletter-form">
+          <input type="email" placeholder="Your email address" required>
+          <button>Subscribe</button>
+        </form>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <h3>SmileHub Dental Supplies</h3>
+            <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
+          </div>
+          <div>
+            <h4>Shop</h4>
+            <a href="products.html">All Products</a>
+            <a href="wishlist.html">Wishlist</a>
+            <a href="cart.html">Shopping Cart</a>
+            <a href="orders.html">Orders</a>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <a href="about.html">About SmileHub</a>
+            <a href="developers.html">Developer Profiles</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="faq.html">FAQs</a>
+          </div>
+          <div>
+            <h4>Policies</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms and Conditions</a>
+            <a href="profile.html">Customer Profile</a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 SmileHub Dental Supplies</span>
+          <span>Frontend academic project • Philippines</span>
+        </div>
+      </div>
+    </footer>
+    <script src="js/common.js"></script>
+    <script src="js/product.js"></script>
+  </body>
+</html>

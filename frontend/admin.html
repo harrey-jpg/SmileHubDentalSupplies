@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
+    <title>
+      Admin Dashboard | SmileHub Dental Supplies
+    </title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js" defer></script>
+  </head>
+  <body class="admin-body">
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <a class="logo" href="homepage.html">
+          <img src="assets/logo.svg" alt="">
+          <span>
+            SmileHub Admin
+          </span>
+        </a>
+        <nav class="admin-menu">
+          <a class="active" href="#dashboard">
+            Dashboard
+          </a>
+          <a href="#products">
+            Products
+          </a>
+          <a href="#inventory">
+            Inventory
+          </a>
+          <a href="#orders">
+            Orders
+          </a>
+          <a href="#customers">
+            Customers
+          </a>
+          <a href="#reports">
+            Reports
+          </a>
+          <a href="#cms">
+            CMS
+          </a>
+          <a href="#notifications">
+            Notifications
+          </a>
+          <a href="#audit">
+            Audit Trail
+          </a>
+          <a href="homepage.html">
+            Return to Store
+          </a>
+        </nav>
+      </aside>
+      <main class="admin-main">
+        <div class="admin-top">
+          <div>
+            <div class="eyebrow">
+              Administration
+            </div>
+            <h1>
+              Dashboard
+            </h1>
+          </div>
+          <div>
+            <button class="theme-button">
+              ◐
+            </button>
+            <span class="icon-link">
+              Admin User
+            </span>
+            <button class="btn btn-light" id="logoutButton" type="button">
+              Logout
+            </button>
+          </div>
+        </div>
+        <section id="dashboard">
+          <div class="kpi-grid">
+            <article class="card kpi-card">
+              <span class="muted">
+                Today's Sales
+              </span>
+              <strong>
+                ₱38,450
+              </strong>
+              <small>
+                12 completed orders
+              </small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">
+                Total Revenue
+              </span>
+              <strong>
+                ₱684,920
+              </strong>
+              <small>
+                This month
+              </small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">
+                Customers
+              </span>
+              <strong>
+                1,248
+              </strong>
+              <small>
+                87 active this week
+              </small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">
+                Low Stock
+              </span>
+              <strong>
+                7
+              </strong>
+              <small>
+                Needs attention
+              </small>
+            </article>
+          </div>
+          <div class="grid grid-2 admin-section">
+            <article class="card form-card">
+              <h2>
+                Monthly Sales
+              </h2>
+              <div class="chart-placeholder">
+                <div class="bar" style="height:35%">
+                </div>
+                <div class="bar" style="height:48%">
+                </div>
+                <div class="bar" style="height:42%">
+                </div>
+                <div class="bar" style="height:62%">
+                </div>
+                <div class="bar" style="height:75%">
+                </div>
+                <div class="bar" style="height:88%">
+                </div>
+              </div>
+            </article>
+            <article class="card form-card">
+              <h2>
+                Inventory Alerts
+              </h2>
+              <p>
+                <span class="status low">
+                  2 left
+                </span>
+                Class B Autoclave 18L
+              </p>
+              <p>
+                <span class="status low">
+                  1 left
+                </span>
+                Ergonomic Dental Chair
+              </p>
+              <p>
+                <span class="status low">
+                  7 left
+                </span>
+                Ultrasonic Scaler
+              </p>
+              <p>
+                <span class="status processing">
+                  11 left
+                </span>
+                Extraction Forceps
+              </p>
+            </article>
+          </div>
+        </section>
+        <section class="admin-section" id="products">
+          <div class="admin-top">
+            <h2>
+              Product Management
+            </h2>
+            <button class="btn btn-primary" id="showProductForm">
+              + Add Product
+            </button>
+          </div>
+          <form class="card form-card admin-form" id="productFormBox">
+            <div id="adminProductForm">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>
+                    Product Name
+                  </label>
+                  <input name="name" required>
+                </div>
+                <div class="form-group">
+                  <label>
+                    Category
+                  </label>
+                  <select name="category">
+                    <option>
+                      Oral Care
+                    </option>
+                    <option>
+                      Instruments
+                    </option>
+                    <option>
+                      PPE
+                    </option>
+                    <option>
+                      Restorative
+                    </option>
+                    <option>
+                      Equipment
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>
+                    Price
+                  </label>
+                  <input name="price" type="number" required>
+                </div>
+                <div class="form-group">
+                  <label>
+                    Stock
+                  </label>
+                  <input name="stock" type="number" required>
+                </div>
+              </div>
+              <button class="btn btn-primary">
+                Save Product
+              </button>
+            </div>
+          </form>
+          <div class="form-group">
+            <input id="adminSearch" placeholder="Search product table...">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    SKU
+                  </th>
+                  <th>
+                    Product
+                  </th>
+                  <th>
+                    Category
+                  </th>
+                  <th>
+                    Price
+                  </th>
+                  <th>
+                    Stock
+                  </th>
+                  <th>
+                    Status
+                  </th>
+                  <th>
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsBody">
+                <tr>
+                  <td>
+                    SH-EQ-030
+                  </td>
+                  <td>
+                    Class B Autoclave 18L
+                  </td>
+                  <td>
+                    Equipment
+                  </td>
+                  <td>
+                    ₱89,999.00
+                  </td>
+                  <td>
+                    2
+                  </td>
+                  <td>
+                    <span class="status low">
+                      Low Stock
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-light">
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    SH-RS-013
+                  </td>
+                  <td>
+                    NanoFill Composite Resin A2
+                  </td>
+                  <td>
+                    Restorative
+                  </td>
+                  <td>
+                    ₱899.00
+                  </td>
+                  <td>
+                    32
+                  </td>
+                  <td>
+                    <span class="status delivered">
+                      Active
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-light">
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    SH-PP-010
+                  </td>
+                  <td>
+                    Nitrile Examination Gloves
+                  </td>
+                  <td>
+                    PPE
+                  </td>
+                  <td>
+                    ₱399.00
+                  </td>
+                  <td>
+                    78
+                  </td>
+                  <td>
+                    <span class="status delivered">
+                      Active
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-light">
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="grid grid-2 admin-section" id="orders">
+          <article class="card form-card">
+            <h2>
+              Recent Orders
+            </h2>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>
+                    Order
+                  </th>
+                  <th>
+                    Customer
+                  </th>
+                  <th>
+                    Status
+                  </th>
+                </tr>
+                <tr>
+                  <td>
+                    SH-2026031
+                  </td>
+                  <td>
+                    Maria Santos
+                  </td>
+                  <td>
+                    <span class="status processing">
+                      Processing
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    SH-2026030
+                  </td>
+                  <td>
+                    BrightSmile Clinic
+                  </td>
+                  <td>
+                    <span class="status delivered">
+                      Delivered
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </article>
+          <article class="card form-card" id="reports">
+            <h2>
+              Top Selling Products
+            </h2>
+            <ol>
+              <li>
+                Nitrile Examination Gloves
+              </li>
+              <li>
+                Dental Bibs 125s
+              </li>
+              <li>
+                Composite Resin A2
+              </li>
+              <li>
+                Dental Floss 50m
+              </li>
+              <li>
+                LED Curing Light
+              </li>
+            </ol>
+            <button class="btn btn-secondary" onclick="window.print()">
+              Export / Print Report
+            </button>
+          </article>
+        </section>
+        <section class="grid grid-3 admin-section">
+          <article class="card form-card" id="customers">
+            <h2>
+              Customers
+            </h2>
+            <strong>
+              1,248 accounts
+            </strong>
+            <p class="muted">
+              Manage active, suspended, clinic, professional, and student users.
+            </p>
+          </article>
+          <article class="card form-card" id="cms">
+            <h2>
+              CMS
+            </h2>
+            <p class="muted">
+              Homepage banners, promotions, FAQs, privacy policy, and terms.
+            </p>
+          </article>
+          <article class="card form-card" id="notifications">
+            <h2>
+              Notifications
+            </h2>
+            <p class="muted">
+              Order confirmation, payment success, and shipping update templates.
+            </p>
+          </article>
+        </section>
+        <section class="card form-card admin-section" id="audit">
+          <h2>
+            Audit Trail
+          </h2>
+          <div class="table-wrap">
+            <table>
+              <tr>
+                <th>
+                  Time
+                </th>
+                <th>
+                  Admin
+                </th>
+                <th>
+                  Action
+                </th>
+              </tr>
+              <tr>
+                <td>
+                  10:42 AM
+                </td>
+                <td>
+                  Admin User
+                </td>
+                <td>
+                  Updated stock for Composite Resin A2
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  9:18 AM
+                </td>
+                <td>
+                  Admin User
+                </td>
+                <td>
+                  Changed order SH-2026031 to Processing
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  Yesterday
+                </td>
+                <td>
+                  Admin User
+                </td>
+                <td>
+                  Published homepage promotion
+                </td>
+              </tr>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="js/common.js">
+    </script>
+    <script src="js/admin.js">
+    </script>
+  </body>
+</html>
