@@ -59,8 +59,32 @@ function updateCartCount() {
     }, 0);
   }
 
-  document.querySelectorAll('.cart-count').forEach(function (element) {
-    element.textContent = total;
+  // Only target elements with JUST the cart-count class (not wishlist-count)
+  document.querySelectorAll('.cart-count:not(.wishlist-count)').forEach(function (element) {
+    if (total > 0) {
+      element.textContent = total;
+      element.style.display = 'inline-grid';
+    } else {
+      element.style.display = 'none';
+    }
+  });
+}
+
+function updateWishlistCount() {
+  let total = 0;
+
+  if (customerIsLoggedIn()) {
+    total = getStoredList(WISH_KEY).length;
+  }
+
+  // Target elements with wishlist-count class
+  document.querySelectorAll('.wishlist-count').forEach(function (element) {
+    if (total > 0) {
+      element.textContent = total;
+      element.style.display = 'inline-grid';
+    } else {
+      element.style.display = 'none';
+    }
   });
 }
 
@@ -94,28 +118,50 @@ function addToCart(button) {
   showToast(product.name + ' added to cart');
 }
 
-function addToWishlist(button) {
+// Toggle wishlist (add or remove)
+function toggleWishlist(button) {
   if (!customerIsLoggedIn()) {
     askUserToLogin(location.pathname.split('/').pop() + location.search);
     return;
   }
 
   const wishlist = getStoredList(WISH_KEY);
+  const productId = Number(button.dataset.id);
+  
+  // Check if product is already in wishlist
+  const existingIndex = wishlist.findIndex(function (item) {
+    return item.id === productId;
+  });
+
   const product = {
-    id: Number(button.dataset.id),
+    id: productId,
     name: button.dataset.name,
     price: Number(button.dataset.price),
     image: button.dataset.image
   };
 
-  const alreadySaved = wishlist.some(function (item) {
-    return item.id === product.id;
-  });
+  if (existingIndex !== -1) {
+    // Remove from wishlist (unwish)
+    wishlist.splice(existingIndex, 1);
+    saveStoredList(WISH_KEY, wishlist);
+    updateWishlistCount();
+    button.textContent = '♡'; // Empty heart
+    button.classList.remove('wished');
+    showToast(product.name + ' removed from wishlist');
+  } else {
+    // Add to wishlist
+    wishlist.push(product);
+    saveStoredList(WISH_KEY, wishlist);
+    updateWishlistCount();
+    button.textContent = '♥'; // Filled heart
+    button.classList.add('wished');
+    showToast(product.name + ' added to wishlist');
+  }
+}
 
-  if (!alreadySaved) wishlist.push(product);
-
-  saveStoredList(WISH_KEY, wishlist);
-  showToast(product.name + ' saved to wishlist');
+// Keep old function for backward compatibility
+function addToWishlist(button) {
+  toggleWishlist(button);
 }
 
 function setupPageActions() {
@@ -135,9 +181,25 @@ function setupPageActions() {
     });
   });
 
+  // UPDATED: Use toggleWishlist instead of addToWishlist
   document.querySelectorAll('.add-wishlist').forEach(function (button) {
+    // Check if product is already in wishlist and update heart state
+    const wishlist = getStoredList(WISH_KEY);
+    const productId = Number(button.dataset.id);
+    const isWished = wishlist.some(function (item) {
+      return item.id === productId;
+    });
+    
+    if (isWished) {
+      button.textContent = '♥';
+      button.classList.add('wished');
+    } else {
+      button.textContent = '♡';
+      button.classList.remove('wished');
+    }
+
     button.addEventListener('click', function () {
-      addToWishlist(button);
+      toggleWishlist(button);
     });
   });
 
@@ -174,6 +236,7 @@ function setupPageActions() {
   });
 
   updateCartCount();
+  updateWishlistCount();
 }
 
 document.addEventListener('DOMContentLoaded', setupPageActions);

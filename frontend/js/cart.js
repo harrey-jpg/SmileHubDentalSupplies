@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', renderCart);
+document.addEventListener('DOMContentLoaded', function() {
+  renderCart();
+  updateCartCount(); // Hide badge if empty
+});
 
 function renderCart() {
   const cart = getStoredList(CART_KEY);
@@ -11,7 +14,7 @@ function renderCart() {
     empty.classList.remove('hidden');
   } else {
     empty.classList.add('hidden');
-    cart.forEach(item => {
+    cart.forEach(function(item) {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td><div class="cart-product"><img src="${item.image}" alt=""><div><strong>${item.name}</strong><br><small class="muted">Product ID: ${item.id}</small></div></div></td>
@@ -19,18 +22,19 @@ function renderCart() {
         <td><div class="quantity-control"><button data-action="minus">−</button><span>${item.quantity}</span><button data-action="plus">+</button></div></td>
         <td>${money(item.price * item.quantity)}</td>
         <td><button class="btn btn-danger" data-action="remove">Remove</button></td>`;
-      row.querySelector('[data-action="minus"]').onclick = () => changeQuantity(item.id, -1);
-      row.querySelector('[data-action="plus"]').onclick = () => changeQuantity(item.id, 1);
-      row.querySelector('[data-action="remove"]').onclick = () => removeItem(item.id);
+      row.querySelector('[data-action="minus"]').onclick = function() { changeQuantity(item.id, -1); };
+      row.querySelector('[data-action="plus"]').onclick = function() { changeQuantity(item.id, 1); };
+      row.querySelector('[data-action="remove"]').onclick = function() { removeItem(item.id); };
       body.appendChild(row);
     });
   }
   updateSummary(cart);
+  updateCartCount(); // Update badge after changes
 }
 
 function changeQuantity(id, amount) {
   const cart = getStoredList(CART_KEY);
-  const item = cart.find(product => product.id === id);
+  const item = cart.find(function(product) { return product.id === id; });
   if (item) item.quantity = Math.max(1, item.quantity + amount);
   saveStoredList(CART_KEY, cart);
   updateCartCount();
@@ -38,14 +42,14 @@ function changeQuantity(id, amount) {
 }
 
 function removeItem(id) {
-  const cart = getStoredList(CART_KEY).filter(item => item.id !== id);
+  const cart = getStoredList(CART_KEY).filter(function(item) { return item.id !== id; });
   saveStoredList(CART_KEY, cart);
   updateCartCount();
   renderCart();
 }
 
 function updateSummary(cart) {
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
   const shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
   const tax = subtotal * 0.12;
   document.getElementById('cartSubtotal').textContent = money(subtotal);

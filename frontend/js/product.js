@@ -33,7 +33,7 @@ const productDetails = {
   32: {"name":"Professional Teeth Whitening Kit","brand":"BrightDent","category":"Cosmetic","price":2899,"stock":16,"sku":"SH-CO-032","image":"assets/products/restorative.svg","description":"Clinic-use whitening kit with controlled gel delivery and gingival barrier materials.","specs":["3 patient treatments","35% carbamide peroxide","Clinic-use demo"]}
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
   const id = Number(new URLSearchParams(location.search).get('id')) || 1;
   const product = productDetails[id] || productDetails[1];
 
@@ -45,23 +45,62 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('detailSku').textContent = product.sku;
   document.getElementById('detailDescription').textContent = product.description;
   document.getElementById('detailImage').src = product.image;
-  document.getElementById('detailSpecs').innerHTML = product.specs.map(spec => '<li>' + spec + '</li>').join('');
+  document.getElementById('detailSpecs').innerHTML = product.specs.map(function(spec) {
+    return '<li>' + spec + '</li>';
+  }).join('');
 
+  // Setup cart button
   const cartButton = document.getElementById('detailAddCart');
-  Object.assign(cartButton.dataset, { id, name: product.name, price: product.price, image: product.image });
-  cartButton.addEventListener('click', () => {
+  Object.assign(cartButton.dataset, { id: id, name: product.name, price: product.price, image: product.image });
+  cartButton.addEventListener('click', function() {
     cartButton.dataset.quantity = document.getElementById('detailQuantity').value;
     addToCart(cartButton);
   });
 
+  // Setup wishlist button with state
   const wishButton = document.getElementById('detailWishlist');
-  Object.assign(wishButton.dataset, { id, name: product.name, price: product.price, image: product.image });
-  wishButton.addEventListener('click', () => addToWishlist(wishButton));
+  Object.assign(wishButton.dataset, { id: id, name: product.name, price: product.price, image: product.image });
+  
+  // Check if product is already in wishlist
+  const wishlist = getStoredList(WISH_KEY);
+  const isWished = wishlist.some(function(item) {
+    return item.id === id;
+  });
+  
+  // Set initial heart state with text - HIGHLIGHTED
+  if (isWished) {
+    wishButton.innerHTML = '♥ <span style="font-weight:700;">Wishlist</span>';
+    wishButton.classList.add('wished');
+  } else {
+    wishButton.innerHTML = '♡ <span style="font-weight:700;">Wishlist</span>';
+    wishButton.classList.remove('wished');
+  }
+  
+  wishButton.addEventListener('click', function() {
+    toggleWishlist(wishButton);
+    // Update button text after toggle
+    const wishlist = getStoredList(WISH_KEY);
+    const isNowWished = wishlist.some(function(item) {
+      return item.id === id;
+    });
+    if (isNowWished) {
+      wishButton.innerHTML = '♥ <span style="font-weight:700;">Wishlist</span>';
+      wishButton.classList.add('wished');
+    } else {
+      wishButton.innerHTML = '♡ <span style="font-weight:700;">Wishlist</span>';
+      wishButton.classList.remove('wished');
+    }
+  });
 
-  document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', () => {
-      document.querySelectorAll('.tab-button').forEach(item => item.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+  // Tab buttons
+  document.querySelectorAll('.tab-button').forEach(function(button) {
+    button.addEventListener('click', function() {
+      document.querySelectorAll('.tab-button').forEach(function(item) {
+        item.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(panel) {
+        panel.classList.add('hidden');
+      });
       button.classList.add('active');
       document.getElementById(button.dataset.tab).classList.remove('hidden');
     });
