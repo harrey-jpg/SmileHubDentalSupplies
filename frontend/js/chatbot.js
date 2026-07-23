@@ -1,29 +1,13 @@
-const chatbotResponses = [
-  { keywords: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'], response: 'Hello! Welcome to SmileHub Dental Supplies. How can I help you today?' },
-  { keywords: ['product', 'catalog', 'shop', 'buy', 'dental'], response: 'We offer a wide range of dental products across categories like Oral Care, Instruments, PPE, Restorative, Disposables, and more. You can browse our full catalog at the Products page!' },
-  { keywords: ['toothbrush', 'toothpaste', 'mouthwash', 'floss', 'oral care'], response: 'Our Oral Care category includes toothbrushes, toothpaste, mouthwash, and dental floss from trusted brands like SmilePro, Dentiva, and Oracare. Check them out in our Products page!' },
-  { keywords: ['price', 'cost', 'how much', 'cheap', 'expensive'], response: 'Our products range from ₱99 for dental floss to premium equipment like dental chairs. You can see the exact prices on each product page or in the catalog.' },
-  { keywords: ['stock', 'available', 'in stock', 'availability'], response: 'Stock levels are displayed on each product card and product detail page. Most items have plenty of stock, but high-demand items may run low.' },
-  { keywords: ['order', 'orders', 'my order', 'purchase', 'checkout'], response: 'You can view your order history on the Orders page. Once you check out, orders are saved and marked as "Processing." We also send a confirmation toast message!' },
-  { keywords: ['shipping', 'delivery', 'ship', 'free shipping', 'metro manila'], response: 'We offer free shipping on orders over ₱3,000! Standard shipping within Metro Manila costs ₱150. Delivery runs Monday through Saturday.' },
-  { keywords: ['return', 'refund', 'exchange', 'cancel'], response: 'For return and exchange inquiries, please check our FAQ page or contact us through the Contact page. We aim to resolve issues quickly!' },
-  { keywords: ['payment', 'pay', 'vat', 'tax'], response: 'We accept various payment methods available at checkout. A 12% VAT is applied to all orders, and the total is shown before you confirm.' },
-  { keywords: ['wishlist', 'save', 'favorite'], response: 'You can save products to your wishlist by clicking the heart icon on any product card. View your saved items on the Wishlist page!' },
-  { keywords: ['cart', 'add to cart', 'shopping cart', 'bag'], response: 'To add items to your cart, click the "Add to Cart" button on any product. You can review your cart, adjust quantities, or remove items on the Cart page.' },
-  { keywords: ['account', 'login', 'register', 'sign in', 'sign up', 'profile'], response: 'You can register a new account or log in from the Login page. Once logged in, you can manage your profile, track orders, and use the cart and wishlist.' },
-  { keywords: ['admin', 'dashboard', 'manage'], response: 'The Admin Dashboard is available to admin accounts only. It includes KPIs, product management, order views, and more.' },
-  { keywords: ['contact', 'support', 'help', 'email', 'phone'], response: 'You can reach us through the Contact page, or email us at support@smilehub.ph. We\'re happy to assist with any concerns!' },
-  { keywords: ['about', 'company', 'smilehub'], response: 'SmileHub Dental Supplies is your reliable online dental supply partner for clinics, professionals, and students across the Philippines. This project is an academic frontend demo.' },
-  { keywords: ['developer', 'who made', 'team', 'creator'], response: 'SmileHub was built by a student team: Harry Barasona (Frontend), Yuan Coyyao (UI/UX), Giann Ed Louise Garcia (Backend), Nikko Pensocas (Frontend), and Marck Jarrel Queling (Project Lead). Check the Developers page for more info!' },
-  { keywords: ['coupon', 'discount', 'promo', 'sale', 'voucher'], response: 'Try the coupon code "SMILE10" at checkout for a discount! (Note: this is a demo feature.)' },
-  { keywords: ['thank', 'thanks', 'appreciate'], response: 'You\'re welcome! If you have more questions, feel free to ask. Happy shopping at SmileHub! 😊' }
-];
+// chatbot.js - GPT-API-free Version (No API Key Needed!)
+// Uses free DeepSeek API via chatanywhere.tech
 
-const fallbackResponse = 'I\'m not sure about that, but I can help with products, orders, shipping, returns, and more! Try asking about our catalog, cart, or account.';
+const API_URL = "https://api.chatanywhere.tech/v1/chat/completions";
+const MODEL_NAME = "deepseek-v3.2"; // or "deepseek-r1", "deepseek-v4"
 
 let chatVisible = false;
 let chatHistory = [];
 
+// --- INITIALIZATION ---
 function initChatbot() {
   const chatHTML = `
     <div class="chatbot-button" id="chatbotButton" title="Chat with SmileBot">💬</div>
@@ -51,11 +35,18 @@ function initChatbot() {
   document.getElementById('chatbotButton').addEventListener('click', toggleChat);
   document.getElementById('chatbotClose').addEventListener('click', toggleChat);
   document.getElementById('chatbotSend').addEventListener('click', sendMessage);
-  document.getElementById('chatbotInput').addEventListener('keydown', function (e) {
+  document.getElementById('chatbotInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') sendMessage();
   });
+
+  if (chatHistory.length === 0) {
+    setTimeout(function() {
+      addBotMessage("Hi there! 😁 I'm SmileBot, powered by DeepSeek AI. Ask me about products, orders, shipping, or anything about SmileHub!");
+    }, 500);
+  }
 }
 
+// --- TOGGLE CHAT ---
 function toggleChat() {
   chatVisible = !chatVisible;
   const panel = document.getElementById('chatbotPanel');
@@ -66,13 +57,14 @@ function toggleChat() {
   if (chatVisible) {
     renderMessages();
     document.getElementById('chatbotInput').focus();
-    if (!document.querySelector('.chatbot-message.bot')) {
-      addBotMessage('Hi there! 👋 I\'m SmileBot, your AI assistant. Ask me about products, orders, shipping, or anything about SmileHub!');
+    if (!document.querySelector('.chatbot-message.bot') && chatHistory.length === 0) {
+      addBotMessage("Hi there! 😁 I'm SmileBot, powered by DeepSeek AI. Ask me about products, orders, shipping, or anything about SmileHub!");
     }
   }
 }
 
-function sendMessage() {
+// --- SEND MESSAGE ---
+async function sendMessage() {
   const input = document.getElementById('chatbotInput');
   const text = input.value.trim();
   if (!text) return;
@@ -82,13 +74,60 @@ function sendMessage() {
 
   const typingDiv = showTyping();
 
-  setTimeout(function () {
+  try {
+    // Build conversation context
+    const messages = [
+      { role: "system", content: "You are SmileBot, a helpful assistant for SmileHub Dental Supplies. Answer questions about dental products, orders, shipping, and the website. Keep responses friendly, informative, and concise." }
+    ];
+
+    const recentHistory = chatHistory.slice(-10);
+    for (const msg of recentHistory) {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      });
+    }
+
+    messages.push({ role: "user", content: text });
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 500
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+    
     typingDiv.remove();
-    const reply = getResponse(text);
     addBotMessage(reply);
-  }, 400 + Math.random() * 600);
+
+  } catch (error) {
+    console.error("API error:", error);
+    typingDiv.remove();
+    
+    let errorMessage = "I'm sorry, I'm having trouble connecting right now. ";
+    if (error.message && error.message.includes('429')) {
+      errorMessage = "I'm sorry, I've reached the daily limit for today. Try again tomorrow! 🥺";
+    } else {
+      errorMessage += "Please try again in a moment. 🙏";
+    }
+    addBotMessage(errorMessage);
+  }
 }
 
+// --- ADD MESSAGES ---
 function addUserMessage(text) {
   const container = document.getElementById('chatbotMessages');
   const div = document.createElement('div');
@@ -121,20 +160,6 @@ function showTyping() {
   return div;
 }
 
-function getResponse(message) {
-  const lower = message.toLowerCase();
-
-  for (const entry of chatbotResponses) {
-    for (const keyword of entry.keywords) {
-      if (lower.includes(keyword)) {
-        return entry.response;
-      }
-    }
-  }
-
-  return fallbackResponse;
-}
-
 function renderMessages() {
   const container = document.getElementById('chatbotMessages');
   container.innerHTML = '';
@@ -157,4 +182,5 @@ function saveHistory() {
   }
 }
 
+// --- INIT ---
 document.addEventListener('DOMContentLoaded', initChatbot);
