@@ -6,6 +6,10 @@
     <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
     <title>Home | SmileHub Dental Supplies</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
     <script src="js/auth.js" defer></script>
   </head>
   <body class="">
@@ -288,38 +292,31 @@
       </div>
     </footer>
     <script src="js/common.js"></script>
+    <script src="js/firestore-data.js"></script>
     <script src="js/chatbot.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // --- CMS DATA ---
-      try {
-        var cms = JSON.parse(localStorage.getItem('smilehub_cms_live') || '{}');
-        if (cms.heroHeadline) {
-          var h1 = document.querySelector('.hero h1');
-          if (h1) h1.textContent = cms.heroHeadline;
-        }
-        if (cms.heroSubtitle) {
-          var p = document.querySelector('.hero p');
-          if (p) p.textContent = cms.heroSubtitle;
-        }
-        if (cms.heroCta) {
-          var cta = document.querySelector('.hero-actions .btn-primary');
-          if (cta) cta.textContent = cms.heroCta;
-        }
-        if (cms.promoTtext) {
-          var promoP = document.querySelector('.promo p');
-          if (promoP) promoP.innerHTML = promoP.innerHTML.replace(/Free shipping[^<]*/, cms.promoTtext);
-        }
-      } catch(e) {}
+      var cms = SmileHubStorage.get('smilehub_cms_live', {});
+      if (cms.heroHeadline) {
+        var h1 = document.querySelector('.hero h1');
+        if (h1) h1.textContent = cms.heroHeadline;
+      }
+      if (cms.heroSubtitle) {
+        var p = document.querySelector('.hero p');
+        if (p) p.textContent = cms.heroSubtitle;
+      }
+      if (cms.heroCta) {
+        var cta = document.querySelector('.hero-actions .btn-primary');
+        if (cta) cta.textContent = cms.heroCta;
+      }
+      if (cms.promoTtext) {
+        var promoP = document.querySelector('.promo p');
+        if (promoP) promoP.innerHTML = promoP.innerHTML.replace(/Free shipping[^<]*/, cms.promoTtext);
+      }
 
       // --- DYNAMIC PRODUCTS ---
       function renderHomeProducts() {
-        var products = [];
-        try {
-          var data = localStorage.getItem('smilehub_products');
-          if (data) products = JSON.parse(data);
-        } catch(e) {}
-        if (products.length === 0) return;
+        SmileHubData.getProducts(function(products) {
 
         var categoryImages = {
           'Oral Care': 'assets/products/oral-care.svg', 'Instruments': 'assets/products/instrument.svg',
@@ -364,6 +361,7 @@
         // Re-bind cart and wishlist events
         if (window.SmileHubCart) window.SmileHubCart.init();
         if (window.SmileHubWishlist) window.SmileHubWishlist.init();
+      });
       }
 
       renderHomeProducts();

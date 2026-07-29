@@ -56,27 +56,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- LOAD PRODUCTS ---
   function loadProducts() {
-    let saved = null;
-    try {
-      const data = localStorage.getItem('smilehub_products');
-      if (data) {
-        saved = JSON.parse(data);
-      }
-    } catch (e) {}
-    
-    if (!saved || saved.length === 0) {
-      saved = defaultProducts;
-      saveProducts(saved);
+    var cached = SmileHubStorage.get('smilehub_products_cache', null);
+    if (cached && cached.length > 0) {
+      products = cached;
     }
-    return saved;
+    SmileHubData.getProducts(function(data) {
+      products = data;
+      SmileHubStorage.set('smilehub_products_cache', data);
+      renderProducts();
+      updateDashboard();
+    });
+    return products || [];
   }
 
-  function saveProducts(data) {
-    localStorage.setItem('smilehub_products', JSON.stringify(data));
+  function saveProducts(data, callback) {
     products = data;
+    SmileHubStorage.set('smilehub_products_cache', data);
+    SmileHubData.saveProducts(data, callback);
   }
 
-  products = loadProducts();
+  products = [];
 
   // --- DOM REFS ---
   const formBox = document.getElementById('productFormBox');
@@ -661,23 +660,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- ORDERS ---
   function getOrders() {
-    let orders = [];
-    try {
-      const saved = localStorage.getItem('smilehub_orders');
-      if (saved) orders = JSON.parse(saved);
-    } catch (e) {}
-    if (!orders || orders.length === 0) {
-      orders = [
-        { number: 'SH-2026031', customer: 'Maria Santos', email: 'maria@email.com', date: new Date().toLocaleDateString(), total: 2743.20, items: [{ name: 'ProClean Toothbrush', quantity: 2, price: 189 }, { name: 'Nitrile Gloves', quantity: 1, price: 399 }], status: 'Pending', address: '123 Sample St, Quezon City' },
-        { number: 'SH-2026030', customer: 'BrightSmile Clinic', email: 'clinic@brightsmile.com', date: new Date(Date.now() - 86400000).toLocaleDateString(), total: 899.00, items: [{ name: 'Composite Resin A2', quantity: 1, price: 899 }], status: 'Delivered', address: '456 Dental Ave, Makati' },
-        { number: 'SH-2026029', customer: 'John Dela Cruz', email: 'john@email.com', date: new Date(Date.now() - 172800000).toLocaleDateString(), total: 2345.50, items: [{ name: 'SonicWave Toothbrush', quantity: 1, price: 1299 }, { name: 'MintShield Toothpaste', quantity: 3, price: 159 }], status: 'Delivered', address: '789 Health St, Mandaluyong' }
-      ];
-      localStorage.setItem('smilehub_orders', JSON.stringify(orders));
-    }
-    return orders;
+    var cached = SmileHubStorage.get('smilehub_orders', []);
+    if (cached.length > 0) return cached;
+    var defaults = [
+      { number: 'SH-2026031', customer: 'Maria Santos', email: 'maria@email.com', date: new Date().toLocaleDateString(), total: 2743.20, items: [{ name: 'ProClean Toothbrush', quantity: 2, price: 189 }, { name: 'Nitrile Gloves', quantity: 1, price: 399 }], status: 'Pending', address: '123 Sample St, Quezon City' },
+      { number: 'SH-2026030', customer: 'BrightSmile Clinic', email: 'clinic@brightsmile.com', date: new Date(Date.now() - 86400000).toLocaleDateString(), total: 899.00, items: [{ name: 'Composite Resin A2', quantity: 1, price: 899 }], status: 'Delivered', address: '456 Dental Ave, Makati' },
+      { number: 'SH-2026029', customer: 'John Dela Cruz', email: 'john@email.com', date: new Date(Date.now() - 172800000).toLocaleDateString(), total: 2345.50, items: [{ name: 'SonicWave Toothbrush', quantity: 1, price: 1299 }, { name: 'MintShield Toothpaste', quantity: 3, price: 159 }], status: 'Delivered', address: '789 Health St, Mandaluyong' }
+    ];
+    SmileHubStorage.set('smilehub_orders', defaults);
+    SmileHubData.saveOrders(defaults);
+    return defaults;
   }
 
-  function saveOrders(data) { localStorage.setItem('smilehub_orders', JSON.stringify(data)); }
+  function saveOrders(data) {
+    SmileHubStorage.set('smilehub_orders', data);
+    SmileHubData.saveOrders(data);
+  }
 
   function renderOrders(filter) {
     const body = document.getElementById('ordersBody');
@@ -992,22 +990,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function loadCms() {
-    var data = null;
-    try {
-      var saved = localStorage.getItem('smilehub_cms');
-      if (saved) data = JSON.parse(saved);
-    } catch(e) {}
-    if (!data) {
-      data = getDefaultCms();
-      localStorage.setItem('smilehub_cms', JSON.stringify(data));
-    }
-    return data;
+    var cached = SmileHubStorage.get('smilehub_cms_live', null);
+    if (cached) return cached;
+    var defaults = getDefaultCms();
+    SmileHubStorage.set('smilehub_cms_live', defaults);
+    return defaults;
   }
 
   function saveCms(data) {
-    localStorage.setItem('smilehub_cms', JSON.stringify(data));
-    // Also apply to homepage by storing in a shared key
-    try { localStorage.setItem('smilehub_cms_live', JSON.stringify(data)); } catch(e) {}
+    SmileHubStorage.set('smilehub_cms_live', data);
+    SmileHubData.saveCms(data);
   }
 
   function renderCms() {
@@ -1498,9 +1490,8 @@ document.addEventListener('DOMContentLoaded', function() {
         admin: name,
         action: action
       });
-      // Keep max 200 entries
       if (logs.length > 200) logs = logs.slice(0, 200);
-      localStorage.setItem('smilehub_audit_log', JSON.stringify(logs));
+      SmileHubStorage.set('smilehub_audit_log', logs);
       // Re-render if audit section is visible
       var auditSection = document.getElementById('audit');
       if (auditSection && auditSection.style.display !== 'none') {
@@ -1511,8 +1502,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function getAuditLogs() {
     try {
-      var data = localStorage.getItem('smilehub_audit_log');
-      if (data) return JSON.parse(data);
+      var data = SmileHubStorage.get('smilehub_audit_log', null);
     } catch(e) {}
     // Seed some sample entries
     var samples = [

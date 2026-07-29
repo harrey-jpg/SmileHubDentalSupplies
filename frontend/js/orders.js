@@ -1,7 +1,19 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const table = document.getElementById('ordersBody');
-  const orders = getStoredList('smilehub_simple_orders');
+document.addEventListener('DOMContentLoaded', function() {
+  var table = document.getElementById('ordersBody');
+  if (!table) return;
   if (new URLSearchParams(location.search).get('success')) showToast('Payment successful. Order created.');
-  if (!orders.length) return;
-  table.innerHTML = orders.map(order => `<tr><td>${order.number}</td><td>${order.date}</td><td>${money(order.total)}</td><td><span class="status processing">${order.status}</span></td><td><button class="btn btn-light" onclick="window.print()">Invoice</button></td></tr>`).join('');
+
+  SmileHubData.getOrders(function(orders) {
+    var filtered = orders.filter(function(o) {
+      var user = getCachedUser();
+      return user && (o.email === user.email || o.customer === user.name);
+    });
+    if (filtered.length === 0) {
+      table.innerHTML = '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No orders yet.</td></tr>';
+      return;
+    }
+    table.innerHTML = filtered.map(function(order) {
+      return '<tr><td>' + (order.number || order.orderNumber) + '</td><td>' + (order.date || '') + '</td><td>' + money(order.total || 0) + '</td><td><span class="status processing">' + (order.status || 'Pending') + '</span></td><td><button class="btn btn-light" onclick="window.print()">Invoice</button></td></tr>';
+    }).join('');
+  });
 });

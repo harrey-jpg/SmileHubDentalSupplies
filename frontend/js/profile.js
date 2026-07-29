@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const profileForm = document.getElementById('profileForm');
-  const addressForm = document.getElementById('addressForm');
-  const passwordForm = document.getElementById('passwordForm');
+  var profileForm = document.getElementById('profileForm');
+  var addressForm = document.getElementById('addressForm');
+  var passwordForm = document.getElementById('passwordForm');
 
   if (!profileForm || !window.SmileHubAuth) return;
 
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function loadProfile() {
-  const account = window.SmileHubAuth.getCurrentAccount();
+  var account = window.SmileHubAuth.getCurrentAccount();
   if (!account) return;
 
   document.getElementById('profileFirstName').value = account.firstName || '';
@@ -22,77 +22,72 @@ function loadProfile() {
   document.getElementById('profilePhone').value = account.phone || '';
   document.getElementById('profileAddress').value = account.address || '';
 
-  const profileName = document.getElementById('profileName');
+  var profileName = document.getElementById('profileName');
   if (profileName) profileName.textContent = account.name || 'Customer';
 }
 
 function saveProfileInformation(event) {
   event.preventDefault();
 
-  const currentAccount = window.SmileHubAuth.getCurrentAccount();
-  const accounts = window.SmileHubAuth.getAccounts();
+  var currentAccount = window.SmileHubAuth.getCurrentAccount();
+  var firstName = document.getElementById('profileFirstName').value.trim();
+  var lastName = document.getElementById('profileLastName').value.trim();
+  var email = document.getElementById('profileEmail').value.trim().toLowerCase();
+  var phone = document.getElementById('profilePhone').value.trim();
+  var user = firebase.auth().currentUser;
+  if (!user) return;
 
-  const firstName = document.getElementById('profileFirstName').value.trim();
-  const lastName = document.getElementById('profileLastName').value.trim();
-  const email = document.getElementById('profileEmail').value.trim().toLowerCase();
-  const phone = document.getElementById('profilePhone').value.trim();
-
-  const emailUsedByAnotherAccount = accounts.some(function (account) {
-    return account.email.toLowerCase() === email && account.email !== currentAccount.email;
-  });
-
-  if (emailUsedByAnotherAccount) {
-    showProfileMessage('That email is already used by another account.', true);
-    return;
-  }
-
-  const accountIndex = accounts.findIndex(function (account) {
-    return account.email === currentAccount.email;
-  });
-
-  accounts[accountIndex].firstName = firstName;
-  accounts[accountIndex].lastName = lastName;
-  accounts[accountIndex].name = firstName + ' ' + lastName;
-  accounts[accountIndex].email = email;
-  accounts[accountIndex].phone = phone;
-
-  window.SmileHubAuth.saveAccounts(accounts);
-  window.SmileHubAuth.saveLoggedInUser({
-    name: accounts[accountIndex].name,
+  firebase.firestore().collection('users').doc(user.uid).update({
+    firstName: firstName,
+    lastName: lastName,
+    displayName: firstName + ' ' + lastName,
     email: email,
-    role: 'customer'
+    phone: phone
+  }).then(function() {
+    var cached = getCachedUser();
+    if (cached) {
+      cached.firstName = firstName;
+      cached.lastName = lastName;
+      cached.name = firstName + ' ' + lastName;
+      cached.email = email;
+      cached.phone = phone;
+      cacheUser(cached);
+    }
+    var nameEl = document.getElementById('profileName');
+    if (nameEl) nameEl.textContent = firstName + ' ' + lastName;
+    showProfileMessage('Profile information saved.');
+  }).catch(function(error) {
+    showProfileMessage('Error saving profile: ' + error.message, true);
   });
-
-  document.getElementById('profileName').textContent = accounts[accountIndex].name;
-  showProfileMessage('Profile information saved.');
 }
 
 function saveAddress(event) {
   event.preventDefault();
 
-  const currentAccount = window.SmileHubAuth.getCurrentAccount();
-  const accounts = window.SmileHubAuth.getAccounts();
-  const accountIndex = accounts.findIndex(function (account) {
-    return account.email === currentAccount.email;
-  });
+  var address = document.getElementById('profileAddress').value.trim();
+  var user = firebase.auth().currentUser;
+  if (!user) return;
 
-  accounts[accountIndex].address = document.getElementById('profileAddress').value.trim();
-  window.SmileHubAuth.saveAccounts(accounts);
-  showProfileMessage('Delivery address updated.');
+  firebase.firestore().collection('users').doc(user.uid).update({
+    address: address
+  }).then(function() {
+    var cached = getCachedUser();
+    if (cached) {
+      cached.address = address;
+      cacheUser(cached);
+    }
+    showProfileMessage('Delivery address updated.');
+  }).catch(function(error) {
+    showProfileMessage('Error saving address: ' + error.message, true);
+  });
 }
 
 function changePassword(event) {
   event.preventDefault();
 
-  const currentAccount = window.SmileHubAuth.getCurrentAccount();
-  const currentPassword = document.getElementById('currentPassword').value;
-  const newPassword = document.getElementById('newPassword').value;
-  const confirmPassword = document.getElementById('confirmPassword').value;
-
-  if (currentPassword !== currentAccount.password) {
-    showProfileMessage('The current password is incorrect.', true);
-    return;
-  }
+  var currentPassword = document.getElementById('currentPassword').value;
+  var newPassword = document.getElementById('newPassword').value;
+  var confirmPassword = document.getElementById('confirmPassword').value;
 
   if (newPassword.length < 6) {
     showProfileMessage('The new password must contain at least 6 characters.', true);
@@ -104,19 +99,26 @@ function changePassword(event) {
     return;
   }
 
-  const accounts = window.SmileHubAuth.getAccounts();
-  const accountIndex = accounts.findIndex(function (account) {
-    return account.email === currentAccount.email;
-  });
+  var user = firebase.auth().currentUser;
+  if (!user) return;
 
-  accounts[accountIndex].password = newPassword;
-  window.SmileHubAuth.saveAccounts(accounts);
-  event.target.reset();
-  showProfileMessage('Password changed successfully.');
+  var credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+  user.reauthenticateWithCredential(credential).then(function() {
+    return user.updatePassword(newPassword);
+  }).then(function() {
+    event.target.reset();
+    showProfileMessage('Password changed successfully.');
+  }).catch(function(error) {
+    if (error.code === 'auth/wrong-password') {
+      showProfileMessage('The current password is incorrect.', true);
+    } else {
+      showProfileMessage('Error: ' + error.message, true);
+    }
+  });
 }
 
 function showProfileMessage(message, isError) {
-  const messageBox = document.getElementById('profileMessage');
+  var messageBox = document.getElementById('profileMessage');
   messageBox.textContent = message;
   messageBox.classList.remove('hidden');
   messageBox.classList.toggle('error', Boolean(isError));

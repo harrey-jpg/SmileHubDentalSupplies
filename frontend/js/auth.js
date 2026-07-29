@@ -1,11 +1,11 @@
-/*
-  Simple frontend login system for the class demo.
-  It uses browser storage only. Real security will be added with the backend.
-*/
-
-const AUTH_KEY = 'smilehub_logged_in_user';
-const ACCOUNTS_KEY = 'smilehub_accounts';
+const DEMO_ACCOUNTS = {
+  'admin@smilehub.ph': { role: 'admin', firstName: 'Admin', lastName: 'User' },
+  'staff@smilehub.ph': { role: 'staff', firstName: 'Staff', lastName: 'User' },
+  'super@smilehub.ph': { role: 'superadmin', firstName: 'Super', lastName: 'Admin' },
+  'customer@smilehub.ph': { role: 'customer', firstName: 'Demo', lastName: 'Customer' }
+};
 const RETURN_KEY = 'smilehub_return_page';
+const AUTH_KEY = 'smilehub_logged_in_user';
 const WINDOW_STATE_PREFIX = 'SMILEHUB_STATE:';
 
 const PUBLIC_PAGES = [
@@ -17,14 +17,8 @@ const PUBLIC_PAGES = [
 
 const currentPage = location.pathname.split('/').pop() || 'index.html';
 
-/*
-  window.name is used as a fallback when the pages are opened directly
-  from a folder. Some browsers do not share localStorage properly between
-  separate file:// pages.
-*/
 function readWindowState() {
   if (!window.name.startsWith(WINDOW_STATE_PREFIX)) return {};
-
   try {
     return JSON.parse(window.name.slice(WINDOW_STATE_PREFIX.length)) || {};
   } catch (error) {
@@ -39,11 +33,9 @@ function writeWindowState(state) {
 const SmileHubStorage = {
   get(key, fallbackValue) {
     const windowState = readWindowState();
-
     if (Object.prototype.hasOwnProperty.call(windowState, key)) {
       return windowState[key];
     }
-
     try {
       const savedValue = localStorage.getItem(key);
       if (savedValue !== null) {
@@ -52,159 +44,250 @@ const SmileHubStorage = {
         writeWindowState(windowState);
         return parsedValue;
       }
-    } catch (error) {
-      // The window.name fallback will still work in the same browser tab.
-    }
-
+    } catch (error) {}
     return fallbackValue;
   },
-
   set(key, value) {
     const windowState = readWindowState();
     windowState[key] = value;
     writeWindowState(windowState);
-
     try {
       localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-      // Ignore storage errors because window.name already saved the value.
-    }
+    } catch (error) {}
   },
-
   remove(key) {
     const windowState = readWindowState();
-    // Keep a null marker so another file:// page cannot restore stale data.
     windowState[key] = null;
     writeWindowState(windowState);
-
     try {
       localStorage.removeItem(key);
-    } catch (error) {
-      // Nothing else is needed.
-    }
+    } catch (error) {}
   }
 };
 
 window.SmileHubStorage = SmileHubStorage;
 
-function defaultAccounts() {
-  return [
-    {
-      firstName: 'SmileHub',
-      lastName: 'Customer',
-      name: 'SmileHub Customer',
-      email: 'customer@smilehub.ph',
-      password: 'demo123',
-      phone: '0917 123 4567',
-      address: '123 Sample Street, Quezon City, Metro Manila',
-      role: 'customer'
-    },
-    {
-      firstName: 'SmileHub',
-      lastName: 'Admin',
-      name: 'SmileHub Admin',
-      email: 'admin@smilehub.ph',
-      password: 'admin123',
-      phone: '',
-      address: '',
-      role: 'admin'
-    },
-    {
-      firstName: 'SmileHub',
-      lastName: 'Staff',
-      name: 'SmileHub Staff',
-      email: 'staff@smilehub.ph',
-      password: 'staff123',
-      phone: '',
-      address: '',
-      role: 'staff'
-    },
-    {
-      firstName: 'SmileHub',
-      lastName: 'Super Admin',
-      name: 'SmileHub Super Admin',
-      email: 'super@smilehub.ph',
-      password: 'super123',
-      phone: '',
-      address: '',
-      role: 'superadmin'
-    }
-  ];
+function getCachedUser() {
+  var fbUser = firebase.auth().currentUser;
+  if (!fbUser) return null;
+  try {
+    var cached = JSON.parse(sessionStorage.getItem(AUTH_KEY));
+    if (cached) return cached;
+  } catch(e) {}
+  return {
+    uid: fbUser.uid,
+    name: fbUser.email,
+    email: fbUser.email,
+    role: 'customer',
+    phone: '',
+    address: '',
+    firstName: '',
+    lastName: '',
+    password: ''
+  };
 }
 
-function getAccounts() {
-  let accounts = SmileHubStorage.get(ACCOUNTS_KEY, null);
-
-  if (!Array.isArray(accounts)) {
-    const oldUsers = SmileHubStorage.get('smilehub_registered_users', []);
-    accounts = defaultAccounts();
-
-    if (Array.isArray(oldUsers)) {
-      oldUsers.forEach(function (user) {
-        if (!accounts.some(function (account) { return account.email === user.email; })) {
-          accounts.push(user);
-        }
-      });
-    }
-
-    SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+function cacheUser(user) {
+  if (user) {
+    sessionStorage.setItem(AUTH_KEY, JSON.stringify(user));
   } else {
-    // Ensure all default accounts exist (handles new roles added later)
-    const defaults = defaultAccounts();
-    let changed = false;
-    defaults.forEach(function (def) {
-      if (!accounts.some(function (a) { return a.email === def.email; })) {
-        accounts.push(def);
-        changed = true;
-      }
-    });
-    if (changed) {
-      SmileHubStorage.set(ACCOUNTS_KEY, accounts);
-    }
+    sessionStorage.removeItem(AUTH_KEY);
   }
-
-  return accounts;
-}
-
-function saveAccounts(accounts) {
-  SmileHubStorage.set(ACCOUNTS_KEY, accounts);
 }
 
 function getLoggedInUser() {
-  return SmileHubStorage.get(AUTH_KEY, null);
-}
-
-function saveLoggedInUser(user) {
-  SmileHubStorage.set(AUTH_KEY, user);
+  return getCachedUser();
 }
 
 function getCurrentAccount() {
-  const user = getLoggedInUser();
-  if (!user) return null;
+  return getCachedUser();
+}
 
-  return getAccounts().find(function (account) {
-    return account.email === user.email;
-  }) || null;
+async function fetchUserProfile(uid) {
+  try {
+    const doc = await firebase.firestore().collection('users').doc(uid).get();
+    return doc.exists ? doc.data() : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+var authReady = false;
+
+firebase.auth().onAuthStateChanged(function(firebaseUser) {
+  if (firebaseUser) {
+    var demo = DEMO_ACCOUNTS[firebaseUser.email] || {};
+    cacheUser({
+      uid: firebaseUser.uid,
+      name: firebaseUser.email,
+      email: firebaseUser.email,
+      role: demo.role || 'customer',
+      phone: '',
+      address: '',
+      firstName: demo.firstName || '',
+      lastName: demo.lastName || '',
+      password: ''
+    });
+    authReady = true;
+    afterAuthReady();
+    fetchUserProfile(firebaseUser.uid).then(function(profile) {
+      if (profile) {
+        cacheUser({
+          uid: firebaseUser.uid,
+          name: profile.displayName || firebaseUser.email,
+          email: firebaseUser.email,
+          role: profile.role || 'customer',
+          phone: profile.phone || '',
+          address: profile.address || '',
+          firstName: profile.firstName || '',
+          lastName: profile.lastName || '',
+          password: ''
+        });
+      }
+    }).catch(function() {});
+  } else {
+    if (authReady) {
+      cacheUser(null);
+      afterAuthReady();
+    } else {
+      setTimeout(function() {
+        if (!firebase.auth().currentUser) {
+          authReady = true;
+          cacheUser(null);
+          afterAuthReady();
+        }
+      }, 1000);
+    }
+  }
+});
+
+function afterAuthReady() {
+  protectPage();
+  updateAccountLink();
+  protectLinksForGuests();
+  document.dispatchEvent(new Event('authReady'));
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+  var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  var password = document.getElementById('loginPassword').value;
+
+  firebase.auth().signInWithEmailAndPassword(email, password).then(function() {
+    showAuthMessage('Login successful! Redirecting...');
+
+    setTimeout(function() {
+      var fbUser = firebase.auth().currentUser;
+      if (!fbUser) { location.href = 'homepage.html'; return; }
+
+      fetchUserProfile(fbUser.uid).then(function(profile) {
+        var role = (profile && profile.role) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].role) || 'customer';
+        var firstName = (profile && profile.firstName) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].firstName) || '';
+        var lastName = (profile && profile.lastName) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].lastName) || '';
+        cacheUser({
+          uid: fbUser.uid,
+          name: (profile && profile.displayName) || fbUser.email,
+          email: fbUser.email,
+          role: role,
+          phone: (profile && profile.phone) || '',
+          address: (profile && profile.address) || '',
+          firstName: firstName,
+          lastName: lastName,
+          password: ''
+        });
+
+        if (['admin', 'staff', 'superadmin'].includes(role)) {
+          location.href = 'admin.html';
+          return;
+        }
+        var returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
+        SmileHubStorage.remove(RETURN_KEY);
+        if (String(returnPage).startsWith('admin.html')) {
+          location.href = 'homepage.html';
+        } else {
+          location.href = returnPage || 'homepage.html';
+        }
+      }).catch(function() {
+        location.href = 'homepage.html';
+      });
+    }, 1200);
+  }).catch(function(error) {
+    var message = 'Login failed. Please try again.';
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      message = 'Incorrect email or password.';
+    } else if (error.code === 'auth/invalid-email') {
+      message = 'Enter a valid email address.';
+    } else if (error.code === 'auth/too-many-requests') {
+      message = 'Too many attempts. Please try again later.';
+    }
+    showAuthMessage(message, true);
+  });
+}
+
+function handleRegister(event) {
+  event.preventDefault();
+
+  var firstName = document.getElementById('registerFirstName').value.trim();
+  var lastName = document.getElementById('registerLastName').value.trim();
+  var email = document.getElementById('registerEmail').value.trim().toLowerCase();
+  var password = document.getElementById('registerPassword').value;
+
+  if (!firstName) { showAuthMessage('First name is required.', true); return; }
+  if (!lastName) { showAuthMessage('Last name is required.', true); return; }
+  if (!email) { showAuthMessage('Email is required.', true); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthMessage('Enter a valid email address.', true); return; }
+  if (!password) { showAuthMessage('Password is required.', true); return; }
+  if (password.length < 6) { showAuthMessage('Password must be at least 6 characters.', true); return; }
+
+  firebase.auth().createUserWithEmailAndPassword(email, password).then(function() {
+    showAuthMessage('Account created! Redirecting to products...');
+    cacheUser({
+      uid: firebase.auth().currentUser.uid,
+      name: email,
+      email: email,
+      role: 'customer',
+      phone: '',
+      address: '',
+      firstName: firstName,
+      lastName: lastName,
+      password: ''
+    });
+    setTimeout(function() {
+      location.href = 'products.html';
+    }, 1200);
+  }).catch(function(error) {
+    var message = 'Registration failed.';
+    if (error.code === 'auth/email-already-in-use') {
+      message = 'That email is already registered.';
+    } else if (error.code === 'auth/weak-password') {
+      message = 'Password is too weak.';
+    }
+    showAuthMessage(message, true);
+  });
 }
 
 function logoutUser() {
-  SmileHubStorage.remove(AUTH_KEY);
-  SmileHubStorage.remove(RETURN_KEY);
-  SmileHubStorage.remove('smilehub_simple_cart');
-  SmileHubStorage.remove('smilehub_simple_wishlist');
-  location.href = 'homepage.html';
+  firebase.auth().signOut().then(function() {
+    cacheUser(null);
+    SmileHubStorage.remove(RETURN_KEY);
+    SmileHubStorage.remove('smilehub_simple_cart');
+    SmileHubStorage.remove('smilehub_simple_wishlist');
+    location.href = 'homepage.html';
+  }).catch(function() {
+    location.href = 'homepage.html';
+  });
 }
 
 function requireLogin(returnPage) {
-  if (getLoggedInUser()) return true;
-
+  var user = getCachedUser();
+  if (user) return true;
   SmileHubStorage.set(RETURN_KEY, returnPage || currentPage + location.search);
   location.href = 'login.html?message=signin';
   return false;
 }
 
 function protectPage() {
-  const user = getLoggedInUser();
+  var user = getCachedUser();
 
   if (!PUBLIC_PAGES.includes(currentPage) && !user) {
     SmileHubStorage.set(RETURN_KEY, currentPage + location.search);
@@ -212,7 +295,7 @@ function protectPage() {
     return;
   }
 
-  const adminRoles = ['admin', 'staff', 'superadmin'];
+  var adminRoles = ['admin', 'staff', 'superadmin'];
   if (currentPage === 'admin.html' && (!user || !adminRoles.includes(user.role))) {
     location.replace('homepage.html?message=admin-only');
   }
@@ -224,166 +307,25 @@ function protectPage() {
 }
 
 function showAuthMessage(text, isError) {
-  let box = document.getElementById('authMessage');
-
+  var box = document.getElementById('authMessage');
   if (!box) {
     box = document.createElement('div');
     box.id = 'authMessage';
     box.className = 'auth-message';
-    const main = document.querySelector('main');
+    var main = document.querySelector('main');
     if (main) main.prepend(box);
   }
-
   box.textContent = text;
   box.classList.remove('hidden');
   box.classList.toggle('error', Boolean(isError));
 }
 
-function handleLogin(event) {
-  event.preventDefault();
-
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const password = document.getElementById('loginPassword').value;
-
-  const account = getAccounts().find(function (savedAccount) {
-    return savedAccount.email.toLowerCase() === email && savedAccount.password === password;
-  });
-
-  if (!account) {
-    showAuthMessage('Incorrect email or password.', true);
-    return;
-  }
-
-  saveLoggedInUser({
-    name: account.name,
-    email: account.email,
-    role: account.role
-  });
-
-  if (['admin', 'staff', 'superadmin'].includes(account.role)) {
-    location.href = 'admin.html';
-    return;
-  }
-
-  const returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
-  SmileHubStorage.remove(RETURN_KEY);
-
-  if (String(returnPage).startsWith('admin.html')) {
-    location.href = 'homepage.html';
-  } else {
-    location.href = returnPage || 'homepage.html';
-  }
-}
-
-function handleRegister(event) {
-  event.preventDefault();
-
-  const firstName = document.getElementById('registerFirstName').value.trim();
-  const lastName = document.getElementById('registerLastName').value.trim();
-  const email = document.getElementById('registerEmail').value.trim().toLowerCase();
-  const password = document.getElementById('registerPassword').value;
-
-  if (!firstName) {
-    showAuthMessage('First name is required.', true);
-    return;
-  }
-
-  if (!lastName) {
-    showAuthMessage('Last name is required.', true);
-    return;
-  }
-
-  if (!email) {
-    showAuthMessage('Email is required.', true);
-    return;
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showAuthMessage('Enter a valid email address.', true);
-    return;
-  }
-
-  if (!password) {
-    showAuthMessage('Password is required.', true);
-    return;
-  }
-
-  if (password.length < 6) {
-    showAuthMessage('Password must be at least 6 characters.', true);
-    return;
-  }
-
-  const accounts = getAccounts();
-
-  const emailExists = accounts.some(function (account) {
-    return account.email.toLowerCase() === email;
-  });
-
-  if (emailExists) {
-    showAuthMessage('That email is already registered.', true);
-    return;
-  }
-
-  const newAccount = {
-    firstName: firstName,
-    lastName: lastName,
-    name: firstName + ' ' + lastName,
-    email: email,
-    password: password,
-    phone: '',
-    address: '',
-    role: 'customer'
-  };
-
-  accounts.push(newAccount);
-  saveAccounts(accounts);
-  saveLoggedInUser({ name: newAccount.name, email: email, role: 'customer' });
-  location.href = 'products.html';
-}
-
-function protectLinksForGuests() {
-  if (getLoggedInUser()) return;
-
-  document.querySelectorAll('a[href]').forEach(function (link) {
-    const href = link.getAttribute('href');
-
-    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
-      return;
-    }
-
-    const pageName = href.split('?')[0].split('#')[0].split('/').pop();
-
-    if (pageName && pageName.endsWith('.html') && !PUBLIC_PAGES.includes(pageName)) {
-      link.addEventListener('click', function (event) {
-        event.preventDefault();
-        requireLogin(href);
-      });
-    }
-  });
-
-  document.querySelectorAll('form[action]').forEach(function (form) {
-    const action = form.getAttribute('action');
-    const pageName = action ? action.split('?')[0].split('/').pop() : '';
-
-    if (pageName && !PUBLIC_PAGES.includes(pageName)) {
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        const query = new URLSearchParams(new FormData(form)).toString();
-        requireLogin(action + (query ? '?' + query : ''));
-      });
-    }
-  });
-}
-
 function updateAccountLink() {
-  const user = getLoggedInUser();
-  const loginLinks = document.querySelectorAll('a[href="login.html"]');
-
+  var user = getCachedUser();
+  var loginLinks = document.querySelectorAll('a[href="login.html"]');
   if (!user) return;
-
-  loginLinks.forEach(function (link) {
+  loginLinks.forEach(function(link) {
     if (link.id === 'logoutButton' || link.classList.contains('logout-link')) return;
-
     if (['admin', 'staff', 'superadmin'].includes(user.role)) {
       link.href = 'admin.html';
       link.innerHTML = '⚙ <span class="text-label">Dashboard</span>';
@@ -394,46 +336,62 @@ function updateAccountLink() {
   });
 }
 
-protectPage();
+function protectLinksForGuests() {
+  if (getCachedUser()) return;
+  document.querySelectorAll('a[href]').forEach(function(link) {
+    var href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+    var pageName = href.split('?')[0].split('#')[0].split('/').pop();
+    if (pageName && pageName.endsWith('.html') && !PUBLIC_PAGES.includes(pageName)) {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        requireLogin(href);
+      });
+    }
+  });
+  document.querySelectorAll('form[action]').forEach(function(form) {
+    var action = form.getAttribute('action');
+    var pageName = action ? action.split('?')[0].split('/').pop() : '';
+    if (pageName && !PUBLIC_PAGES.includes(pageName)) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var query = new URLSearchParams(new FormData(form)).toString();
+        requireLogin(action + (query ? '?' + query : ''));
+      });
+    }
+  });
+}
 
 window.SmileHubAuth = {
   getLoggedInUser: getLoggedInUser,
   getCurrentAccount: getCurrentAccount,
-  getAccounts: getAccounts,
-  saveAccounts: saveAccounts,
-  saveLoggedInUser: saveLoggedInUser,
   requireLogin: requireLogin,
   logoutUser: logoutUser,
   showMessage: showAuthMessage
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-  getAccounts();
+document.addEventListener('DOMContentLoaded', function() {
+  if (getCachedUser()) updateAccountLink();
 
-  const message = new URLSearchParams(location.search).get('message');
-
+  var message = new URLSearchParams(location.search).get('message');
   if (message === 'signin') {
     showAuthMessage('Please sign in before using that feature.');
   }
-
   if (message === 'admin-only') {
     showAuthMessage('The admin dashboard is restricted to admin, staff, and super admin accounts.', true);
   }
 
-  updateAccountLink();
-  protectLinksForGuests();
-
-  const logoutButton = document.getElementById('logoutButton');
+  var logoutButton = document.getElementById('logoutButton');
   if (logoutButton) {
-    logoutButton.addEventListener('click', function (event) {
+    logoutButton.addEventListener('click', function(event) {
       event.preventDefault();
       logoutUser();
     });
   }
 
-  const loginForm = document.getElementById('loginForm');
+  var loginForm = document.getElementById('loginForm');
   if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
-  const registerForm = document.getElementById('registerForm');
+  var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
 });

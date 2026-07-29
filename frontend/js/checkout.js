@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   var cart = getStoredList(CART_KEY);
   var user = window.SmileHubAuth ? window.SmileHubAuth.getLoggedInUser() : null;
-  var fullAccount = user ? window.SmileHubAuth.getFullAccount() : null;
+  var fullAccount = user ? window.SmileHubAuth.getCurrentAccount() : null;
 
   // Prefill from logged-in user
   if (fullAccount) {
@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
       notes: needsQuote ? 'Contains high-value item(s) requiring quotation' : ''
     };
     orders.unshift(order);
-    saveStoredList('smilehub_orders', orders);
+    SmileHubStorage.set('smilehub_orders', orders);
+    SmileHubData.saveOrders(orders);
 
     // Also save to simple orders for backward compatibility
     var simpleOrders = getStoredList('smilehub_simple_orders');
