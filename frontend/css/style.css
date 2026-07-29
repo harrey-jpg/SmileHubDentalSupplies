@@ -533,3 +533,33 @@ body.dark.admin-body { background: #0d141a; }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; }
 }
+.kpi-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.kpi-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border-color: var(--blue);
+}
+
+.inventory-alert-item {
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 6px 0;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.inventory-alert-item:hover {
+  background: var(--sky);
+  border-color: var(--border);
+  transform: translateX(4px);
+}
+
+/* Hide chatbot on admin */
+.admin-body #chatbotWrapper {
+  display: none !important;
+}
