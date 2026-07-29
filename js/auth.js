@@ -301,12 +301,19 @@ function handleRegister(event) {
 }
 
 function logoutUser() {
-  cacheUser(null);
-  SmileHubStorage.remove(RETURN_KEY);
-  SmileHubStorage.remove('smilehub_simple_cart');
-  SmileHubStorage.remove('smilehub_simple_wishlist');
-  location.href = 'homepage.html';
-  firebase.auth().signOut().catch(function() {});
+  firebase.auth().signOut().then(function() {
+    cacheUser(null);
+    SmileHubStorage.remove(RETURN_KEY);
+    SmileHubStorage.remove('smilehub_simple_cart');
+    SmileHubStorage.remove('smilehub_simple_wishlist');
+    location.href = 'homepage.html';
+  }).catch(function() {
+    cacheUser(null);
+    SmileHubStorage.remove(RETURN_KEY);
+    SmileHubStorage.remove('smilehub_simple_cart');
+    SmileHubStorage.remove('smilehub_simple_wishlist');
+    location.href = 'homepage.html';
+  });
 }
 
 function requireLogin(returnPage) {
