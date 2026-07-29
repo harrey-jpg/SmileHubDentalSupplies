@@ -207,7 +207,9 @@ function handleLogin(event) {
   var email = document.getElementById('loginEmail').value.trim().toLowerCase();
   var password = document.getElementById('loginPassword').value;
 
-  firebase.auth().signInWithEmailAndPassword(email, password).then(function() {
+  firebase.auth().signOut().catch(function() {}).then(function() {
+    return firebase.auth().signInWithEmailAndPassword(email, password);
+  }).then(function() {
     showAuthMessage('Login successful! Redirecting...');
 
     setTimeout(function() {
@@ -301,19 +303,12 @@ function handleRegister(event) {
 }
 
 function logoutUser() {
-  firebase.auth().signOut().then(function() {
-    cacheUser(null);
-    SmileHubStorage.remove(RETURN_KEY);
-    SmileHubStorage.remove('smilehub_simple_cart');
-    SmileHubStorage.remove('smilehub_simple_wishlist');
-    location.href = 'homepage.html';
-  }).catch(function() {
-    cacheUser(null);
-    SmileHubStorage.remove(RETURN_KEY);
-    SmileHubStorage.remove('smilehub_simple_cart');
-    SmileHubStorage.remove('smilehub_simple_wishlist');
-    location.href = 'homepage.html';
-  });
+  cacheUser(null);
+  SmileHubStorage.remove(RETURN_KEY);
+  SmileHubStorage.remove('smilehub_simple_cart');
+  SmileHubStorage.remove('smilehub_simple_wishlist');
+  location.href = 'homepage.html';
+  firebase.auth().signOut().catch(function() {});
 }
 
 function requireLogin(returnPage) {
