@@ -278,40 +278,78 @@
         </section>
 
         <!-- ===== ORDERS SECTION ===== -->
-        <section class="grid grid-2 admin-section" id="orders" style="display:none;">
-          <article class="card form-card">
-            <h2>Recent Orders</h2>
-            <div class="table-wrap">
-              <table>
-                <tr>
-                  <th>Order</th>
-                  <th>Customer</th>
-                  <th>Status</th>
-                </tr>
-                <tr>
-                  <td>SH-2026031</td>
-                  <td>Maria Santos</td>
-                  <td><span class="status processing">Processing</span></td>
-                </tr>
-                <tr>
-                  <td>SH-2026030</td>
-                  <td>BrightSmile Clinic</td>
-                  <td><span class="status delivered">Delivered</span></td>
-                </tr>
-              </table>
+        <section class="admin-section" id="orders" style="display:none;">
+          <div class="admin-top">
+            <h2>📋 Order Management</h2>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <select id="orderStatusFilter" onchange="filterOrders()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);">
+                <option value="all">All Orders</option>
+                <option value="Pending">⏳ Pending</option>
+                <option value="Processing">📦 Processing</option>
+                <option value="Shipped">🚚 Shipped</option>
+                <option value="Delivered">✅ Delivered</option>
+                <option value="Cancelled">❌ Cancelled</option>
+              </select>
+              <button class="btn btn-secondary" onclick="refreshOrders()">🔄 Refresh</button>
             </div>
-          </article>
-          <article class="card form-card" id="reports">
-            <h2>Top Selling Products</h2>
-            <ol>
-              <li>Nitrile Examination Gloves</li>
-              <li>Dental Bibs 125s</li>
-              <li>Composite Resin A2</li>
-              <li>Dental Floss 50m</li>
-              <li>LED Curing Light</li>
-            </ol>
-            <button class="btn btn-secondary" onclick="window.print()">Export / Print Report</button>
-          </article>
+          </div>
+
+          <!-- Order Stats -->
+          <div class="grid grid-4" style="margin-bottom:20px;">
+            <article class="card kpi-card">
+              <span class="muted">Total Orders</span>
+              <strong id="totalOrders">0</strong>
+              <small>All time</small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">Pending</span>
+              <strong id="pendingOrders">0</strong>
+              <small>Need attention</small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">Processing</span>
+              <strong id="processingOrders">0</strong>
+              <small>Being prepared</small>
+            </article>
+            <article class="card kpi-card">
+              <span class="muted">Delivered Today</span>
+              <strong id="deliveredToday">0</strong>
+              <small>Completed</small>
+            </article>
+          </div>
+
+          <!-- Orders Table -->
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Items</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody">
+                <!-- Dynamic content -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Order Details Modal -->
+          <div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="card" style="max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:30px; background:var(--white);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 id="orderModalTitle">Order #SH-2026001</h2>
+                <button class="btn btn-light" onclick="closeOrderModal()">✕ Close</button>
+              </div>
+              <div id="orderModalContent">
+                <!-- Dynamic content -->
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- ===== CUSTOMERS SECTION ===== -->
@@ -331,31 +369,69 @@
           </article>
         </section>
 
+        <!-- ===== REPORTS SECTION ===== -->
+        <section class="card form-card admin-section" id="reports" style="display:none;">
+          <h2>📈 Reports</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Units Sold</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Nitrile Examination Gloves</td>
+                  <td>1,247</td>
+                  <td>₱497,553</td>
+                </tr>
+                <tr>
+                  <td>Dental Bibs 125s</td>
+                  <td>892</td>
+                  <td>₱400,508</td>
+                </tr>
+                <tr>
+                  <td>Composite Resin A2</td>
+                  <td>654</td>
+                  <td>₱587,946</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Export / Print Report</button>
+        </section>
+
         <!-- ===== AUDIT TRAIL ===== -->
         <section class="card form-card admin-section" id="audit" style="display:none;">
           <h2>📜 Audit Trail</h2>
           <div class="table-wrap">
             <table>
-              <tr>
-                <th>Time</th>
-                <th>Admin</th>
-                <th>Action</th>
-              </tr>
-              <tr>
-                <td>10:42 AM</td>
-                <td>Admin User</td>
-                <td>Updated stock for Composite Resin A2</td>
-              </tr>
-              <tr>
-                <td>9:18 AM</td>
-                <td>Admin User</td>
-                <td>Changed order SH-2026031 to Processing</td>
-              </tr>
-              <tr>
-                <td>Yesterday</td>
-                <td>Admin User</td>
-                <td>Published homepage promotion</td>
-              </tr>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Admin</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>10:42 AM</td>
+                  <td>Admin User</td>
+                  <td>Updated stock for Composite Resin A2</td>
+                </tr>
+                <tr>
+                  <td>9:18 AM</td>
+                  <td>Admin User</td>
+                  <td>Changed order SH-2026031 to Processing</td>
+                </tr>
+                <tr>
+                  <td>Yesterday</td>
+                  <td>Admin User</td>
+                  <td>Published homepage promotion</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </section>

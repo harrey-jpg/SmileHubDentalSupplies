@@ -1,4 +1,4 @@
-// admin.js - Full Functional Admin Dashboard with Image Support
+// admin.js - Full Functional Admin Dashboard
 
 document.addEventListener('DOMContentLoaded', function() {
   // --- DATA STORE ---
@@ -70,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const category = this.value;
         const imagePath = categoryImages[category] || 'assets/products/default.svg';
         if (imageSelect) {
-          // Try to find matching option
           const options = imageSelect.options;
           let found = false;
           for (let i = 0; i < options.length; i++) {
@@ -81,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
           if (!found) {
-            // Add the category image as an option if not exists
             const newOption = document.createElement('option');
             newOption.value = imagePath;
             newOption.textContent = '📁 ' + category;
@@ -133,6 +131,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sectionId === '#inventory') {
       renderInventory();
     }
+    if (sectionId === '#orders') {
+      const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+      renderOrders(filter);
+    }
   }
 
   // --- MAKE DASHBOARD CLICKABLE ---
@@ -158,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function highlightProduct(productName) {
     const rows = document.querySelectorAll('#inventoryBody tr');
     rows.forEach(function(row) {
-      const name = row.querySelector('td:first-child')?.textContent || '';
+      const name = row.querySelector('td:nth-child(2)')?.textContent || '';
       if (name.includes(productName)) {
         row.style.background = '#fff3cd';
         row.style.border = '2px solid #f0a320';
@@ -315,7 +317,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function addProduct(productData) {
     const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
     
-    // Determine image
     let image = productData.image;
     if (!image || image === '') {
       image = categoryImages[productData.category] || 'assets/products/default.svg';
@@ -355,13 +356,11 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('[name="price"]').value = product.price;
       form.querySelector('[name="stock"]').value = product.stock;
       
-      // Set image
       const imageSelect = document.getElementById('productImageSelect');
       const customImageInput = document.getElementById('customImageInput');
       const previewImg = document.getElementById('previewImg');
       
       if (imageSelect) {
-        // Check if image matches any option
         let found = false;
         for (let i = 0; i < imageSelect.options.length; i++) {
           if (imageSelect.options[i].value === product.image) {
@@ -542,6 +541,315 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // ============================================
+  // ORDER MANAGEMENT FUNCTIONS
+  // ============================================
+
+  function getOrders() {
+    let orders = [];
+    
+    if (window.SmileHubStorage) {
+      orders = window.SmileHubStorage.get('smilehub_simple_orders', []);
+    }
+    
+    if (!orders || orders.length === 0) {
+      try {
+        const saved = localStorage.getItem('smilehub_simple_orders');
+        if (saved) {
+          orders = JSON.parse(saved);
+        }
+      } catch (e) {}
+    }
+    
+    if (!orders || orders.length === 0) {
+      orders = [
+        {
+          number: 'SH-2026031',
+          customer: 'Maria Santos',
+          email: 'maria@email.com',
+          date: new Date().toLocaleDateString(),
+          total: 2743.20,
+          items: [
+            { name: 'ProClean Toothbrush', quantity: 2, price: 189 },
+            { name: 'Nitrile Gloves', quantity: 1, price: 399 }
+          ],
+          status: 'Pending',
+          address: '123 Sample St, Quezon City'
+        },
+        {
+          number: 'SH-2026030',
+          customer: 'BrightSmile Clinic',
+          email: 'clinic@brightsmile.com',
+          date: new Date(Date.now() - 86400000).toLocaleDateString(),
+          total: 899.00,
+          items: [
+            { name: 'Composite Resin A2', quantity: 1, price: 899 }
+          ],
+          status: 'Delivered',
+          address: '456 Dental Ave, Makati'
+        },
+        {
+          number: 'SH-2026029',
+          customer: 'John Dela Cruz',
+          email: 'john@email.com',
+          date: new Date(Date.now() - 172800000).toLocaleDateString(),
+          total: 2345.50,
+          items: [
+            { name: 'SonicWave Toothbrush', quantity: 1, price: 1299 },
+            { name: 'MintShield Toothpaste', quantity: 3, price: 159 }
+          ],
+          status: 'Delivered',
+          address: '789 Health St, Mandaluyong'
+        }
+      ];
+      saveOrders(orders);
+    }
+    
+    return orders;
+  }
+
+  function saveOrders(orders) {
+    if (window.SmileHubStorage) {
+      window.SmileHubStorage.set('smilehub_simple_orders', orders);
+    }
+    try {
+      localStorage.setItem('smilehub_simple_orders', JSON.stringify(orders));
+    } catch (e) {}
+  }
+
+  function renderOrders(filter = 'all') {
+    const body = document.getElementById('ordersBody');
+    if (!body) return;
+
+    const orders = getOrders();
+    
+    // Filter orders
+    let filtered = orders;
+    if (filter !== 'all') {
+      filtered = orders.filter(function(order) {
+        return order.status === filter;
+      });
+    }
+
+    // Sort by date (newest first)
+    filtered.sort(function(a, b) {
+      return new Date(b.date) - new Date(a.date);
+    });
+
+    if (filtered.length === 0) {
+      body.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center muted" style="padding: 40px;">
+            No orders found with status "${filter}". 
+            ${filter !== 'all' ? '<a href="#" onclick="document.getElementById(\'orderStatusFilter\').value=\'all\';filterOrders();return false;" style="color:var(--blue);text-decoration:underline;">View all orders</a>' : ''}
+          </td>
+        </tr>
+      `;
+      updateOrderStats(orders);
+      return;
+    }
+
+    body.innerHTML = filtered.map(function(order) {
+      const statusClass = order.status === 'Delivered' ? 'delivered' :
+                          order.status === 'Processing' ? 'processing' :
+                          order.status === 'Shipped' ? 'processing' :
+                          order.status === 'Cancelled' ? 'low' : 'processing';
+      
+      const statusIcon = order.status === 'Delivered' ? '✅' :
+                         order.status === 'Processing' ? '📦' :
+                         order.status === 'Shipped' ? '🚚' :
+                         order.status === 'Cancelled' ? '❌' : '⏳';
+      
+      const itemCount = order.items ? order.items.reduce(function(sum, item) {
+        return sum + (item.quantity || 1);
+      }, 0) : 0;
+      
+      return `
+        <tr>
+          <td><strong>${order.number}</strong></td>
+          <td>${order.customer}</td>
+          <td>${order.date}</td>
+          <td>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+          <td>${itemCount} items</td>
+          <td><span class="status ${statusClass}">${statusIcon} ${order.status}</span></td>
+          <td>
+            <button class="btn btn-light view-order" data-number="${order.number}" style="padding:4px 10px;font-size:0.8rem;">👁️ View</button>
+            <select class="order-status-update" data-number="${order.number}" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;background:var(--white);color:var(--text);">
+              <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+              <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>📦 Processing</option>
+              <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>🚚 Shipped</option>
+              <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>✅ Delivered</option>
+              <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // View order button
+    document.querySelectorAll('.view-order').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const orderNumber = this.dataset.number;
+        viewOrderDetails(orderNumber);
+      });
+    });
+
+    // Status update dropdown
+    document.querySelectorAll('.order-status-update').forEach(function(select) {
+      select.addEventListener('change', function() {
+        const orderNumber = this.dataset.number;
+        const newStatus = this.value;
+        updateOrderStatus(orderNumber, newStatus);
+      });
+    });
+
+    updateOrderStats(orders);
+  }
+
+  function updateOrderStats(orders) {
+    const total = orders.length;
+    const pending = orders.filter(function(o) { return o.status === 'Pending'; }).length;
+    const processing = orders.filter(function(o) { return o.status === 'Processing'; }).length;
+    const shipped = orders.filter(function(o) { return o.status === 'Shipped'; }).length;
+    const delivered = orders.filter(function(o) { return o.status === 'Delivered'; }).length;
+    const cancelled = orders.filter(function(o) { return o.status === 'Cancelled'; }).length;
+
+    const totalEl = document.getElementById('totalOrders');
+    const pendingEl = document.getElementById('pendingOrders');
+    const processingEl = document.getElementById('processingOrders');
+    const deliveredEl = document.getElementById('deliveredToday');
+
+    if (totalEl) totalEl.textContent = total;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (processingEl) processingEl.textContent = processing + (shipped > 0 ? ' (+' + shipped + ' shipped)' : '');
+    if (deliveredEl) deliveredEl.textContent = delivered + (cancelled > 0 ? ' (+' + cancelled + ' cancelled)' : '');
+  }
+
+  function updateOrderStatus(orderNumber, newStatus) {
+    const orders = getOrders();
+    const orderIndex = orders.findIndex(function(o) {
+      return o.number === orderNumber;
+    });
+
+    if (orderIndex === -1) {
+      showToast('❌ Order not found!', true);
+      return;
+    }
+
+    const oldStatus = orders[orderIndex].status;
+    orders[orderIndex].status = newStatus;
+    
+    if (newStatus === 'Delivered') {
+      orders[orderIndex].deliveredDate = new Date().toLocaleDateString();
+    }
+
+    saveOrders(orders);
+    
+    const currentFilter = document.getElementById('orderStatusFilter')?.value || 'all';
+    renderOrders(currentFilter);
+    
+    closeOrderModal();
+    
+    showToast('📋 Order ' + orderNumber + ' updated: ' + oldStatus + ' → ' + newStatus);
+  }
+
+  function viewOrderDetails(orderNumber) {
+    const orders = getOrders();
+    const order = orders.find(function(o) {
+      return o.number === orderNumber;
+    });
+
+    if (!order) {
+      showToast('❌ Order not found!', true);
+      return;
+    }
+
+    const modal = document.getElementById('orderModal');
+    const title = document.getElementById('orderModalTitle');
+    const content = document.getElementById('orderModalContent');
+
+    if (modal && title && content) {
+      modal.style.display = 'flex';
+      title.textContent = 'Order ' + order.number;
+      
+      const itemsHtml = order.items ? order.items.map(function(item) {
+        return `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.quantity || 1}</td>
+            <td>₱${Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+            <td>₱${Number((item.quantity || 1) * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+          </tr>
+        `;
+      }).join('') : '';
+
+      const statusClass = order.status === 'Delivered' ? 'delivered' :
+                          order.status === 'Processing' ? 'processing' :
+                          order.status === 'Shipped' ? 'processing' :
+                          order.status === 'Cancelled' ? 'low' : 'processing';
+
+      content.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+          <div>
+            <strong>Customer:</strong> ${order.customer}
+          </div>
+          <div>
+            <strong>Email:</strong> ${order.email || 'N/A'}
+          </div>
+          <div>
+            <strong>Date:</strong> ${order.date}
+          </div>
+          <div>
+            <strong>Status:</strong> <span class="status ${statusClass}">${order.status}</span>
+          </div>
+          <div style="grid-column: span 2;">
+            <strong>Delivery Address:</strong><br>
+            ${order.address || 'N/A'}
+          </div>
+        </div>
+        
+        <h3>Order Items</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+              <tr>
+                <td colspan="3" style="text-align:right;"><strong>Total:</strong></td>
+                <td><strong>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  }
+
+  function closeOrderModal() {
+    const modal = document.getElementById('orderModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  function filterOrders() {
+    const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+    renderOrders(filter);
+  }
+
+  function refreshOrders() {
+    const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+    renderOrders(filter);
+    showToast('🔄 Orders refreshed');
+  }
+
   // --- TOAST ---
   function showToast(message, isError) {
     const oldToast = document.querySelector('.toast');
@@ -574,7 +882,6 @@ document.addEventListener('DOMContentLoaded', function() {
           const submitBtn = form.querySelector('button[type="submit"]');
           if (submitBtn) submitBtn.textContent = '💾 Save Product';
           
-          // Reset image preview
           const previewImg = document.getElementById('previewImg');
           if (previewImg) previewImg.src = 'assets/products/oral-care.svg';
           const customInput = document.getElementById('customImageInput');
@@ -592,7 +899,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const form = document.getElementById('adminProductForm');
       const formData = new FormData(form);
       
-      // Get image from either select or custom input
       const imageSelect = document.getElementById('productImageSelect');
       const customImageInput = document.getElementById('customImageInput');
       let image = imageSelect ? imageSelect.value : '';
@@ -644,6 +950,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // --- ORDER MODAL CLOSE ON OUTSIDE CLICK ---
+  document.addEventListener('click', function(e) {
+    const modal = document.getElementById('orderModal');
+    if (modal && e.target === modal) {
+      closeOrderModal();
+    }
+  });
+
   // --- INIT ---
   function init() {
     document.querySelectorAll('.admin-section').forEach(function(section) {
@@ -656,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     makeDashboardClickable();
     setupBulkStockForm();
     setupImagePreview();
+    renderOrders('all');
     
     // Hide chatbot on admin page
     const chatbotWrapper = document.getElementById('chatbotWrapper');
@@ -667,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
 });
 
-// Make functions globally accessible
+// --- GLOBAL FUNCTIONS ---
 window.navigateTo = function(sectionId) {
   document.querySelectorAll('.admin-section, #dashboard').forEach(function(section) {
     section.style.display = 'none';
@@ -695,4 +1010,147 @@ window.showLowStock = function() {
     const isLowStock = lowStockItems.some(function(p) { return p.name === name; });
     row.style.background = isLowStock ? '#fff3cd' : '';
   });
+};
+
+window.filterOrders = function() {
+  const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+  renderOrders(filter);
+};
+
+window.refreshOrders = function() {
+  const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+  renderOrders(filter);
+  showToast('🔄 Orders refreshed');
+};
+
+window.closeOrderModal = function() {
+  const modal = document.getElementById('orderModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+};
+
+window.updateOrderStatus = function(orderNumber, newStatus) {
+  // This is called from the dropdown
+  const orders = getOrders();
+  const orderIndex = orders.findIndex(function(o) {
+    return o.number === orderNumber;
+  });
+
+  if (orderIndex === -1) {
+    showToast('❌ Order not found!', true);
+    return;
+  }
+
+  const oldStatus = orders[orderIndex].status;
+  orders[orderIndex].status = newStatus;
+  
+  if (newStatus === 'Delivered') {
+    orders[orderIndex].deliveredDate = new Date().toLocaleDateString();
+  }
+
+  saveOrders(orders);
+  
+  const currentFilter = document.getElementById('orderStatusFilter')?.value || 'all';
+  renderOrders(currentFilter);
+  
+  closeOrderModal();
+  
+  showToast('📋 Order ' + orderNumber + ' updated: ' + oldStatus + ' → ' + newStatus);
+};
+
+window.viewOrderDetails = function(orderNumber) {
+  const orders = getOrders();
+  const order = orders.find(function(o) {
+    return o.number === orderNumber;
+  });
+
+  if (!order) {
+    showToast('❌ Order not found!', true);
+    return;
+  }
+
+  const modal = document.getElementById('orderModal');
+  const title = document.getElementById('orderModalTitle');
+  const content = document.getElementById('orderModalContent');
+
+  if (modal && title && content) {
+    modal.style.display = 'flex';
+    title.textContent = 'Order ' + order.number;
+    
+    const itemsHtml = order.items ? order.items.map(function(item) {
+      return `
+        <tr>
+          <td>${item.name}</td>
+          <td>${item.quantity || 1}</td>
+          <td>₱${Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+          <td>₱${Number((item.quantity || 1) * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+        </tr>
+      `;
+    }).join('') : '';
+
+    const statusClass = order.status === 'Delivered' ? 'delivered' :
+                        order.status === 'Processing' ? 'processing' :
+                        order.status === 'Shipped' ? 'processing' :
+                        order.status === 'Cancelled' ? 'low' : 'processing';
+
+    content.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+        <div>
+          <strong>Customer:</strong> ${order.customer}
+        </div>
+        <div>
+          <strong>Email:</strong> ${order.email || 'N/A'}
+        </div>
+        <div>
+          <strong>Date:</strong> ${order.date}
+        </div>
+        <div>
+          <strong>Status:</strong> <span class="status ${statusClass}">${order.status}</span>
+        </div>
+        <div style="grid-column: span 2;">
+          <strong>Delivery Address:</strong><br>
+          ${order.address || 'N/A'}
+        </div>
+      </div>
+      
+      <h3>Order Items</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+            <tr>
+              <td colspan="3" style="text-align:right;"><strong>Total:</strong></td>
+              <td><strong>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+};
+
+window.showToast = function(message, isError) {
+  const oldToast = document.querySelector('.toast');
+  if (oldToast) oldToast.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  if (isError) {
+    toast.style.background = '#d64545';
+  }
+  document.body.appendChild(toast);
+
+  setTimeout(function() {
+    toast.remove();
+  }, 3000);
 };
