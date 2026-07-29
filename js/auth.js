@@ -246,7 +246,7 @@ function handleLogin(event) {
       }).catch(function() {
         location.href = 'homepage.html';
       });
-    }, 1200);
+    }, 300);
   }).catch(function(error) {
     var message = 'Login failed. Please try again.';
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -307,8 +307,9 @@ function logoutUser() {
   SmileHubStorage.remove(RETURN_KEY);
   SmileHubStorage.remove('smilehub_simple_cart');
   SmileHubStorage.remove('smilehub_simple_wishlist');
-  location.href = 'homepage.html';
-  firebase.auth().signOut().catch(function() {});
+  firebase.auth().signOut().catch(function() {}).then(function() {
+    location.href = 'homepage.html';
+  });
 }
 
 function requireLogin(returnPage) {
