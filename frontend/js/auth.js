@@ -355,16 +355,21 @@ function showAuthMessage(text, isError) {
 
 function updateAccountLink() {
   var user = getCachedUser();
-  var loginLinks = document.querySelectorAll('a[href="login.html"]');
   if (!user) return;
+
+  var loginLinks = document.querySelectorAll('a[href*="login"], a.icon-link');
+  var filtered = [];
   loginLinks.forEach(function(link) {
     if (link.id === 'logoutButton' || link.classList.contains('logout-link')) return;
+    if (link.href && link.href.indexOf('login') !== -1) filtered.push(link);
+  });
+  filtered.forEach(function(link) {
     if (['admin', 'staff', 'superadmin'].includes(user.role)) {
       link.href = 'admin.html';
-      link.innerHTML = '⚙ <span class="text-label">Dashboard</span>';
+      link.innerHTML = '&#9881; <span class="text-label">Dashboard</span>';
     } else {
       link.href = 'profile.html';
-      link.innerHTML = '👤 <span class="text-label">Profile</span>';
+      link.innerHTML = '&#128100; <span class="text-label">Profile</span>';
     }
   });
 }
@@ -423,10 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var loginForm = document.getElementById('loginForm');
-  if (loginForm) {
-    loginForm.addEventListener('submit', function (e) { e.preventDefault(); });
-    loginForm.querySelector('button').addEventListener('click', handleLogin);
-  }
+  if (loginForm) loginForm.addEventListener('submit', handleLogin);
 
   var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
