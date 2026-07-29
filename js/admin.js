@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // --- DATA STORE ---
   let products = [];
+  var accounts = [];
   
   // Category to image mapping
   const categoryImages = {
@@ -58,15 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var _loadingProducts = false;
 
   function loadProducts(callback) {
-    var cached = SmileHubStorage.get('smilehub_products_cache', null);
-    if (cached && cached.length > 0) {
-      products = cached;
-    }
     if (!_loadingProducts) {
       _loadingProducts = true;
       SmileHubData.getProducts(function(data) {
         products = data;
-        SmileHubStorage.set('smilehub_products_cache', data);
         _loadingProducts = false;
         if (callback) callback(products);
       });
@@ -76,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function saveProducts(data, callback) {
     products = data;
-    SmileHubStorage.set('smilehub_products_cache', data);
     SmileHubData.saveProducts(data, callback);
   }
 
@@ -190,7 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
       renderNotificationTemplates();
     }
     if (sectionId === '#audit') {
-      renderAuditLogs();
+      if (getAuditLogs().length === 0) {
+        fetchAuditLogs(renderAuditLogs);
+      } else {
+        renderAuditLogs();
+      }
     }
   }
 
@@ -658,21 +657,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- ORDERS ---
+  var ordersCache = [];
+
   function getOrders() {
-    var cached = SmileHubStorage.get('smilehub_orders', []);
-    if (cached.length > 0) return cached;
-    var defaults = [
-      { number: 'SH-2026031', customer: 'Maria Santos', email: 'maria@email.com', date: new Date().toLocaleDateString(), total: 2743.20, items: [{ name: 'ProClean Toothbrush', quantity: 2, price: 189 }, { name: 'Nitrile Gloves', quantity: 1, price: 399 }], status: 'Pending', address: '123 Sample St, Quezon City' },
-      { number: 'SH-2026030', customer: 'BrightSmile Clinic', email: 'clinic@brightsmile.com', date: new Date(Date.now() - 86400000).toLocaleDateString(), total: 899.00, items: [{ name: 'Composite Resin A2', quantity: 1, price: 899 }], status: 'Delivered', address: '456 Dental Ave, Makati' },
-      { number: 'SH-2026029', customer: 'John Dela Cruz', email: 'john@email.com', date: new Date(Date.now() - 172800000).toLocaleDateString(), total: 2345.50, items: [{ name: 'SonicWave Toothbrush', quantity: 1, price: 1299 }, { name: 'MintShield Toothpaste', quantity: 3, price: 159 }], status: 'Delivered', address: '789 Health St, Mandaluyong' }
-    ];
-    SmileHubStorage.set('smilehub_orders', defaults);
-    SmileHubData.saveOrders(defaults);
-    return defaults;
+    return ordersCache;
+  }
+
+  function fetchOrders(callback) {
+    SmileHubData.getOrders(function(data) {
+      ordersCache = data;
+      if (callback) callback(data);
+    });
   }
 
   function saveOrders(data) {
-    SmileHubStorage.set('smilehub_orders', data);
+    ordersCache = data;
     SmileHubData.saveOrders(data);
   }
 
@@ -991,21 +990,21 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
+  var cmsCache = null;
+
   function loadCms() {
-    var defaults = getDefaultCms();
-    var cached = SmileHubStorage.get('smilehub_cms_live', null);
-    if (cached) {
-      for (var key in defaults) {
-        if (!(key in cached)) cached[key] = defaults[key];
-      }
-      return cached;
-    }
-    SmileHubStorage.set('smilehub_cms_live', defaults);
-    return defaults;
+    return cmsCache || getDefaultCms();
+  }
+
+  function fetchCms(callback) {
+    SmileHubData.getCms(function(data) {
+      cmsCache = data;
+      if (callback) callback(data);
+    });
   }
 
   function saveCms(data) {
-    SmileHubStorage.set('smilehub_cms_live', data);
+    cmsCache = data;
     SmileHubData.saveCms(data);
   }
 
@@ -1069,8 +1068,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function setupCms() {
-    renderCms();
-
     var addBtn = document.getElementById('addFaqBtn');
     if (addBtn) {
       addBtn.addEventListener('click', function() {
@@ -1122,10 +1119,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderAccounts() {
     var body = document.getElementById('accountsBody');
     if (!body) return;
-    var accounts = [];
-    try {
-      if (window.SmileHubAuth) accounts = window.SmileHubAuth.getAccounts() || [];
-    } catch(e) {}
 
     if (accounts.length === 0) {
       body.innerHTML = '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
@@ -1180,13 +1173,11 @@ document.addEventListener('DOMContentLoaded', function() {
       sel.addEventListener('change', function() {
         var email = this.dataset.email;
         var newRole = this.value;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           var oldRole = accounts[idx].role;
           accounts[idx].role = newRole;
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
           showToast('Role updated for ' + email, false, true);
         }
@@ -1198,12 +1189,10 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         var newStatus = this.dataset.status;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           accounts[idx].status = newStatus;
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
           showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
         }
@@ -1215,13 +1204,11 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         if (!confirm('Delete account "' + email + '"? This cannot be undone.')) return;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
@@ -1283,7 +1270,6 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         if (accounts.some(function(a) { return a.email === email; })) {
           showToast('Email already registered', true);
           return;
@@ -1303,16 +1289,18 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         accounts.push(newAccount);
-        window.SmileHubAuth.saveAccounts(accounts);
 
-        firebase.firestore().collection('user_registrations').doc(email).set({
-          firstName: firstName,
-          lastName: lastName,
-          displayName: firstName + ' ' + lastName,
-          email: email,
-          role: role,
-          claimed: false
-        }).then(function() {
+        Promise.all([
+          window.SmileHubAuth.saveAccounts(accounts),
+          firebase.firestore().collection('user_registrations').doc(email).set({
+            firstName: firstName,
+            lastName: lastName,
+            displayName: firstName + ' ' + lastName,
+            email: email,
+            role: role,
+            claimed: false
+          })
+        ]).then(function() {
           form.classList.remove('show');
           form.reset();
           renderAccounts();
@@ -1500,19 +1488,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- AUDIT TRAIL ---
+  var auditLogsCache = [];
+
   function addAuditLog(action) {
     try {
       var user = window.SmileHubAuth ? window.SmileHubAuth.getLoggedInUser() : null;
       var name = user ? user.name : 'Unknown';
-      var logs = getAuditLogs();
-      logs.unshift({
+      var entry = {
         time: new Date().toLocaleString(),
         admin: name,
-        action: action
-      });
-      if (logs.length > 200) logs = logs.slice(0, 200);
-      SmileHubStorage.set('smilehub_audit_log', logs);
-      // Re-render if audit section is visible
+        action: action,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      auditLogsCache.unshift(entry);
+      if (auditLogsCache.length > 200) auditLogsCache = auditLogsCache.slice(0, 200);
+      firebase.firestore().collection('audit_logs').add(entry).catch(function() {});
       var auditSection = document.getElementById('audit');
       if (auditSection && auditSection.style.display !== 'none') {
         renderAuditLogs();
@@ -1521,17 +1511,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getAuditLogs() {
-    try {
-      var data = SmileHubStorage.get('smilehub_audit_log', null);
-      if (data) return data;
-    } catch(e) {}
-    var samples = [
-      { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
-      { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
-      { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
-    ];
-    SmileHubStorage.set('smilehub_audit_log', samples);
-    return samples;
+    return auditLogsCache;
+  }
+
+  function fetchAuditLogs(callback) {
+    firebase.firestore().collection('audit_logs').orderBy('timestamp', 'desc').limit(200).get().then(function(snapshot) {
+      auditLogsCache = [];
+      snapshot.forEach(function(doc) { auditLogsCache.push(doc.data()); });
+      if (auditLogsCache.length === 0) {
+        auditLogsCache = [
+          { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
+          { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
+          { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
+        ];
+        var batch = firebase.firestore().batch();
+        auditLogsCache.forEach(function(e) {
+          batch.add(firebase.firestore().collection('audit_logs'), e);
+        });
+        batch.commit().catch(function() {});
+      }
+      if (callback) callback(auditLogsCache);
+    }).catch(function() {
+      if (callback) callback(auditLogsCache || []);
+    });
   }
 
   function renderAuditLogs() {
@@ -1647,14 +1649,21 @@ document.addEventListener('DOMContentLoaded', function() {
       updateDashboard();
       makeDashboardClickable();
     });
-    renderOrders('all');
-    setupSidebarNavigation();
-    setupBulkStock();
-    setupImagePreview();
-    setupFormSubmit();
-    setupCms();
+    fetchOrders(function() { renderOrders('all'); });
+    fetchCms(function() {
+      renderCms();
+      setupCms();
+    });
+    fetchAuditLogs();
     setupAccountSearch();
-    renderAccounts();
+    if (window.SmileHubAuth) {
+      window.SmileHubAuth.getAccounts().then(function(a) {
+        accounts = a;
+        renderAccounts();
+      });
+    } else {
+      renderAccounts();
+    }
     renderNotificationTemplates();
 
     // Report period filter

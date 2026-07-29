@@ -78,12 +78,7 @@ function seedDefaultProducts(callback) {
 }
 
 function getProductsSync(callback) {
-  var cached = SmileHubStorage.get('smilehub_products_cache', null);
-  if (cached) {
-    callback(cached);
-  }
   getProducts(function(products) {
-    SmileHubStorage.set('smilehub_products_cache', products);
     callback(products);
   });
 }
@@ -94,7 +89,6 @@ function saveProducts(products, callback) {
     var ref = db.collection('products').doc(String(p.id));
     batch.set(ref, p);
   });
-  SmileHubStorage.set('smilehub_products_cache', products);
   batch.commit().then(function() {
     if (callback) callback();
   }).catch(function() {
@@ -156,18 +150,24 @@ function getOrders(callback) {
     snapshot.forEach(function(doc) {
       orders.push(doc.data());
     });
-    callback(orders.length ? orders : getDefaultOrders());
+    if (orders.length === 0) {
+      orders = getDefaultOrders();
+      var batch = db.batch();
+      orders.forEach(function(o) { batch.set(db.collection('orders').doc(o.number), o); });
+      batch.commit().catch(function() {});
+    }
+    callback(orders);
   }).catch(function() {
     callback(getDefaultOrders());
   });
 }
 
 function getDefaultOrders() {
-  var orders = SmileHubStorage.get('smilehub_orders', []);
-  if (orders.length > 0) {
-    saveOrdersToFirestore(orders);
-  }
-  return orders;
+  return [
+    { number: 'SH-2026031', customer: 'Maria Santos', email: 'maria@email.com', date: new Date().toLocaleDateString(), total: 2743.20, items: [{ name: 'ProClean Toothbrush', quantity: 2, price: 189 }, { name: 'Nitrile Gloves', quantity: 1, price: 399 }], status: 'Pending', address: '123 Sample St, Quezon City' },
+    { number: 'SH-2026030', customer: 'BrightSmile Clinic', email: 'clinic@brightsmile.com', date: new Date(Date.now() - 86400000).toLocaleDateString(), total: 899.00, items: [{ name: 'Composite Resin A2', quantity: 1, price: 899 }], status: 'Delivered', address: '456 Dental Ave, Makati' },
+    { number: 'SH-2026029', customer: 'John Dela Cruz', email: 'john@email.com', date: new Date(Date.now() - 172800000).toLocaleDateString(), total: 2345.50, items: [{ name: 'SonicWave Toothbrush', quantity: 1, price: 1299 }, { name: 'MintShield Toothpaste', quantity: 3, price: 159 }], status: 'Delivered', address: '789 Health St, Mandaluyong' }
+  ];
 }
 
 function saveOrdersToFirestore(orders) {
@@ -177,7 +177,6 @@ function saveOrdersToFirestore(orders) {
 }
 
 function saveOrders(orders, callback) {
-  SmileHubStorage.set('smilehub_orders', orders);
   var batch = db.batch();
   orders.forEach(function(o) {
     var ref = db.collection('orders').doc(o.number);
@@ -222,10 +221,8 @@ function getDefaultCms() {
 
 function saveCms(data, callback) {
   db.collection('cms').doc('site').set(data).then(function() {
-    SmileHubStorage.set('smilehub_cms_live', data);
     if (callback) callback();
   }).catch(function() {
-    SmileHubStorage.set('smilehub_cms_live', data);
     if (callback) callback();
   });
 }

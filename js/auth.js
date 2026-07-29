@@ -6,7 +6,6 @@ const DEMO_ACCOUNTS = {
 };
 const RETURN_KEY = 'smilehub_return_page';
 const AUTH_KEY = 'smilehub_logged_in_user';
-const ACCOUNTS_KEY = 'smilehub_accounts';
 const WINDOW_STATE_PREFIX = 'SMILEHUB_STATE:';
 
 const PUBLIC_PAGES = [
@@ -106,19 +105,7 @@ function getCachedUser() {
     var cached = JSON.parse(sessionStorage.getItem(AUTH_KEY));
     if (cached) return cached;
   } catch(e) {}
-  var fbUser = firebase.auth().currentUser;
-  if (!fbUser) return null;
-  return {
-    uid: fbUser.uid,
-    name: fbUser.email,
-    email: fbUser.email,
-    role: 'customer',
-    phone: '',
-    address: '',
-    firstName: '',
-    lastName: '',
-    password: ''
-  };
+  return null;
 }
 
 function cacheUser(user) {
@@ -468,21 +455,28 @@ function protectLinksForGuests() {
 }
 
 function getAccounts() {
-  var accounts = SmileHubStorage.get(ACCOUNTS_KEY, []);
-  if (accounts.length === 0) {
-    accounts = [
-      { name: 'Demo Customer', email: 'customer@smilehub.ph', role: 'customer', status: 'active' },
-      { name: 'Admin User', email: 'admin@smilehub.ph', role: 'admin', status: 'active' },
-      { name: 'Staff User', email: 'staff@smilehub.ph', role: 'staff', status: 'active' },
-      { name: 'Super Admin', email: 'super@smilehub.ph', role: 'superadmin', status: 'active' }
-    ];
-    SmileHubStorage.set(ACCOUNTS_KEY, accounts);
-  }
-  return accounts;
+  return firebase.firestore().collection('accounts').get().then(function(snapshot) {
+    var accounts = [];
+    snapshot.forEach(function(doc) { accounts.push(doc.data()); });
+    if (accounts.length === 0) {
+      accounts = [
+        { name: 'Demo Customer', email: 'customer@smilehub.ph', role: 'customer', status: 'active', firstName: 'Demo', lastName: 'Customer' },
+        { name: 'Admin User', email: 'admin@smilehub.ph', role: 'admin', status: 'active', firstName: 'Admin', lastName: 'User' },
+        { name: 'Staff User', email: 'staff@smilehub.ph', role: 'staff', status: 'active', firstName: 'Staff', lastName: 'User' },
+        { name: 'Super Admin', email: 'super@smilehub.ph', role: 'superadmin', status: 'active', firstName: 'Super', lastName: 'Admin' }
+      ];
+      var batch = firebase.firestore().batch();
+      accounts.forEach(function(a) { batch.set(firebase.firestore().collection('accounts').doc(a.email), a); });
+      return batch.commit().then(function() { return accounts; });
+    }
+    return accounts;
+  });
 }
 
 function saveAccounts(accounts) {
-  SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+  var batch = firebase.firestore().batch();
+  accounts.forEach(function(a) { batch.set(firebase.firestore().collection('accounts').doc(a.email), a); });
+  return batch.commit();
 }
 
 window.SmileHubAuth = {
