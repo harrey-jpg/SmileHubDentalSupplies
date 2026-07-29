@@ -30,50 +30,83 @@ function writeWindowState(state) {
   window.name = WINDOW_STATE_PREFIX + JSON.stringify(state);
 }
 
+function storageGet(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function storageSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+}
+function storageRemove(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+function sessionGet(key) {
+  try { return sessionStorage.getItem(key); } catch (e) { return null; }
+}
+function sessionSet(key, value) {
+  try { sessionStorage.setItem(key, value); } catch (e) {}
+}
+function sessionRemove(key) {
+  try { sessionStorage.removeItem(key); } catch (e) {}
+}
+
 const SmileHubStorage = {
   get(key, fallbackValue) {
     const windowState = readWindowState();
     if (Object.prototype.hasOwnProperty.call(windowState, key)) {
       return windowState[key];
     }
-    try {
-      const savedValue = localStorage.getItem(key);
-      if (savedValue !== null) {
-        const parsedValue = JSON.parse(savedValue);
+
+    const ss = sessionGet(key);
+    if (ss !== null) {
+      try {
+        const parsedValue = JSON.parse(ss);
         windowState[key] = parsedValue;
         writeWindowState(windowState);
         return parsedValue;
-      }
-    } catch (error) {}
+      } catch (e) {}
+    }
+
+    const ls = storageGet(key);
+    if (ls !== null) {
+      try {
+        const parsedValue = JSON.parse(ls);
+        windowState[key] = parsedValue;
+        writeWindowState(windowState);
+        sessionSet(key, ls);
+        return parsedValue;
+      } catch (e) {}
+    }
+
     return fallbackValue;
   },
   set(key, value) {
     const windowState = readWindowState();
     windowState[key] = value;
     writeWindowState(windowState);
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {}
+
+    const json = JSON.stringify(value);
+    sessionSet(key, json);
+    storageSet(key, json);
   },
   remove(key) {
     const windowState = readWindowState();
     windowState[key] = null;
     writeWindowState(windowState);
-    try {
-      localStorage.removeItem(key);
-    } catch (error) {}
+
+    sessionRemove(key);
+    storageRemove(key);
   }
 };
 
 window.SmileHubStorage = SmileHubStorage;
 
 function getCachedUser() {
-  var fbUser = firebase.auth().currentUser;
-  if (!fbUser) return null;
   try {
     var cached = JSON.parse(sessionStorage.getItem(AUTH_KEY));
     if (cached) return cached;
   } catch(e) {}
+  var fbUser = firebase.auth().currentUser;
+  if (!fbUser) return null;
   return {
     uid: fbUser.uid,
     name: fbUser.email,
@@ -132,32 +165,32 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
     afterAuthReady();
     fetchUserProfile(firebaseUser.uid).then(function(profile) {
       if (profile) {
+        var demo = DEMO_ACCOUNTS[firebaseUser.email] || {};
         cacheUser({
           uid: firebaseUser.uid,
           name: profile.displayName || firebaseUser.email,
           email: firebaseUser.email,
-          role: profile.role || 'customer',
+          role: profile.role || demo.role || 'customer',
           phone: profile.phone || '',
           address: profile.address || '',
-          firstName: profile.firstName || '',
-          lastName: profile.lastName || '',
+          firstName: profile.firstName || demo.firstName || '',
+          lastName: profile.lastName || demo.lastName || '',
           password: ''
         });
+        updateAccountLink();
       }
     }).catch(function() {});
   } else {
     if (authReady) {
       cacheUser(null);
       afterAuthReady();
-    } else {
-      setTimeout(function() {
-        if (!firebase.auth().currentUser) {
-          authReady = true;
-          cacheUser(null);
-          afterAuthReady();
-        }
-      }, 1000);
     }
+    setTimeout(function() {
+      if (!authReady) {
+        authReady = true;
+        afterAuthReady();
+      }
+    }, 3000);
   }
 });
 
@@ -390,7 +423,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var loginForm = document.getElementById('loginForm');
-  if (loginForm) loginForm.addEventListener('submit', handleLogin);
+  if (loginForm) {
+    loginForm.addEventListener('submit', function (e) { e.preventDefault(); });
+    loginForm.querySelector('button').addEventListener('click', handleLogin);
+  }
 
   var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
