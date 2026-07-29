@@ -1,7 +1,5 @@
 // catalog.js - Reads from Firestore
 
-var catalogProducts = [];
-
 // --- GET PRODUCTS FROM FIRESTORE ---
 var catalogProducts = [];
 
@@ -125,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (search && params.get('q')) search.value = params.get('q');
   if (category && params.get('category')) category.value = params.get('category');
   if (brand && params.get('brand')) { brand.value = params.get('brand'); }
-  else if (brand && params.get('brand')) { brand.value = params.get('brand'); }
 
   function filterProducts() {
     var cards = [...grid.querySelectorAll('.product-card')];

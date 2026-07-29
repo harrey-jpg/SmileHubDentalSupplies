@@ -990,9 +990,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function loadCms() {
-    var cached = SmileHubStorage.get('smilehub_cms_live', null);
-    if (cached) return cached;
     var defaults = getDefaultCms();
+    var cached = SmileHubStorage.get('smilehub_cms_live', null);
+    if (cached) {
+      for (var key in defaults) {
+        if (!(key in cached)) cached[key] = defaults[key];
+      }
+      return cached;
+    }
     SmileHubStorage.set('smilehub_cms_live', defaults);
     return defaults;
   }
@@ -1503,14 +1508,14 @@ document.addEventListener('DOMContentLoaded', function() {
   function getAuditLogs() {
     try {
       var data = SmileHubStorage.get('smilehub_audit_log', null);
+      if (data) return data;
     } catch(e) {}
-    // Seed some sample entries
     var samples = [
       { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
       { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
       { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
     ];
-    localStorage.setItem('smilehub_audit_log', JSON.stringify(samples));
+    SmileHubStorage.set('smilehub_audit_log', samples);
     return samples;
   }
 
@@ -1722,7 +1727,7 @@ window.navigateTo = function(sectionId) {
 };
 
 window.showLowStock = function() {
-  const products = JSON.parse(localStorage.getItem('smilehub_products') || '[]');
+  const products = SmileHubStorage.get('smilehub_products_cache', []);
   const items = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; });
   if (items.length === 0) { showToast('✅ No low stock items', false, true); return; }
   document.querySelectorAll('#inventoryBody tr').forEach(function(row) {

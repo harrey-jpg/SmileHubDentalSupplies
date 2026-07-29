@@ -210,7 +210,13 @@ function getDefaultCms() {
     heroSubtitle: 'Quality dental products for clinics, dentists, and students across the Philippines.',
     heroCta: 'Shop Now',
     promoTtext: 'Free shipping on orders over ₱3,000',
-    storeTagline: 'SmileHub Dental Supplies'
+    promoBtn: 'View Deals',
+    storeTagline: 'SmileHub Dental Supplies',
+    faqs: [
+      { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
+      { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
+      { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' }
+    ]
   };
 }
 

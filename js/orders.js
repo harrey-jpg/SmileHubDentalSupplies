@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
   SmileHubData.getOrders(function(orders) {
     var filtered = orders.filter(function(o) {
       var user = getCachedUser();
-      return user && (o.email === user.email || o.customer === user.name);
+      var orderEmail = o.email || (o.customer && o.customer.email) || '';
+      var orderName = o.customer || o.customerName || '';
+      return user && (orderEmail === user.email || orderName === user.name);
     });
     if (filtered.length === 0) {
       table.innerHTML = '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No orders yet.</td></tr>';

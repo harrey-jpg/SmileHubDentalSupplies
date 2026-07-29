@@ -64,10 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var needsQuote = cart.some(function(item) { return item.price >= 50000; });
 
     var orders = getStoredList('smilehub_orders');
+    var orderNumber = 'SH-' + Date.now().toString().slice(-7);
     var order = {
-      id: Date.now(),
-      orderNumber: 'SH-' + Date.now().toString().slice(-7),
-      customer: { name: firstName + ' ' + lastName, email: email, phone: phone },
+      number: orderNumber,
+      orderNumber: orderNumber,
+      customer: firstName + ' ' + lastName,
+      customerName: firstName + ' ' + lastName,
+      email: email,
+      customerObj: { name: firstName + ' ' + lastName, email: email, phone: phone },
       shipping: { address: address, city: city, postal: postal, method: 'Standard' },
       payment: paymentMethod,
       items: cart.map(function(item) {
@@ -87,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Also save to simple orders for backward compatibility
     var simpleOrders = getStoredList('smilehub_simple_orders');
-    simpleOrders.unshift({ number: order.orderNumber, date: order.date, total: total, status: order.status });
+    simpleOrders.unshift({ number: order.number, date: order.date, total: total, status: order.status });
     saveStoredList('smilehub_simple_orders', simpleOrders);
 
     // Clear cart
