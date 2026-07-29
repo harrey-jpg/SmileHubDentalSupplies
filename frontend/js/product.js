@@ -1,4 +1,21 @@
-const productDetails = {
+// product.js - Reads from localStorage (same as admin)
+
+// Category to image mapping (used as fallback)
+const categoryImages = {
+  'Oral Care': 'assets/products/oral-care.svg',
+  'Instruments': 'assets/products/instrument.svg',
+  'PPE': 'assets/products/ppe.svg',
+  'Restorative': 'assets/products/restorative.svg',
+  'Disposables': 'assets/products/disposable.svg',
+  'Impression': 'assets/products/impression.svg',
+  'Orthodontics': 'assets/products/orthodontic.svg',
+  'Rotary': 'assets/products/instrument.svg',
+  'Equipment': 'assets/products/equipment.svg',
+  'Cosmetic': 'assets/products/restorative.svg'
+};
+
+// Default products (fallback if no data exists)
+const defaultProducts = {
   1: {"name":"ProClean Soft Toothbrush 4-Pack","brand":"SmilePro","category":"Oral Care","price":189,"stock":86,"sku":"SH-OC-001","image":"assets/products/oral-care.svg","description":"Soft rounded bristles for gentle daily plaque removal and comfortable gum care.","specs":["4 toothbrushes","Soft nylon bristles","Ergonomic non-slip handle"]},
   2: {"name":"SonicWave Electric Toothbrush","brand":"Dentiva","category":"Oral Care","price":1299,"stock":24,"sku":"SH-OC-002","image":"assets/products/oral-care.svg","description":"Rechargeable sonic toothbrush with three cleaning modes and two-minute timer.","specs":["3 cleaning modes","USB-C rechargeable","2 brush heads included"]},
   3: {"name":"MintShield Fluoride Toothpaste 150g","brand":"Oracare","category":"Oral Care","price":159,"stock":120,"sku":"SH-OC-003","image":"assets/products/oral-care.svg","description":"Daily fluoride toothpaste formulated to strengthen enamel and freshen breath.","specs":["150g tube","1450 ppm fluoride","Fresh mint flavor"]},
@@ -33,21 +50,143 @@ const productDetails = {
   32: {"name":"Professional Teeth Whitening Kit","brand":"BrightDent","category":"Cosmetic","price":2899,"stock":16,"sku":"SH-CO-032","image":"assets/products/restorative.svg","description":"Clinic-use whitening kit with controlled gel delivery and gingival barrier materials.","specs":["3 patient treatments","35% carbamide peroxide","Clinic-use demo"]}
 };
 
+// --- GET PRODUCTS FROM LOCALSTORAGE (SAME AS ADMIN) ---
+function getProducts() {
+  let products = [];
+  
+  // Try to get from localStorage (admin data)
+  try {
+    const saved = localStorage.getItem('smilehub_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        products = parsed;
+      }
+    }
+  } catch (e) {}
+  
+  // If no admin data, use default products
+  if (products.length === 0) {
+    products = Object.entries(defaultProducts).map(function([id, product]) {
+      return {
+        id: parseInt(id),
+        sku: product.sku || 'SH-' + String(id).padStart(3, '0'),
+        name: product.name,
+        category: product.category,
+        price: product.price,
+        stock: product.stock,
+        status: product.stock > 10 ? 'Active' : product.stock > 0 ? 'Low Stock' : 'Out of Stock',
+        image: product.image || categoryImages[product.category] || 'assets/products/default.svg',
+        brand: product.brand || '',
+        description: product.description || '',
+        specs: product.specs || []
+      };
+    });
+  }
+  
+  return products;
+}
+
+// --- GET SINGLE PRODUCT ---
+function getProduct(id) {
+  const products = getProducts();
+  return products.find(function(p) { return p.id === id; }) || null;
+}
+
+// --- CONVERT TO PRODUCT DETAILS FORMAT ---
+function getProductDetails(id) {
+  const product = getProduct(id);
+  if (!product) {
+    const defaultProduct = defaultProducts[id];
+    if (defaultProduct) {
+      return {
+        name: defaultProduct.name,
+        brand: defaultProduct.brand || 'SmileHub',
+        category: defaultProduct.category || 'General',
+        price: defaultProduct.price || 0,
+        stock: defaultProduct.stock || 0,
+        sku: defaultProduct.sku || 'SH-' + String(id).padStart(3, '0'),
+        image: defaultProduct.image || 'assets/products/default.svg',
+        description: defaultProduct.description || 'No description available.',
+        specs: defaultProduct.specs || ['No specifications available.']
+      };
+    }
+    return null;
+  }
+  
+  return {
+    name: product.name,
+    brand: product.brand || 'SmileHub',
+    category: product.category || 'General',
+    price: product.price || 0,
+    stock: product.stock || 0,
+    sku: product.sku || 'SH-' + String(id).padStart(3, '0'),
+    image: product.image || 'assets/products/default.svg',
+    description: product.description || 'No description available.',
+    specs: product.specs || ['No specifications available.']
+  };
+}
+
+// --- GET ALL PRODUCT DETAILS ---
+function getAllProductDetails() {
+  const products = getProducts();
+  const details = {};
+  
+  products.forEach(function(p) {
+    details[p.id] = {
+      name: p.name,
+      brand: p.brand || 'SmileHub',
+      category: p.category || 'General',
+      price: p.price || 0,
+      stock: p.stock || 0,
+      sku: p.sku || 'SH-' + String(p.id).padStart(3, '0'),
+      image: p.image || 'assets/products/default.svg',
+      description: p.description || 'No description available.',
+      specs: p.specs || ['No specifications available.']
+    };
+  });
+  
+  // If no products found, use defaults
+  if (Object.keys(details).length === 0) {
+    return defaultProducts;
+  }
+  
+  return details;
+}
+
+// --- EXPOSE FOR USE ---
+window.productDetails = getAllProductDetails();
+window.getProduct = getProduct;
+window.getProductDetails = getProductDetails;
+window.getProducts = getProducts;
+
+// --- PRODUCT PAGE INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', function() {
   const id = Number(new URLSearchParams(location.search).get('id')) || 1;
-  const product = productDetails[id] || productDetails[1];
+  const product = getProductDetails(id);
+  
+  if (!product) {
+    document.getElementById('detailName').textContent = 'Product Not Found';
+    document.getElementById('detailDescription').textContent = 'This product does not exist.';
+    return;
+  }
 
   document.getElementById('detailName').textContent = product.name;
-  document.getElementById('detailBrand').textContent = product.brand;
-  document.getElementById('detailCategory').textContent = product.category;
+  document.getElementById('detailBrand').textContent = product.brand || 'SmileHub';
+  document.getElementById('detailCategory').textContent = product.category || 'General';
   document.getElementById('detailPrice').textContent = money(product.price);
-  document.getElementById('detailStock').textContent = product.stock + ' pieces available';
-  document.getElementById('detailSku').textContent = product.sku;
-  document.getElementById('detailDescription').textContent = product.description;
-  document.getElementById('detailImage').src = product.image;
-  document.getElementById('detailSpecs').innerHTML = product.specs.map(function(spec) {
-    return '<li>' + spec + '</li>';
-  }).join('');
+  document.getElementById('detailStock').textContent = (product.stock || 0) + ' pieces available';
+  document.getElementById('detailSku').textContent = product.sku || 'N/A';
+  document.getElementById('detailDescription').textContent = product.description || 'No description available.';
+  document.getElementById('detailImage').src = product.image || 'assets/products/default.svg';
+  
+  if (product.specs && product.specs.length > 0) {
+    document.getElementById('detailSpecs').innerHTML = product.specs.map(function(spec) {
+      return '<li>' + spec + '</li>';
+    }).join('');
+  } else {
+    document.getElementById('detailSpecs').innerHTML = '<li>No specifications available.</li>';
+  }
 
   // Setup cart button
   const cartButton = document.getElementById('detailAddCart');
@@ -67,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return item.id === id;
   });
   
-  // Set initial heart state with text - HIGHLIGHTED
+  // Set initial heart state with text
   if (isWished) {
     wishButton.innerHTML = '♥ <span style="font-weight:700;">Wishlist</span>';
     wishButton.classList.add('wished');

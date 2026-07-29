@@ -175,31 +175,41 @@ function setupPageActions() {
     saveStoredList(WISH_KEY, []);
   }
 
-  document.querySelectorAll('.add-cart').forEach(function (button) {
-    button.addEventListener('click', function () {
-      addToCart(button);
+  // ONLY attach listeners to .add-cart buttons that are NOT in the catalog grid
+  // This prevents duplicates with catalog.js
+  document.querySelectorAll('.add-cart:not(.catalog-btn)').forEach(function (button) {
+    // Remove any existing listeners by cloning
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
+    newButton.addEventListener('click', function () {
+      addToCart(this);
     });
   });
 
-  // UPDATED: Use toggleWishlist instead of addToWishlist
-  document.querySelectorAll('.add-wishlist').forEach(function (button) {
+  // ONLY attach listeners to .add-wishlist buttons that are NOT in the catalog grid
+  document.querySelectorAll('.add-wishlist:not(.catalog-btn)').forEach(function (button) {
+    // Remove any existing listeners by cloning
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+    
     // Check if product is already in wishlist and update heart state
     const wishlist = getStoredList(WISH_KEY);
-    const productId = Number(button.dataset.id);
+    const productId = Number(newButton.dataset.id);
     const isWished = wishlist.some(function (item) {
       return item.id === productId;
     });
     
     if (isWished) {
-      button.textContent = '♥';
-      button.classList.add('wished');
+      newButton.textContent = '♥';
+      newButton.classList.add('wished');
     } else {
-      button.textContent = '♡';
-      button.classList.remove('wished');
+      newButton.textContent = '♡';
+      newButton.classList.remove('wished');
     }
 
-    button.addEventListener('click', function () {
-      toggleWishlist(button);
+    newButton.addEventListener('click', function () {
+      toggleWishlist(this);
     });
   });
 
