@@ -6,6 +6,7 @@ const DEMO_ACCOUNTS = {
 };
 const RETURN_KEY = 'smilehub_return_page';
 const AUTH_KEY = 'smilehub_logged_in_user';
+const ACCOUNTS_KEY = 'smilehub_accounts';
 const WINDOW_STATE_PREFIX = 'SMILEHUB_STATE:';
 
 const PUBLIC_PAGES = [
@@ -400,12 +401,32 @@ function protectLinksForGuests() {
   });
 }
 
+function getAccounts() {
+  var accounts = SmileHubStorage.get(ACCOUNTS_KEY, []);
+  if (accounts.length === 0) {
+    accounts = [
+      { name: 'Demo Customer', email: 'customer@smilehub.ph', role: 'customer', status: 'active' },
+      { name: 'Admin User', email: 'admin@smilehub.ph', role: 'admin', status: 'active' },
+      { name: 'Staff User', email: 'staff@smilehub.ph', role: 'staff', status: 'active' },
+      { name: 'Super Admin', email: 'super@smilehub.ph', role: 'superadmin', status: 'active' }
+    ];
+    SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+  }
+  return accounts;
+}
+
+function saveAccounts(accounts) {
+  SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+}
+
 window.SmileHubAuth = {
   getLoggedInUser: getLoggedInUser,
   getCurrentAccount: getCurrentAccount,
   requireLogin: requireLogin,
   logoutUser: logoutUser,
-  showMessage: showAuthMessage
+  showMessage: showAuthMessage,
+  getAccounts: getAccounts,
+  saveAccounts: saveAccounts
 };
 
 document.addEventListener('DOMContentLoaded', function() {
