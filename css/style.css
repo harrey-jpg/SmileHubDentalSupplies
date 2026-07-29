@@ -302,6 +302,7 @@ body.dark.admin-body { background: #0d141a; }
 .status.processing { background: #fff4d7; color: #9b6800; }
 .status.delivered { background: #e8f7ef; color: #16864f; }
 .status.low { background: #fde9e9; color: #b93434; }
+.status.out-of-stock { background: #f0f0f0; color: #6b7a8c; }
 .chart-placeholder { min-height: 250px; padding: 24px; display: flex; align-items: end; gap: 14px; }
 .bar { flex: 1; background: linear-gradient(var(--teal), var(--blue)); border-radius: 8px 8px 0 0; min-width: 24px; }
 .admin-section { margin-top: 24px; }
@@ -772,6 +773,12 @@ table tbody td { padding: 12px 16px; }
 /* Product card image hover */
 .product-image { transition: background 0.3s ease; }
 .product-card:hover .product-image { filter: brightness(1.05); }
+
+/* Password visibility toggle */
+.password-wrap { position: relative; display: flex; align-items: center; }
+.password-wrap input { flex: 1; padding-right: 44px; }
+.password-toggle { position: absolute; right: 8px; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 6px; line-height: 1; color: var(--muted); }
+.password-toggle:hover { color: var(--text); }
 
 /* Responsive */
 @media (max-width: 960px) {

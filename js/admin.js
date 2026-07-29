@@ -55,17 +55,22 @@ document.addEventListener('DOMContentLoaded', function() {
   ];
 
   // --- LOAD PRODUCTS ---
-  function loadProducts() {
+  var _loadingProducts = false;
+
+  function loadProducts(callback) {
     var cached = SmileHubStorage.get('smilehub_products_cache', null);
     if (cached && cached.length > 0) {
       products = cached;
     }
-    SmileHubData.getProducts(function(data) {
-      products = data;
-      SmileHubStorage.set('smilehub_products_cache', data);
-      renderProducts();
-      updateDashboard();
-    });
+    if (!_loadingProducts) {
+      _loadingProducts = true;
+      SmileHubData.getProducts(function(data) {
+        products = data;
+        SmileHubStorage.set('smilehub_products_cache', data);
+        _loadingProducts = false;
+        if (callback) callback(products);
+      });
+    }
     return products || [];
   }
 
@@ -191,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- RENDER PRODUCTS ---
   function renderProducts(filter) {
-    products = loadProducts();
     if (!productsBody) return;
     
     const searchTerm = (filter || adminSearch?.value || '').toLowerCase();
@@ -208,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     productsBody.innerHTML = filtered.map(function(p) {
-      const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'processing';
+      const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'out-of-stock';
       return `
         <tr>
           <td><img src="${p.image || 'assets/products/default.svg'}" alt="${p.name}" style="width:40px;height:40px;object-fit:contain;background:var(--sky);border-radius:6px;padding:4px;"></td>
@@ -243,12 +247,11 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderInventory() {
     const body = document.getElementById('inventoryBody');
     if (!body) return;
-    products = loadProducts();
     const threshold = 10;
 
     body.innerHTML = products.map(function(p) {
       const status = p.stock === 0 ? 'Out of Stock' : p.stock <= threshold ? 'Low Stock' : 'In Stock';
-      const statusClass = p.stock === 0 ? 'processing' : p.stock <= threshold ? 'low' : 'delivered';
+      const statusClass = p.stock === 0 ? 'out-of-stock' : p.stock <= threshold ? 'low' : 'delivered';
       return `
         <tr data-product="${p.name}">
           <td><img src="${p.image || 'assets/products/default.svg'}" style="width:35px;height:35px;object-fit:contain;background:var(--sky);border-radius:6px;padding:3px;"></td>
@@ -354,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('[name="category"]').value = product.category;
       form.querySelector('[name="price"]').value = product.price;
       form.querySelector('[name="stock"]').value = product.stock;
+      form.querySelector('[name="sku"]').value = product.sku || '';
       form.querySelector('[name="description"]').value = product.description || '';
       form.querySelector('[name="specs"]').value = product.specs ? product.specs.join(', ') : '';
       
@@ -399,6 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
     products[index].category = data.category;
     products[index].price = parseFloat(data.price);
     products[index].image = image;
+    products[index].sku = data.sku || products[index].sku;
     products[index].description = data.description || '';
     products[index].specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
     if (typeof data.stock === 'number') {
@@ -447,7 +452,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateKPIs() {
-    products = loadProducts();
     const total = products.length;
     const low = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const out = products.filter(function(p) { return p.stock === 0; }).length;
@@ -499,7 +503,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderInventoryAlerts() {
     const container = document.getElementById('dashInventoryAlerts');
     if (!container) return;
-    products = loadProducts();
     const alerts = products.filter(function(p) { return p.stock <= 10; }).sort(function(a, b) { return a.stock - b.stock; });
 
     if (alerts.length === 0) {
@@ -521,8 +524,6 @@ document.addEventListener('DOMContentLoaded', function() {
   let chartCategoryValue = null;
 
   function renderCharts() {
-    products = loadProducts();
-
     const inStock = products.filter(function(p) { return p.stock > 10; }).length;
     const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const outStock = products.filter(function(p) { return p.stock === 0; }).length;
@@ -601,7 +602,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateInventoryStats() {
-    products = loadProducts();
     const totalStock = products.reduce(function(sum, p) { return sum + p.stock; }, 0);
     const low = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const out = products.filter(function(p) { return p.stock === 0; }).length;
@@ -618,7 +618,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function showLowStock() {
-    products = loadProducts();
     const items = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; });
     if (items.length === 0) { showToast('✅ No low stock items', false, true); return; }
     document.querySelectorAll('#inventoryBody tr').forEach(function(row) {
@@ -825,13 +824,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (target) navigateTo(target);
       });
     });
-    document.querySelectorAll('.inventory-alert-item').forEach(function(item) {
-      item.addEventListener('click', function() {
-        const name = this.dataset.product;
+    var alertsContainer = document.getElementById('dashInventoryAlerts');
+    if (alertsContainer) {
+      alertsContainer.addEventListener('click', function(e) {
+        var item = e.target.closest('.inventory-alert-item');
+        if (!item) return;
+        var name = item.dataset.product;
         navigateTo('#inventory');
         setTimeout(function() {
           document.querySelectorAll('#inventoryBody tr').forEach(function(row) {
-            const rowName = row.querySelector('td:nth-child(2)')?.textContent || '';
+            var rowName = (row.querySelector('td:nth-child(2)') || {}).textContent || '';
             if (rowName.includes(name)) {
               row.style.background = '#fff3cd';
               row.style.border = '2px solid #f0a320';
@@ -840,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }, 300);
       });
-    });
+    }
   }
 
   // --- SIDEBAR NAVIGATION ---
@@ -1287,25 +1289,38 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
+        showToast('Pre-registering account...');
+
         var newAccount = {
           firstName: firstName,
           lastName: lastName,
           name: firstName + ' ' + lastName,
           email: email,
-          password: password,
           phone: '',
           address: '',
           role: role,
-          status: 'active'
+          status: 'pending'
         };
 
         accounts.push(newAccount);
         window.SmileHubAuth.saveAccounts(accounts);
-        form.classList.remove('show');
-        form.reset();
-        renderAccounts();
-        addAuditLog('Created account: ' + email + ' (' + role + ')');
-        showToast('Account created: ' + email + ' (' + role + ')', false, true);
+
+        firebase.firestore().collection('user_registrations').doc(email).set({
+          firstName: firstName,
+          lastName: lastName,
+          displayName: firstName + ' ' + lastName,
+          email: email,
+          role: role,
+          claimed: false
+        }).then(function() {
+          form.classList.remove('show');
+          form.reset();
+          renderAccounts();
+          addAuditLog('Pre-registered: ' + email + ' (' + role + ')');
+          showToast('Account pre-registered! User must sign up via Register page to activate.', false, true);
+        }).catch(function(error) {
+          showToast('Firestore error: ' + error.message, true);
+        });
       });
     }
   }
@@ -1626,10 +1641,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    renderProducts();
-    renderInventory();
+    loadProducts(function() {
+      renderProducts();
+      renderInventory();
+      updateDashboard();
+      makeDashboardClickable();
+    });
     renderOrders('all');
-    makeDashboardClickable();
     setupSidebarNavigation();
     setupBulkStock();
     setupImagePreview();
@@ -1638,7 +1656,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAccountSearch();
     renderAccounts();
     renderNotificationTemplates();
-    updateDashboard();
 
     // Report period filter
     var periodSelect = document.getElementById('reportPeriod');
@@ -1727,7 +1744,7 @@ window.navigateTo = function(sectionId) {
 };
 
 window.showLowStock = function() {
-  const products = SmileHubStorage.get('smilehub_products_cache', []);
+  const products = loadProducts();
   const items = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; });
   if (items.length === 0) { showToast('✅ No low stock items', false, true); return; }
   document.querySelectorAll('#inventoryBody tr').forEach(function(row) {

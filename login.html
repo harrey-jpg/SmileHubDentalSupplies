@@ -128,7 +128,10 @@
           <label>
             Password
           </label>
-          <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+          <div class="password-wrap">
+            <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword(this)">👁</button>
+          </div>
         </div>
         <button class="btn btn-primary btn-block" type="submit">
           Login

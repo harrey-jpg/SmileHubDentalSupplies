@@ -235,3 +235,16 @@ function setupPageActions() {
 }
 
 document.addEventListener('DOMContentLoaded', setupPageActions);
+
+function togglePassword(btn) {
+  var wrap = btn.closest('.password-wrap');
+  var input = wrap ? wrap.querySelector('input') : btn.previousElementSibling;
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}

@@ -162,25 +162,50 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
       lastName: demo.lastName || '',
       password: ''
     });
-    authReady = true;
-    afterAuthReady();
-    fetchUserProfile(firebaseUser.uid).then(function(profile) {
+
+    Promise.all([
+      fetchUserProfile(firebaseUser.uid),
+      firebase.firestore().collection('user_registrations').doc(firebaseUser.email).get()
+    ]).then(function(results) {
+      var profile = results[0];
+      var regDoc = results[1];
+
+      var role = demo.role || 'customer';
+      var firstName = demo.firstName || '';
+      var lastName = demo.lastName || '';
+      var name = firebaseUser.email;
+
       if (profile) {
-        var demo = DEMO_ACCOUNTS[firebaseUser.email] || {};
-        cacheUser({
-          uid: firebaseUser.uid,
-          name: profile.displayName || firebaseUser.email,
-          email: firebaseUser.email,
-          role: profile.role || demo.role || 'customer',
-          phone: profile.phone || '',
-          address: profile.address || '',
-          firstName: profile.firstName || demo.firstName || '',
-          lastName: profile.lastName || demo.lastName || '',
-          password: ''
-        });
-        updateAccountLink();
+        role = profile.role || role;
+        firstName = profile.firstName || firstName;
+        lastName = profile.lastName || lastName;
+        name = profile.displayName || name;
       }
-    }).catch(function() {});
+
+      if (!demo.role && regDoc.exists && (regDoc.data().claimed === false || !profile)) {
+        var reg = regDoc.data();
+        role = reg.role || role;
+        firstName = reg.firstName || firstName;
+        lastName = reg.lastName || lastName;
+        name = reg.displayName || name;
+      }
+
+      cacheUser({
+        uid: firebaseUser.uid,
+        name: name,
+        email: firebaseUser.email,
+        role: role,
+        phone: (profile && profile.phone) || '',
+        address: (profile && profile.address) || '',
+        firstName: firstName,
+        lastName: lastName,
+        password: ''
+      });
+      updateAccountLink();
+    }).catch(function() {}).then(function() {
+      authReady = true;
+      afterAuthReady();
+    });
   } else {
     if (authReady) {
       cacheUser(null);
@@ -191,7 +216,7 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         authReady = true;
         afterAuthReady();
       }
-    }, 3000);
+    }, 5000);
   }
 });
 
@@ -217,9 +242,10 @@ function handleLogin(event) {
       if (!fbUser) { location.href = 'homepage.html'; return; }
 
       fetchUserProfile(fbUser.uid).then(function(profile) {
-        var role = (profile && profile.role) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].role) || 'customer';
-        var firstName = (profile && profile.firstName) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].firstName) || '';
-        var lastName = (profile && profile.lastName) || (DEMO_ACCOUNTS[email] && DEMO_ACCOUNTS[email].lastName) || '';
+        var demo = DEMO_ACCOUNTS[email] || {};
+        var role = demo.role || (profile && profile.role) || 'customer';
+        var firstName = (profile && profile.firstName) || demo.firstName || '';
+        var lastName = (profile && profile.lastName) || demo.lastName || '';
         cacheUser({
           uid: fbUser.uid,
           name: (profile && profile.displayName) || fbUser.email,
@@ -276,21 +302,53 @@ function handleRegister(event) {
   if (password.length < 6) { showAuthMessage('Password must be at least 6 characters.', true); return; }
 
   firebase.auth().createUserWithEmailAndPassword(email, password).then(function() {
-    showAuthMessage('Account created! Redirecting to products...');
-    cacheUser({
-      uid: firebase.auth().currentUser.uid,
-      name: email,
-      email: email,
-      role: 'customer',
-      phone: '',
-      address: '',
-      firstName: firstName,
-      lastName: lastName,
-      password: ''
+    var uid = firebase.auth().currentUser.uid;
+    showAuthMessage('Account created! Setting up profile...');
+
+    return firebase.firestore().collection('user_registrations').doc(email).get().then(function(doc) {
+      var role = 'customer';
+      var reg = doc.exists && doc.data().claimed === false ? doc.data() : null;
+
+      if (reg) {
+        role = reg.role;
+        firstName = reg.firstName || firstName;
+        lastName = reg.lastName || lastName;
+      }
+
+      return firebase.firestore().collection('users').doc(uid).set({
+        firstName: firstName,
+        lastName: lastName,
+        displayName: firstName + ' ' + lastName,
+        email: email,
+        role: role,
+        phone: '',
+        address: ''
+      }).then(function() {
+        if (reg) {
+          return firebase.firestore().collection('user_registrations').doc(email).update({
+            claimed: true,
+            claimedUid: uid,
+            claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      }).then(function() {
+        cacheUser({
+          uid: uid,
+          name: firstName + ' ' + lastName,
+          email: email,
+          role: role,
+          phone: '',
+          address: '',
+          firstName: firstName,
+          lastName: lastName,
+          password: ''
+        });
+        showAuthMessage('Welcome, ' + firstName + '! Redirecting...');
+        setTimeout(function() {
+          location.href = role === 'customer' ? 'products.html' : 'admin.html';
+        }, 1200);
+      });
     });
-    setTimeout(function() {
-      location.href = 'products.html';
-    }, 1200);
   }).catch(function(error) {
     var message = 'Registration failed.';
     if (error.code === 'auth/email-already-in-use') {
@@ -327,6 +385,14 @@ function protectPage() {
     SmileHubStorage.set(RETURN_KEY, currentPage + location.search);
     location.replace('login.html?message=signin');
     return;
+  }
+
+  if (user && DEMO_ACCOUNTS[user.email]) {
+    var hardcodedRole = DEMO_ACCOUNTS[user.email].role;
+    if (user.role !== hardcodedRole) {
+      user.role = hardcodedRole;
+      cacheUser(user);
+    }
   }
 
   var adminRoles = ['admin', 'staff', 'superadmin'];
