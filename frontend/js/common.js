@@ -44,7 +44,7 @@ function customerIsLoggedIn() {
 
 function askUserToLogin(returnPage) {
   if (window.SmileHubAuth) {
-    window.SmileHubAuth.requireLogin(returnPage || 'products.html');
+    window.SmileHubAuth.requireLogin(returnPage || 'homepage.html');
   } else {
     location.href = 'login.html?message=signin';
   }
@@ -120,11 +120,6 @@ function addToCart(button) {
 
 // Toggle wishlist (add or remove)
 function toggleWishlist(button) {
-  if (!customerIsLoggedIn()) {
-    askUserToLogin(location.pathname.split('/').pop() + location.search);
-    return;
-  }
-
   const wishlist = getStoredList(WISH_KEY);
   const productId = Number(button.dataset.id);
   
@@ -165,16 +160,6 @@ function addToWishlist(button) {
 }
 
 function setupPageActions() {
-  const signedInUser = window.SmileHubAuth
-    ? window.SmileHubAuth.getLoggedInUser()
-    : null;
-
-  // Remove cart data created by the older version before login was required.
-  if (!signedInUser) {
-    saveStoredList(CART_KEY, []);
-    saveStoredList(WISH_KEY, []);
-  }
-
   // ONLY attach listeners to .add-cart buttons that are NOT in the catalog grid
   // This prevents duplicates with catalog.js
   document.querySelectorAll('.add-cart:not(.catalog-btn)').forEach(function (button) {

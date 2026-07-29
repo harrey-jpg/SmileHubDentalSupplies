@@ -76,188 +76,153 @@ function getCatalogProducts() {
 document.addEventListener('DOMContentLoaded', function() {
   const search = document.getElementById('catalogSearch');
   const category = document.getElementById('categoryFilter');
+  const brand = document.getElementById('brandFilter');
+  const priceMin = document.getElementById('priceMin');
+  const priceMax = document.getElementById('priceMax');
+  const inStockOnly = document.getElementById('inStockOnly');
   const sort = document.getElementById('sortProducts');
   const grid = document.getElementById('productGrid');
   const count = document.getElementById('productCount');
   
   if (!grid) return;
 
-  // Get products from admin data
-  let products = getCatalogProducts();
-  
-  // --- FUNCTION TO BUILD PRODUCT CARDS ---
+  var products = getCatalogProducts();
+
+  // Populate brand dropdown
+  if (brand) {
+    var brands = {};
+    products.forEach(function(p) { if (p.brand) brands[p.brand] = true; });
+    Object.keys(brands).sort().forEach(function(b) {
+      var opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      brand.appendChild(opt);
+    });
+  }
+
   function buildProductCards() {
     grid.innerHTML = '';
-    
     if (products.length === 0) {
       grid.innerHTML = '<div class="card empty-state"><h3>No products found</h3><p>Please add products in the admin dashboard.</p></div>';
       return;
     }
-    
     products.forEach(function(p) {
-      const card = document.createElement('article');
+      var card = document.createElement('article');
       card.className = 'card product-card';
       card.dataset.name = p.name;
       card.dataset.category = p.category || 'General';
       card.dataset.price = p.price || 0;
+      card.dataset.brand = (p.brand || '').toLowerCase();
+      card.dataset.stock = p.stock || 0;
       card.dataset.search = (p.name + ' ' + (p.brand || '') + ' ' + (p.category || '') + ' ' + (p.sku || '')).toLowerCase();
       
-      const statusText = p.stock > 0 ? p.stock + ' in stock' : 'Out of stock';
-      const statusClass = p.stock > 0 ? 'stock' : 'stock out';
+      var statusText = p.stock > 0 ? p.stock + ' in stock' : 'Out of stock';
+      var statusClass = p.stock > 0 ? 'stock' : 'stock out';
       
-      card.innerHTML = `
-        <button class="wish-button add-wishlist catalog-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-image="${p.image || 'assets/products/default.svg'}" title="Add to wishlist">♡</button>
-        <a class="product-image" href="product.html?id=${p.id}">
-          <img src="${p.image || 'assets/products/default.svg'}" alt="${p.name}">
-        </a>
-        <div class="product-body">
-          <div class="product-category">${p.category || 'General'}</div>
-          <a href="product.html?id=${p.id}">
-            <h3>${p.name}</h3>
-          </a>
-          <div class="product-brand">${p.brand || 'SmileHub'} • ${p.sku || 'SH-' + String(p.id).padStart(3, '0')}</div>
-          <div class="price-row"><span class="price">${money(p.price || 0)}</span> <span class="${statusClass}">${statusText}</span></div>
-          <div class="product-actions">
-            <button class="btn btn-primary add-cart catalog-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}" data-image="${p.image || 'assets/products/default.svg'}">Add to Cart</button>
-            <a class="btn btn-light" href="product.html?id=${p.id}">View</a>
-          </div>
-        </div>
-      `;
-      
+      card.innerHTML =
+        '<button class="wish-button add-wishlist catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" title="Add to wishlist">♡</button>' +
+        '<a class="product-image" href="product.html?id=' + p.id + '" data-category="' + (p.category || 'General') + '"><img src="' + (p.image || 'assets/products/default.svg') + '" alt="' + p.name.replace(/"/g,'&quot;') + '"></a>' +
+        '<div class="product-body">' +
+          '<div class="product-category">' + (p.category || 'General') + '</div>' +
+          '<a href="product.html?id=' + p.id + '"><h3>' + p.name + '</h3></a>' +
+          '<div class="product-brand">' + (p.brand || 'SmileHub') + ' &middot; ' + (p.sku || 'SH-' + String(p.id).padStart(3, '0')) + '</div>' +
+          '<div class="price-row"><span class="price">' + money(p.price || 0) + '</span> <span class="' + statusClass + '">' + statusText + '</span></div>' +
+          '<div class="product-actions">' +
+            '<button class="btn btn-primary add-cart catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '">Add to Cart</button>' +
+            '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
+          '</div>' +
+        '</div>';
       grid.appendChild(card);
     });
-    
-    // --- ATTACH EVENT LISTENERS ---
     attachEventListeners();
   }
-  
-  // --- FUNCTION TO ATTACH EVENT LISTENERS ---
+
   function attachEventListeners() {
-    // Add to Cart buttons in catalog
     document.querySelectorAll('.add-cart.catalog-btn').forEach(function(button) {
-      // Remove old listeners by cloning and replacing
-      const newButton = button.cloneNode(true);
+      var newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
-      
       newButton.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        // Use the global addToCart function from common.js
-        if (typeof addToCart === 'function') {
-          addToCart(this);
-        } else {
-          console.error('addToCart function not found');
-        }
+        if (typeof addToCart === 'function') addToCart(this);
       });
     });
-    
-    // Add to Wishlist buttons in catalog
     document.querySelectorAll('.add-wishlist.catalog-btn').forEach(function(button) {
-      // Remove old listeners by cloning and replacing
-      const newButton = button.cloneNode(true);
+      var newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
-      
       newButton.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        // Use the global toggleWishlist function from common.js
-        if (typeof toggleWishlist === 'function') {
-          toggleWishlist(this);
-          // Update heart state after toggle
-          updateWishlistStates();
-        } else if (typeof addToWishlist === 'function') {
-          addToWishlist(this);
-          updateWishlistStates();
-        } else {
-          console.error('wishlist function not found');
-        }
+        if (typeof toggleWishlist === 'function') { toggleWishlist(this); updateWishlistStates(); }
+        else if (typeof addToWishlist === 'function') { addToWishlist(this); updateWishlistStates(); }
       });
     });
-    
-    // Update wishlist heart states
     updateWishlistStates();
   }
-  
-  // --- FUNCTION TO UPDATE WISHLIST HEART STATES ---
+
   function updateWishlistStates() {
-    const wishlist = getStoredList(WISH_KEY);
+    var wishlist = getStoredList(WISH_KEY);
     document.querySelectorAll('.add-wishlist.catalog-btn').forEach(function(btn) {
-      const id = Number(btn.dataset.id);
-      const isWished = wishlist.some(function(item) { return item.id === id; });
-      if (isWished) {
-        btn.textContent = '♥';
-        btn.classList.add('wished');
-      } else {
-        btn.textContent = '♡';
-        btn.classList.remove('wished');
-      }
+      var id = Number(btn.dataset.id);
+      btn.textContent = wishlist.some(function(item) { return item.id === id; }) ? '\u2665' : '\u2661';
+      btn.classList.toggle('wished', wishlist.some(function(item) { return item.id === id; }));
     });
   }
-  
-  // Build initial cards
+
   buildProductCards();
 
-  // Get URL parameters
-  const params = new URLSearchParams(location.search);
+  // URL params
+  var params = new URLSearchParams(location.search);
   if (search && params.get('q')) search.value = params.get('q');
   if (category && params.get('category')) category.value = params.get('category');
+  if (brand && params.get('brand')) { brand.value = params.get('brand'); }
+  else if (brand && params.get('brand')) { brand.value = params.get('brand'); }
 
-  // --- FILTER FUNCTION ---
   function filterProducts() {
-    const cards = [...grid.querySelectorAll('.product-card')];
-    const term = (search?.value || '').toLowerCase();
-    const selectedCategory = category?.value || 'all';
+    var cards = [...grid.querySelectorAll('.product-card')];
+    var term = (search ? search.value : '').toLowerCase();
+    var selectedCategory = category ? category.value : 'all';
+    var selectedBrand = brand ? brand.value : 'all';
+    var minPrice = priceMin ? parseFloat(priceMin.value) || 0 : 0;
+    var maxPrice = priceMax ? parseFloat(priceMax.value) || Infinity : Infinity;
+    var hideOut = inStockOnly ? inStockOnly.checked : false;
 
-    let visibleCount = 0;
-
+    var visibleCount = 0;
     cards.forEach(function(card) {
-      const matchesText = card.dataset.search.includes(term);
-      const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
-      const isVisible = matchesText && matchesCategory;
-      
-      card.classList.toggle('hidden', !isVisible);
-      if (isVisible) visibleCount++;
+      var match = true;
+      if (term && !card.dataset.search.includes(term)) match = false;
+      if (match && selectedCategory !== 'all' && card.dataset.category !== selectedCategory) match = false;
+      if (match && selectedBrand !== 'all' && card.dataset.brand !== selectedBrand.toLowerCase()) match = false;
+      if (match) {
+        var price = Number(card.dataset.price);
+        if (price < minPrice || price > maxPrice) match = false;
+      }
+      if (match && hideOut && Number(card.dataset.stock) <= 0) match = false;
+      card.classList.toggle('hidden', !match);
+      if (match) visibleCount++;
     });
 
-    const visibleCards = cards.filter(function(card) {
-      return !card.classList.contains('hidden');
-    });
-    
-    if (sort?.value === 'price-low') {
-      visibleCards.sort(function(a, b) {
-        return Number(a.dataset.price) - Number(b.dataset.price);
-      });
-    } else if (sort?.value === 'price-high') {
-      visibleCards.sort(function(a, b) {
-        return Number(b.dataset.price) - Number(a.dataset.price);
-      });
-    } else if (sort?.value === 'name') {
-      visibleCards.sort(function(a, b) {
-        return a.dataset.name.localeCompare(b.dataset.name);
-      });
+    var visibleCards = cards.filter(function(c) { return !c.classList.contains('hidden'); });
+    if (sort) {
+      if (sort.value === 'price-low') visibleCards.sort(function(a,b) { return Number(a.dataset.price) - Number(b.dataset.price); });
+      else if (sort.value === 'price-high') visibleCards.sort(function(a,b) { return Number(b.dataset.price) - Number(a.dataset.price); });
+      else if (sort.value === 'name') visibleCards.sort(function(a,b) { return a.dataset.name.localeCompare(b.dataset.name); });
     }
-    
-    visibleCards.forEach(function(card) {
-      grid.appendChild(card);
-    });
-    
-    // Re-attach event listeners after sorting
+    visibleCards.forEach(function(c) { grid.appendChild(c); });
     attachEventListeners();
-    
-    if (count) {
-      count.textContent = visibleCount + ' product' + (visibleCount !== 1 ? 's' : '') + ' found';
-    }
+    if (count) count.textContent = visibleCount + ' product' + (visibleCount !== 1 ? 's' : '') + ' found';
   }
 
-  search?.addEventListener('input', filterProducts);
-  category?.addEventListener('change', filterProducts);
-  sort?.addEventListener('change', filterProducts);
+  search && search.addEventListener('input', filterProducts);
+  category && category.addEventListener('change', filterProducts);
+  brand && brand.addEventListener('change', filterProducts);
+  priceMin && priceMin.addEventListener('input', filterProducts);
+  priceMax && priceMax.addEventListener('input', filterProducts);
+  inStockOnly && inStockOnly.addEventListener('change', filterProducts);
+  sort && sort.addEventListener('change', filterProducts);
   filterProducts();
-  
-  // --- REFRESH WISHLIST STATES WHEN PAGE VISIBLE ---
+
   document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-      updateWishlistStates();
-    }
+    if (!document.hidden) updateWishlistStates();
   });
 });

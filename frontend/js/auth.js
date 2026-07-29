@@ -108,6 +108,26 @@ function defaultAccounts() {
       phone: '',
       address: '',
       role: 'admin'
+    },
+    {
+      firstName: 'SmileHub',
+      lastName: 'Staff',
+      name: 'SmileHub Staff',
+      email: 'staff@smilehub.ph',
+      password: 'staff123',
+      phone: '',
+      address: '',
+      role: 'staff'
+    },
+    {
+      firstName: 'SmileHub',
+      lastName: 'Super Admin',
+      name: 'SmileHub Super Admin',
+      email: 'super@smilehub.ph',
+      password: 'super123',
+      phone: '',
+      address: '',
+      role: 'superadmin'
     }
   ];
 }
@@ -128,6 +148,19 @@ function getAccounts() {
     }
 
     SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+  } else {
+    // Ensure all default accounts exist (handles new roles added later)
+    const defaults = defaultAccounts();
+    let changed = false;
+    defaults.forEach(function (def) {
+      if (!accounts.some(function (a) { return a.email === def.email; })) {
+        accounts.push(def);
+        changed = true;
+      }
+    });
+    if (changed) {
+      SmileHubStorage.set(ACCOUNTS_KEY, accounts);
+    }
   }
 
   return accounts;
@@ -179,11 +212,13 @@ function protectPage() {
     return;
   }
 
-  if (currentPage === 'admin.html' && (!user || user.role !== 'admin')) {
+  const adminRoles = ['admin', 'staff', 'superadmin'];
+  if (currentPage === 'admin.html' && (!user || !adminRoles.includes(user.role))) {
     location.replace('homepage.html?message=admin-only');
   }
 
-  if (currentPage === 'profile.html' && user && user.role !== 'customer') {
+  if (currentPage === 'profile.html' && user && user.role === 'customer') return;
+  if (currentPage === 'profile.html' && user) {
     location.replace('admin.html');
   }
 }
@@ -225,18 +260,18 @@ function handleLogin(event) {
     role: account.role
   });
 
-  if (account.role === 'admin') {
+  if (['admin', 'staff', 'superadmin'].includes(account.role)) {
     location.href = 'admin.html';
     return;
   }
 
-  const returnPage = SmileHubStorage.get(RETURN_KEY, 'products.html');
+  const returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
   SmileHubStorage.remove(RETURN_KEY);
 
   if (String(returnPage).startsWith('admin.html')) {
-    location.href = 'products.html';
+    location.href = 'homepage.html';
   } else {
-    location.href = returnPage || 'products.html';
+    location.href = returnPage || 'homepage.html';
   }
 }
 
@@ -349,9 +384,9 @@ function updateAccountLink() {
   loginLinks.forEach(function (link) {
     if (link.id === 'logoutButton' || link.classList.contains('logout-link')) return;
 
-    if (user.role === 'admin') {
+    if (['admin', 'staff', 'superadmin'].includes(user.role)) {
       link.href = 'admin.html';
-      link.innerHTML = '⚙ <span class="text-label">Admin</span>';
+      link.innerHTML = '⚙ <span class="text-label">Dashboard</span>';
     } else {
       link.href = 'profile.html';
       link.innerHTML = '👤 <span class="text-label">Profile</span>';
@@ -382,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (message === 'admin-only') {
-    showAuthMessage('The admin dashboard is only available to an admin account.', true);
+    showAuthMessage('The admin dashboard is restricted to admin, staff, and super admin accounts.', true);
   }
 
   updateAccountLink();

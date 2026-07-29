@@ -89,11 +89,7 @@
                 Developers
               </a>
             </li>
-            <li>
-              <a href="admin.html">
-                Admin Demo
-              </a>
-            </li>
+
           </ul>
         </div>
       </nav>
@@ -115,57 +111,27 @@
       </div>
     </section>
     <main class="section-sm">
-      <div class="container grid grid-2">
-        <article class="card form-card">
-          <h3>
-            Do you deliver nationwide?
-          </h3>
-          <p class="muted">
-            The frontend demonstrates delivery options for customers throughout the Philippines.
-          </p>
-        </article>
-        <article class="card form-card">
-          <h3>
-            What payment methods are available?
-          </h3>
-          <p class="muted">
-            GCash, credit card, and cash on delivery are included as simulated options.
-          </p>
-        </article>
-        <article class="card form-card">
-          <h3>
-            Can I request a dental chair quotation?
-          </h3>
-          <p class="muted">
-            Yes. Demo equipment listings may use quotation-based ordering in the future backend.
-          </p>
-        </article>
-        <article class="card form-card">
-          <h3>
-            How can I track my order?
-          </h3>
-          <p class="muted">
-            Open Order History to view the Pending, Processing, Shipped, and Delivered timeline.
-          </p>
-        </article>
-        <article class="card form-card">
-          <h3>
-            Can dental students create accounts?
-          </h3>
-          <p class="muted">
-            Yes. The registration page includes a dental-student account type.
-          </p>
-        </article>
-        <article class="card form-card">
-          <h3>
-            Are payments real?
-          </h3>
-          <p class="muted">
-            No. This frontend currently uses a safe payment simulation for academic demonstration.
-          </p>
-        </article>
-      </div>
+      <div class="container grid grid-2" id="faqList"></div>
     </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var data;
+      try { data = JSON.parse(localStorage.getItem('smilehub_cms')); } catch(e) {}
+      if (!data || !data.faqs || data.faqs.length === 0) {
+        data = { faqs: [
+          { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
+          { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
+          { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' },
+          { q: 'Can dental students create accounts?', a: 'Yes, the registration page includes a dental-student account type.' },
+          { q: 'Are payments real?', a: 'No, this frontend uses payment simulation for academic demonstration.' }
+        ]};
+      }
+      var list = document.getElementById('faqList');
+      list.innerHTML = data.faqs.map(function(f) {
+        return '<article class="card form-card"><h3>' + f.q.replace(/</g,'&lt;') + '</h3><p class="muted">' + f.a.replace(/</g,'&lt;') + '</p></article>';
+      }).join('');
+    });
+    </script>
     <section class="newsletter">
       <div class="container newsletter-box">
         <div>

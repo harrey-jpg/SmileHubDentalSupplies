@@ -150,6 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const target = document.querySelector(sectionId);
     if (target) {
       target.style.display = 'block';
+      target.querySelectorAll('.admin-section').forEach(function(s) {
+        s.style.display = '';
+      });
     }
     
     document.querySelectorAll('.admin-menu a').forEach(function(link) {
@@ -170,7 +173,20 @@ document.addEventListener('DOMContentLoaded', function() {
       renderOrders(filter);
     }
     if (sectionId === '#dashboard') {
-      updateKPIs();
+      updateDashboard();
+    }
+    if (sectionId === '#customers') {
+      renderAccounts();
+    }
+    if (sectionId === '#reports') {
+      var period = (document.getElementById('reportPeriod') || {}).value || 'all';
+      renderReports(period);
+    }
+    if (sectionId === '#notifications') {
+      renderNotificationTemplates();
+    }
+    if (sectionId === '#audit') {
+      renderAuditLogs();
     }
   }
 
@@ -262,11 +278,12 @@ document.addEventListener('DOMContentLoaded', function() {
               saveProducts(products);
               renderInventory();
               renderProducts();
-              updateKPIs();
-              showToast('📦 Stock updated: ' + product.name + ' (' + old + ' → ' + val + ')', false, true);
+              updateDashboard();
+              addAuditLog('Updated stock for "' + product.name + '" (' + old + ' → ' + val + ')');
+              showToast('Stock updated: ' + product.name + ' (' + old + ' → ' + val + ')', false, true);
             }
           } else {
-            showToast('⚠️ Enter a valid number', true);
+            showToast('Enter a valid number', true);
           }
         }
       });
@@ -286,8 +303,9 @@ document.addEventListener('DOMContentLoaded', function() {
               saveProducts(products);
               renderInventory();
               renderProducts();
-              updateKPIs();
-              showToast('📦 Stock updated: ' + product.name + ' (' + old + ' → ' + val + ')', false, true);
+              updateDashboard();
+              addAuditLog('Updated stock for "' + product.name + '" (' + old + ' → ' + val + ')');
+              showToast('Stock updated: ' + product.name + ' (' + old + ' → ' + val + ')', false, true);
             }
           }
         }
@@ -302,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function addProduct(data) {
     const newId = products.length > 0 ? Math.max(...products.map(function(p) { return p.id; })) + 1 : 1;
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
+    const stock = typeof data.stock === 'number' ? data.stock : 0;
     const newProduct = {
       id: newId,
       sku: data.sku || 'SH-' + String(newId).padStart(3, '0'),
@@ -309,8 +328,8 @@ document.addEventListener('DOMContentLoaded', function() {
       brand: data.brand || '',
       category: data.category,
       price: parseFloat(data.price),
-      stock: 0,
-      status: 'Out of Stock',
+      stock: stock,
+      status: stock === 0 ? 'Out of Stock' : stock <= 10 ? 'Low Stock' : 'Active',
       image: image,
       description: data.description || '',
       specs: data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : []
@@ -318,9 +337,9 @@ document.addEventListener('DOMContentLoaded', function() {
     products.push(newProduct);
     saveProducts(products);
     renderProducts();
-    updateKPIs();
-    showToast('✅ Product "' + newProduct.name + '" added!', false, true);
-    showToast('⚠️ Set stock in Inventory section', false, false);
+    updateDashboard();
+    addAuditLog('Added product "' + newProduct.name + '" (' + newProduct.sku + ') with ' + stock + ' units');
+    showToast('"' + newProduct.name + '" added with ' + stock + ' units', false, true);
     resetForm();
   }
 
@@ -335,6 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('[name="brand"]').value = product.brand || '';
       form.querySelector('[name="category"]').value = product.category;
       form.querySelector('[name="price"]').value = product.price;
+      form.querySelector('[name="stock"]').value = product.stock;
       form.querySelector('[name="description"]').value = product.description || '';
       form.querySelector('[name="specs"]').value = product.specs ? product.specs.join(', ') : '';
       
@@ -363,8 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
       
       formBox.classList.add('show');
       const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.textContent = '✏️ Update Product';
-      showToast('📝 Editing: ' + product.name, false, false);
+      if (submitBtn) submitBtn.textContent = 'Update Product';
+      showToast('Editing: ' + product.name, false, false);
     }
   }
 
@@ -382,12 +402,16 @@ document.addEventListener('DOMContentLoaded', function() {
     products[index].image = image;
     products[index].description = data.description || '';
     products[index].specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
-    // Keep stock and status unchanged
+    if (typeof data.stock === 'number') {
+      products[index].stock = data.stock;
+      products[index].status = data.stock === 0 ? 'Out of Stock' : data.stock <= 10 ? 'Low Stock' : 'Active';
+    }
     
     saveProducts(products);
     renderProducts();
-    updateKPIs();
-    showToast('✅ Product "' + oldName + '" updated!', false, true);
+    updateDashboard();
+    addAuditLog('Updated product "' + products[index].name + '"');
+    showToast('Product "' + oldName + '" updated!', false, true);
     resetForm();
   }
 
@@ -398,8 +422,9 @@ document.addEventListener('DOMContentLoaded', function() {
       products = products.filter(function(p) { return p.id !== id; });
       saveProducts(products);
       renderProducts();
-      updateKPIs();
-      showToast('🗑️ Product "' + product.name + '" deleted', false, false);
+      updateDashboard();
+      addAuditLog('Deleted product "' + product.name + '"');
+      showToast('Product "' + product.name + '" deleted', false, false);
     }
   }
 
@@ -414,38 +439,166 @@ document.addEventListener('DOMContentLoaded', function() {
     formBox.classList.remove('show');
   }
 
-  // --- KPIs ---
+  // --- UPDATE DASHBOARD ---
+  function updateDashboard() {
+    updateKPIs();
+    renderRecentOrders();
+    renderInventoryAlerts();
+    renderCharts();
+  }
+
   function updateKPIs() {
     products = loadProducts();
     const total = products.length;
     const low = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const out = products.filter(function(p) { return p.stock === 0; }).length;
     const revenue = products.reduce(function(sum, p) { return sum + (p.price * p.stock); }, 0);
+    const totalStock = products.reduce(function(sum, p) { return sum + p.stock; }, 0);
+    const todaySales = Math.round(revenue * 0.05);
 
-    const cards = document.querySelectorAll('.kpi-card');
-    if (cards.length >= 4) {
-      const today = Math.round(revenue * 0.05);
-      const el1 = cards[0].querySelector('strong');
-      const el1s = cards[0].querySelector('small');
-      if (el1) el1.textContent = '₱' + today.toLocaleString();
-      if (el1s) el1s.textContent = (today > 0 ? Math.round(today / 1000) : 0) + ' orders';
-      
-      const el2 = cards[1].querySelector('strong');
-      const el2s = cards[1].querySelector('small');
-      if (el2) el2.textContent = '₱' + revenue.toLocaleString();
-      if (el2s) el2s.textContent = 'From ' + total + ' products';
-      
-      const el3 = cards[2].querySelector('strong');
-      const el3s = cards[2].querySelector('small');
-      if (el3) el3.textContent = Math.round(total * 3.5);
-      if (el3s) el3s.textContent = Math.round(total * 0.3) + ' active';
-      
-      const el4 = cards[3].querySelector('strong');
-      const el4s = cards[3].querySelector('small');
-      if (el4) el4.textContent = low + out;
-      if (el4s) el4s.textContent = low + ' low, ' + out + ' out';
-    }
+    const orders = getOrders();
+    const todayOrders = orders.filter(function(o) { return o.date === new Date().toLocaleDateString(); }).length;
+
+    setText('kpiTodaySales', '₱' + todaySales.toLocaleString());
+    setText('kpiTodayOrders', todayOrders + ' orders today');
+    setText('kpiTotalRevenue', '₱' + revenue.toLocaleString());
+    setText('kpiRevenuePeriod', 'From ' + totalStock + ' units in stock');
+    setText('kpiTotalProducts', total);
+    setText('kpiActiveProducts', (total - out) + ' in stock');
+    setText('kpiLowStock', low + out);
+    setText('kpiLowStockDetail', low + ' low, ' + out + ' out of stock');
     updateInventoryStats();
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function renderRecentOrders() {
+    const body = document.getElementById('dashRecentOrders');
+    if (!body) return;
+    const orders = getOrders();
+    const recent = orders.sort(function(a, b) { return new Date(b.date) - new Date(a.date); }).slice(0, 5);
+
+    if (recent.length === 0) {
+      body.innerHTML = '<tr><td colspan="4" class="text-center muted" style="padding:30px;">No orders yet</td></tr>';
+      return;
+    }
+
+    body.innerHTML = recent.map(function(o) {
+      const cls = o.status === 'Delivered' ? 'delivered' : o.status === 'Cancelled' ? 'low' : 'processing';
+      return '<tr>' +
+        '<td><strong>' + o.number + '</strong></td>' +
+        '<td>' + o.customer + '</td>' +
+        '<td>₱' + Number(o.total).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td>' +
+        '<td><span class="status ' + cls + '">' + o.status + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderInventoryAlerts() {
+    const container = document.getElementById('dashInventoryAlerts');
+    if (!container) return;
+    products = loadProducts();
+    const alerts = products.filter(function(p) { return p.stock <= 10; }).sort(function(a, b) { return a.stock - b.stock; });
+
+    if (alerts.length === 0) {
+      container.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">All items well-stocked</p>';
+      return;
+    }
+
+    container.innerHTML = alerts.map(function(p) {
+      const label = p.stock === 0 ? 'Out of stock' : p.stock + ' left';
+      const cls = p.stock === 0 ? 'low' : p.stock <= 5 ? 'low' : 'processing';
+      return '<div class="inventory-alert-item" data-product="' + p.name + '">' +
+        '<span class="status ' + cls + '">' + label + '</span> ' + p.name +
+        '</div>';
+    }).join('');
+  }
+
+  // --- CHARTS ---
+  let chartStockStatus = null;
+  let chartCategoryValue = null;
+
+  function renderCharts() {
+    products = loadProducts();
+
+    const inStock = products.filter(function(p) { return p.stock > 10; }).length;
+    const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
+    const outStock = products.filter(function(p) { return p.stock === 0; }).length;
+
+    // Category value data
+    var catMap = {};
+    products.forEach(function(p) {
+      if (!catMap[p.category]) catMap[p.category] = 0;
+      catMap[p.category] += p.price * p.stock;
+    });
+    var categories = Object.keys(catMap).sort(function(a, b) { return catMap[b] - catMap[a]; }).slice(0, 6);
+    var catValues = categories.map(function(c) { return catMap[c]; });
+
+    if (typeof Chart === 'undefined') return;
+
+    // Destroy old charts
+    if (chartStockStatus) { chartStockStatus.destroy(); chartStockStatus = null; }
+    if (chartCategoryValue) { chartCategoryValue.destroy(); chartCategoryValue = null; }
+
+    var ctx1 = document.getElementById('chartStockStatus');
+    if (ctx1) {
+      chartStockStatus = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+          datasets: [{
+            data: [inStock, lowStock, outStock],
+            backgroundColor: ['#1e9b61', '#f0a320', '#d64545'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    var ctx2 = document.getElementById('chartCategoryValue');
+    if (ctx2) {
+      chartCategoryValue = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: categories,
+          datasets: [{
+            label: 'Inventory Value (₱)',
+            data: catValues,
+            backgroundColor: ['#1261a0', '#0f9d9a', '#7b61ff', '#f0a320', '#d64545', '#1e9b61'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: function(v) { return '₱' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v); }, font: { size: 10 } },
+              grid: { color: 'rgba(0,0,0,0.06)' }
+            },
+            x: {
+              ticks: { font: { size: 9 } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
   }
 
   function updateInventoryStats() {
@@ -500,8 +653,9 @@ document.addEventListener('DOMContentLoaded', function() {
       saveProducts(products);
       renderInventory();
       renderProducts();
-      updateKPIs();
-      showToast('✅ Updated ' + count + ' products', false, true);
+      updateDashboard();
+      addAuditLog('Bulk stock update: ' + type + ' ' + qty + ' for ' + count + ' products (' + cat + ')');
+      showToast('Updated ' + count + ' products', false, true);
     });
   }
 
@@ -582,10 +736,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const old = orders[idx].status;
     orders[idx].status = status;
     saveOrders(orders);
+    addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
     const filter = document.getElementById('orderStatusFilter')?.value || 'all';
     renderOrders(filter);
     closeOrderModal();
-    showToast('📋 Order ' + number + ': ' + old + ' → ' + status, false, true);
+    showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
   }
 
   function viewOrder(number) {
@@ -600,6 +755,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     modal.style.display = 'flex';
     title.textContent = 'Order ' + order.number;
+
+    // Add print button next to close
+    var closeBtn = modal.querySelector('.btn-light');
+    if (closeBtn && !document.getElementById('printSlipBtn')) {
+      var printBtn = document.createElement('button');
+      printBtn.className = 'btn btn-secondary';
+      printBtn.id = 'printSlipBtn';
+      printBtn.textContent = 'Print Slip';
+      printBtn.style.marginRight = '8px';
+      printBtn.onclick = function() { printOrderSlip(order.number); };
+      closeBtn.parentNode.insertBefore(printBtn, closeBtn);
+    }
 
     const itemsHtml = order.items ? order.items.map(function(item) {
       return `<tr><td>${item.name}</td><td>${item.quantity || 1}</td><td>₱${Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td><td>₱${Number((item.quantity || 1) * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td></tr>`;
@@ -682,9 +849,10 @@ document.addEventListener('DOMContentLoaded', function() {
   function setupSidebarNavigation() {
     document.querySelectorAll('.admin-menu a').forEach(function(link) {
       link.addEventListener('click', function(e) {
-        e.preventDefault();
         const target = this.getAttribute('href');
+        if (!target.startsWith('#')) return; // Allow external links
         
+        e.preventDefault();
         document.querySelectorAll('.admin-menu a').forEach(function(l) {
           l.classList.remove('active');
         });
@@ -716,12 +884,14 @@ document.addEventListener('DOMContentLoaded', function() {
         image = customInput.value.trim();
       }
       
+      const stockVal = parseInt(formData.get('stock'));
       const productData = {
         name: formData.get('name') || '',
         brand: formData.get('brand') || '',
         category: formData.get('category') || '',
         price: formData.get('price') || 0,
         sku: formData.get('sku') || '',
+        stock: isNaN(stockVal) ? 0 : stockVal,
         image: image,
         description: formData.get('description') || '',
         specs: formData.get('specs') || ''
@@ -753,16 +923,705 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // --- ROLE-BASED ACCESS ---
+  function getCurrentUserRole() {
+    try {
+      const user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+      return user ? user.role : null;
+    } catch(e) { return null; }
+  }
+
+  function applyRoleVisibility() {
+    const role = getCurrentUserRole();
+    if (!role) return;
+
+    // Update top bar with user info
+    const user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+    if (user) {
+      const avatarEl = document.getElementById('adminAvatar');
+      const nameEl = document.getElementById('adminUsername');
+      const roleEl = document.getElementById('adminRoleBadge');
+      if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
+      if (nameEl) nameEl.textContent = user.name;
+      if (roleEl) {
+        const labels = { admin: 'Admin', staff: 'Staff', superadmin: 'Super Admin', customer: 'Customer' };
+        roleEl.textContent = labels[role] || role;
+      }
+    }
+
+    // Show/hide sidebar nav items based on data-role
+    document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link) {
+      const allowedRoles = link.getAttribute('data-role').split(',');
+      if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
+        link.style.display = 'none';
+      }
+    });
+
+    // Show/hide sections based on data-role
+    document.querySelectorAll('[data-role]').forEach(function(section) {
+      const allowedRoles = section.getAttribute('data-role').split(',');
+      if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
+        section.style.display = 'none';
+      }
+    });
+
+    // Show/hide elements based on data-role-btn
+    document.querySelectorAll('[data-role-btn]').forEach(function(el) {
+      const allowedRoles = el.getAttribute('data-role-btn').split(',');
+      if (!allowedRoles.includes(role)) {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  // --- CMS ---
+  function getDefaultCms() {
+    return {
+      heroHeadline: 'Your Trusted Dental Supply Partner',
+      heroSubtitle: 'Quality dental products for clinics, dentists, and students across the Philippines.',
+      heroCta: 'Shop Now',
+      promoTtext: 'Free shipping on orders over ₱3,000',
+      promoBtn: 'View Deals',
+      storeTagline: 'SmileHub Dental Supplies',
+      faqs: [
+        { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
+        { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
+        { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' }
+      ]
+    };
+  }
+
+  function loadCms() {
+    var data = null;
+    try {
+      var saved = localStorage.getItem('smilehub_cms');
+      if (saved) data = JSON.parse(saved);
+    } catch(e) {}
+    if (!data) {
+      data = getDefaultCms();
+      localStorage.setItem('smilehub_cms', JSON.stringify(data));
+    }
+    return data;
+  }
+
+  function saveCms(data) {
+    localStorage.setItem('smilehub_cms', JSON.stringify(data));
+    // Also apply to homepage by storing in a shared key
+    try { localStorage.setItem('smilehub_cms_live', JSON.stringify(data)); } catch(e) {}
+  }
+
+  function renderCms() {
+    var data = loadCms();
+    var headline = document.getElementById('cmsHeroHeadline');
+    var subtitle = document.getElementById('cmsHeroSubtitle');
+    var cta = document.getElementById('cmsHeroCta');
+    var promoText = document.getElementById('cmsPromoText');
+    var promoBtn = document.getElementById('cmsPromoBtn');
+    var tagline = document.getElementById('cmsStoreTagline');
+    if (headline) headline.value = data.heroHeadline;
+    if (subtitle) subtitle.value = data.heroSubtitle;
+    if (cta) cta.value = data.heroCta;
+    if (promoText) promoText.value = data.promoTtext;
+    if (promoBtn) promoBtn.value = data.promoBtn;
+    if (tagline) tagline.value = data.storeTagline;
+
+    var list = document.getElementById('cmsFaqList');
+    if (!list) return;
+    if (data.faqs.length === 0) {
+      list.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">No FAQs yet. Click "+ Add FAQ" to add one.</p>';
+      return;
+    }
+    list.innerHTML = data.faqs.map(function(faq, i) {
+      return '<div class="card" style="padding:14px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;">' +
+        '<div style="display:flex;gap:10px;margin-bottom:8px;">' +
+        '<input class="faq-question" data-index="' + i + '" value="' + faq.q.replace(/"/g, '&quot;') + '" placeholder="Question" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;">' +
+        '<button class="btn btn-light delete-faq" data-index="' + i + '" style="padding:6px 12px;font-size:0.8rem;">Remove</button>' +
+        '</div>' +
+        '<textarea class="faq-answer" data-index="' + i + '" placeholder="Answer" rows="2" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;">' + faq.a.replace(/"/g, '&quot;') + '</textarea>' +
+        '</div>';
+    }).join('');
+
+    list.querySelectorAll('.delete-faq').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(this.dataset.index);
+        var data = loadCms();
+        data.faqs.splice(idx, 1);
+        saveCms(data);
+        renderCms();
+        showToast('FAQ removed', false, false);
+      });
+    });
+
+    list.querySelectorAll('.faq-question, .faq-answer').forEach(function(el) {
+      el.addEventListener('input', function() {
+        var data = loadCms();
+        var idx = parseInt(this.dataset.index);
+        var questions = list.querySelectorAll('.faq-question');
+        var answers = list.querySelectorAll('.faq-answer');
+        questions.forEach(function(q, i) {
+          if (data.faqs[i]) { data.faqs[i].q = q.value; }
+        });
+        answers.forEach(function(a, i) {
+          if (data.faqs[i]) { data.faqs[i].a = a.value; }
+        });
+        saveCms(data);
+      });
+    });
+  }
+
+  function setupCms() {
+    renderCms();
+
+    var addBtn = document.getElementById('addFaqBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function() {
+        var data = loadCms();
+        data.faqs.push({ q: 'New question', a: 'New answer' });
+        saveCms(data);
+        renderCms();
+        showToast('New FAQ added', false, true);
+      });
+    }
+
+    function saveCmsFromForm() {
+      var data = loadCms();
+      var headline = document.getElementById('cmsHeroHeadline');
+      var subtitle = document.getElementById('cmsHeroSubtitle');
+      var cta = document.getElementById('cmsHeroCta');
+      var promoText = document.getElementById('cmsPromoText');
+      var promoBtn = document.getElementById('cmsPromoBtn');
+      var tagline = document.getElementById('cmsStoreTagline');
+      if (headline) data.heroHeadline = headline.value;
+      if (subtitle) data.heroSubtitle = subtitle.value;
+      if (cta) data.heroCta = cta.value;
+      if (promoText) data.promoTtext = promoText.value;
+      if (promoBtn) data.promoBtn = promoBtn.value;
+      if (tagline) data.storeTagline = tagline.value;
+
+      // Collect FAQ data
+      var questions = document.querySelectorAll('.faq-question');
+      var answers = document.querySelectorAll('.faq-answer');
+      questions.forEach(function(q, i) {
+        if (data.faqs[i]) data.faqs[i].q = q.value;
+      });
+      answers.forEach(function(a, i) {
+        if (data.faqs[i]) data.faqs[i].a = a.value;
+      });
+
+      saveCms(data);
+      addAuditLog('Updated CMS content');
+      showToast('CMS changes saved! Reload homepage to see updates.', false, true);
+    }
+
+    var saveBtns = document.querySelectorAll('#saveCmsBtn, #saveCmsBtn2');
+    saveBtns.forEach(function(btn) {
+      btn.addEventListener('click', saveCmsFromForm);
+    });
+  }
+
+  // --- ACCOUNT MANAGEMENT ---
+  function renderAccounts() {
+    var body = document.getElementById('accountsBody');
+    if (!body) return;
+    var accounts = [];
+    try {
+      if (window.SmileHubAuth) accounts = window.SmileHubAuth.getAccounts() || [];
+    } catch(e) {}
+
+    if (accounts.length === 0) {
+      body.innerHTML = '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
+      updateAccountStats(accounts);
+      return;
+    }
+
+    var search = (document.getElementById('accountSearch') || {}).value || '';
+    var roleFilter = (document.getElementById('accountRoleFilter') || {}).value || 'all';
+
+    var filtered = accounts.filter(function(a) {
+      var nameMatch = a.name.toLowerCase().includes(search.toLowerCase());
+      var emailMatch = a.email.toLowerCase().includes(search.toLowerCase());
+      var roleMatch = roleFilter === 'all' || a.role === roleFilter;
+      return (nameMatch || emailMatch) && roleMatch;
+    });
+
+    var currentUser = window.SmileHubAuth ? window.SmileHubAuth.getLoggedInUser() : null;
+    var isSuper = currentUser && currentUser.role === 'superadmin';
+
+    body.innerHTML = filtered.map(function(a) {
+      var roleLabels = { customer: 'Customer', staff: 'Staff', admin: 'Admin', superadmin: 'Super Admin' };
+      var roleClass = a.role === 'superadmin' ? 'delivered' : a.role === 'admin' ? 'processing' : a.role === 'staff' ? 'low' : '';
+      var statusText = a.status === 'suspended' ? 'Suspended' : 'Active';
+      var statusClass = a.status === 'suspended' ? 'low' : 'delivered';
+
+      var roleOptions = ['customer', 'staff', 'admin', 'superadmin'].map(function(r) {
+        return '<option value="' + r + '" ' + (a.role === r ? 'selected' : '') + '>' + roleLabels[r] + '</option>';
+      }).join('');
+
+      return '<tr>' +
+        '<td><strong>' + a.name + '</strong></td>' +
+        '<td>' + a.email + '</td>' +
+        '<td>' + (isSuper
+          ? '<select class="acc-role-select" data-email="' + a.email + '" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-size:0.8rem;">' + roleOptions + '</select>'
+          : '<span class="status ' + roleClass + '">' + (roleLabels[a.role] || a.role) + '</span>') +
+        '</td>' +
+        '<td><span class="status ' + statusClass + '">' + statusText + '</span></td>' +
+        '<td style="white-space:nowrap;">' +
+          (a.email !== (currentUser ? currentUser.email : '')
+            ? '<button class="btn btn-light acc-toggle-status" data-email="' + a.email + '" data-status="' + (a.status === 'suspended' ? 'active' : 'suspended') + '" style="padding:4px 10px;font-size:0.78rem;">' + (a.status === 'suspended' ? 'Activate' : 'Suspend') + '</button> '
+            : '') +
+          (isSuper && a.email !== (currentUser ? currentUser.email : '')
+            ? '<button class="btn btn-danger acc-delete" data-email="' + a.email + '" style="padding:4px 10px;font-size:0.78rem;">Delete</button> '
+            : '') +
+          '<button class="btn btn-light" onclick="navigator.clipboard.writeText(\'' + a.email + '\')" style="padding:4px 8px;font-size:0.78rem;" title="Copy email">Copy</button>' +
+        '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No matching accounts.</td></tr>';
+
+    // Role change handlers (superadmin only)
+    body.querySelectorAll('.acc-role-select').forEach(function(sel) {
+      sel.addEventListener('change', function() {
+        var email = this.dataset.email;
+        var newRole = this.value;
+        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
+        var idx = accounts.findIndex(function(a) { return a.email === email; });
+        if (idx > -1) {
+          var oldRole = accounts[idx].role;
+          accounts[idx].role = newRole;
+          window.SmileHubAuth.saveAccounts(accounts);
+          renderAccounts();
+          addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
+          showToast('Role updated for ' + email, false, true);
+        }
+      });
+    });
+
+    // Toggle status handlers
+    body.querySelectorAll('.acc-toggle-status').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var email = this.dataset.email;
+        var newStatus = this.dataset.status;
+        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
+        var idx = accounts.findIndex(function(a) { return a.email === email; });
+        if (idx > -1) {
+          accounts[idx].status = newStatus;
+          window.SmileHubAuth.saveAccounts(accounts);
+          renderAccounts();
+          addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
+          showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
+        }
+      });
+    });
+
+    // Delete account handler (superadmin only)
+    body.querySelectorAll('.acc-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var email = this.dataset.email;
+        if (!confirm('Delete account "' + email + '"? This cannot be undone.')) return;
+        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
+        var idx = accounts.findIndex(function(a) { return a.email === email; });
+        if (idx > -1) {
+          var name = accounts[idx].name;
+          accounts.splice(idx, 1);
+          window.SmileHubAuth.saveAccounts(accounts);
+          renderAccounts();
+          addAuditLog('Deleted account: ' + email + ' (' + name + ')');
+          showToast('Account deleted: ' + email, false, false);
+        }
+      });
+    });
+
+    updateAccountStats(accounts);
+  }
+
+  function updateAccountStats(accounts) {
+    var total = accounts.length;
+    var customers = accounts.filter(function(a) { return a.role === 'customer'; }).length;
+    var staff = accounts.filter(function(a) { return a.role === 'staff'; }).length;
+    var admins = accounts.filter(function(a) { return a.role === 'admin' || a.role === 'superadmin'; }).length;
+
+    var el1 = document.getElementById('accTotal');
+    var el2 = document.getElementById('accCustomers');
+    var el3 = document.getElementById('accStaff');
+    var el4 = document.getElementById('accAdmins');
+    if (el1) el1.textContent = total;
+    if (el2) el2.textContent = customers;
+    if (el3) el3.textContent = staff;
+    if (el4) el4.textContent = admins;
+  }
+
+  function setupAccountSearch() {
+    var search = document.getElementById('accountSearch');
+    var filter = document.getElementById('accountRoleFilter');
+    if (search) search.addEventListener('input', renderAccounts);
+    if (filter) filter.addEventListener('change', renderAccounts);
+
+    // Create account form toggle
+    var showBtn = document.getElementById('showCreateAccountForm');
+    var form = document.getElementById('createAccountForm');
+    var cancelBtn = document.getElementById('cancelCreateAccount');
+    if (showBtn && form) {
+      showBtn.addEventListener('click', function() { form.classList.toggle('show'); });
+    }
+    if (cancelBtn && form) {
+      cancelBtn.addEventListener('click', function() { form.classList.remove('show'); });
+    }
+
+    // Create account submit
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var firstName = document.getElementById('createAccFirstName').value.trim();
+        var lastName = document.getElementById('createAccLastName').value.trim();
+        var email = document.getElementById('createAccEmail').value.trim().toLowerCase();
+        var password = document.getElementById('createAccPassword').value;
+        var role = document.getElementById('createAccRole').value;
+
+        if (!firstName || !lastName || !email || !password) {
+          showToast('All fields are required', true);
+          return;
+        }
+        if (password.length < 6) {
+          showToast('Password must be at least 6 characters', true);
+          return;
+        }
+
+        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
+        if (accounts.some(function(a) { return a.email === email; })) {
+          showToast('Email already registered', true);
+          return;
+        }
+
+        var newAccount = {
+          firstName: firstName,
+          lastName: lastName,
+          name: firstName + ' ' + lastName,
+          email: email,
+          password: password,
+          phone: '',
+          address: '',
+          role: role,
+          status: 'active'
+        };
+
+        accounts.push(newAccount);
+        window.SmileHubAuth.saveAccounts(accounts);
+        form.classList.remove('show');
+        form.reset();
+        renderAccounts();
+        addAuditLog('Created account: ' + email + ' (' + role + ')');
+        showToast('Account created: ' + email + ' (' + role + ')', false, true);
+      });
+    }
+  }
+
+  // --- REPORTS ---
+  var reportChartInstance = null;
+
+  function renderReports(period) {
+    period = period || 'all';
+    var orders = getOrders();
+
+    // Date filter
+    var now = new Date();
+    var filtered = orders.filter(function(o) {
+      if (period === 'all') return true;
+      var d = new Date(o.date);
+      if (period === 'today') return d.toDateString() === now.toDateString();
+      if (period === 'week') {
+        var weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+        return d >= weekAgo;
+      }
+      if (period === 'month') {
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+
+    // Stats
+    var totalOrders = filtered.length;
+    var totalRevenue = filtered.reduce(function(sum, o) { return sum + (o.total || 0); }, 0);
+    var totalItems = filtered.reduce(function(sum, o) {
+      return sum + (o.items ? o.items.reduce(function(s, i) { return s + (i.quantity || 1); }, 0) : 0);
+    }, 0);
+    var avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    setText('reportTotalOrders', totalOrders);
+    setText('reportRevenue', '₱' + totalRevenue.toLocaleString('en-PH', {minimumFractionDigits: 2}));
+    setText('reportAvgOrder', '₱' + avgOrder.toLocaleString('en-PH', {minimumFractionDigits: 2}));
+    setText('reportItemsSold', totalItems);
+
+    // Product breakdown
+    var productMap = {};
+    filtered.forEach(function(o) {
+      if (o.items) {
+        o.items.forEach(function(item) {
+          var name = item.name || 'Unknown';
+          if (!productMap[name]) productMap[name] = { orders: 0, units: 0, revenue: 0 };
+          productMap[name].orders += 1;
+          productMap[name].units += item.quantity || 1;
+          productMap[name].revenue += (item.quantity || 1) * (item.price || 0);
+        });
+      }
+    });
+
+    var body = document.getElementById('reportProductBody');
+    if (body) {
+      var sorted = Object.keys(productMap).sort(function(a, b) { return productMap[b].revenue - productMap[a].revenue; });
+      if (sorted.length === 0) {
+        body.innerHTML = '<tr><td colspan="4" class="text-center muted" style="padding:30px;">No sales data yet</td></tr>';
+      } else {
+        body.innerHTML = sorted.map(function(name) {
+          var p = productMap[name];
+          return '<tr><td><strong>' + name + '</strong></td><td>' + p.orders + '</td><td>' + p.units + '</td><td>₱' + p.revenue.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
+        }).join('');
+      }
+    }
+
+    // Orders by status chart
+    var statusCounts = {};
+    filtered.forEach(function(o) {
+      var s = o.status || 'Pending';
+      statusCounts[s] = (statusCounts[s] || 0) + 1;
+    });
+    var statusLabels = Object.keys(statusCounts);
+    var statusData = statusLabels.map(function(s) { return statusCounts[s]; });
+    var statusColors = {
+      'Pending': '#f0a320', 'Processing': '#1261a0', 'Shipped': '#0f9d9a',
+      'Delivered': '#1e9b61', 'Cancelled': '#d64545'
+    };
+    var colors = statusLabels.map(function(s) { return statusColors[s] || '#6b7a8c'; });
+
+    var ctx = document.getElementById('reportStatusChart');
+    if (ctx && typeof Chart !== 'undefined') {
+      if (reportChartInstance) { reportChartInstance.destroy(); reportChartInstance = null; }
+      reportChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: statusLabels,
+          datasets: [{ data: statusData, backgroundColor: colors, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 10 } } } },
+          cutout: '60%'
+        }
+      });
+    }
+
+    // Payment summary
+    var summary = document.getElementById('reportPaymentSummary');
+    if (summary) {
+      var totalVal = filtered.reduce(function(s, o) { return s + (o.total || 0); }, 0);
+      var pendingVal = filtered.filter(function(o) { return o.status === 'Pending'; }).reduce(function(s, o) { return s + (o.total || 0); }, 0);
+      var completedVal = filtered.filter(function(o) { return o.status === 'Delivered'; }).reduce(function(s, o) { return s + (o.total || 0); }, 0);
+      summary.innerHTML =
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Total Revenue</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Pending Payments</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Completed Payments</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Orders Count</span><strong>' + filtered.length + '</strong></div>';
+    }
+  }
+
+  function printReport() {
+    var period = document.getElementById('reportPeriod');
+    var label = period ? period.options[period.selectedIndex].text : 'All Time';
+    var content = document.querySelector('#reports .grid-4') ? document.getElementById('reports').innerHTML : '';
+    if (!content) return;
+
+    var win = window.open('', '_blank');
+    win.document.write('<html><head><title>Sales Report - ' + label + '</title>' +
+      '<style>body{font-family:Arial,sans-serif;padding:30px;color:#203047;}' +
+      'table{width:100%;border-collapse:collapse;margin:16px 0;}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #dce5ec;}' +
+      'th{background:#e9f7fb;font-size:0.85rem;text-transform:uppercase;}' +
+      '.print-hide{display:none!important;}' +
+      'h2{margin:0 0 4px;}.muted{color:#6b7a8c;font-size:0.9rem;}' +
+      '.kpi-card{display:inline-block;padding:16px 24px;margin:8px;border:1px solid #dce5ec;border-radius:12px;text-align:center;}' +
+      '.kpi-card strong{display:block;font-size:1.5rem;margin-top:4px;}' +
+      '@media print{body{padding:0;}}</style></head><body>' +
+      '<h1>Sales Report</h1><p class="muted">' + label + ' &middot; Generated ' + new Date().toLocaleString() + '</p>' +
+      content.replace(/<button[\s\S]*?<\/button>/g, '').replace(/<canvas[\s\S]*?<\/canvas>/g, '').replace(/id="[^"]*"/g, '') +
+      '</body></html>');
+    win.document.close();
+    setTimeout(function() { win.print(); }, 500);
+  }
+
+  // --- PRINT ORDER SLIP ---
+  function printOrderSlip(orderNumber) {
+    var orders = getOrders();
+    var order = orders.find(function(o) { return o.number === orderNumber; });
+    if (!order) { showToast('Order not found', true); return; }
+
+    var itemsHtml = order.items ? order.items.map(function(item) {
+      return '<tr><td>' + (item.name || 'Item') + '</td><td>' + (item.quantity || 1) + '</td><td>₱' + Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td><td>₱' + Number((item.quantity || 1) * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
+    }).join('') : '';
+
+    var win = window.open('', '_blank');
+    win.document.write('<html><head><title>Order Slip - ' + order.number + '</title>' +
+      '<style>' +
+      'body{font-family:Arial,sans-serif;padding:40px;color:#203047;max-width:700px;margin:auto;}' +
+      '.header{text-align:center;border-bottom:2px solid #1261a0;padding-bottom:20px;margin-bottom:24px;}' +
+      '.header h1{margin:0;color:#1261a0;}.header p{margin:4px 0 0;color:#6b7a8c;}' +
+      '.info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}' +
+      '.info div{padding:8px 12px;background:#f4f7fa;border-radius:8px;}' +
+      '.info strong{display:block;font-size:0.8rem;color:#6b7a8c;text-transform:uppercase;}' +
+      'table{width:100%;border-collapse:collapse;margin:16px 0;}' +
+      'th{padding:10px 12px;text-align:left;border-bottom:2px solid #1261a0;font-size:0.8rem;text-transform:uppercase;color:#6b7a8c;}' +
+      'td{padding:10px 12px;border-bottom:1px solid #dce5ec;}' +
+      '.total-row td{border-top:2px solid #203047;font-weight:700;font-size:1.1rem;}' +
+      '.footer{text-align:center;margin-top:32px;padding-top:16px;border-top:1px solid #dce5ec;color:#6b7a8c;font-size:0.85rem;}' +
+      '@media print{body{padding:20px;}button{display:none;}}' +
+      '</style></head><body>' +
+      '<div class="header"><h1>SmileHub Dental Supplies</h1><p>Order Slip</p></div>' +
+      '<div class="info">' +
+      '<div><strong>Order #</strong>' + order.number + '</div>' +
+      '<div><strong>Date</strong>' + order.date + '</div>' +
+      '<div><strong>Customer</strong>' + order.customer + '</div>' +
+      '<div><strong>Status</strong>' + order.status + '</div>' +
+      '<div style="grid-column:span 2;"><strong>Shipping Address</strong>' + (order.address || 'N/A') + '</div>' +
+      '</div>' +
+      '<table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml +
+      '<tr class="total-row"><td colspan="3" style="text-align:right;">Total</td><td>₱' + Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>' +
+      '</tbody></table>' +
+      '<div class="footer">Thank you for your business! &middot; SmileHub Dental Supplies</div>' +
+      '<div style="text-align:center;margin-top:16px;"><button onclick="window.print()" style="padding:10px 24px;border:1px solid #1261a0;border-radius:8px;background:#1261a0;color:white;cursor:pointer;">Print</button></div>' +
+      '</body></html>');
+    win.document.close();
+  }
+
+  // --- AUDIT TRAIL ---
+  function addAuditLog(action) {
+    try {
+      var user = window.SmileHubAuth ? window.SmileHubAuth.getLoggedInUser() : null;
+      var name = user ? user.name : 'Unknown';
+      var logs = getAuditLogs();
+      logs.unshift({
+        time: new Date().toLocaleString(),
+        admin: name,
+        action: action
+      });
+      // Keep max 200 entries
+      if (logs.length > 200) logs = logs.slice(0, 200);
+      localStorage.setItem('smilehub_audit_log', JSON.stringify(logs));
+      // Re-render if audit section is visible
+      var auditSection = document.getElementById('audit');
+      if (auditSection && auditSection.style.display !== 'none') {
+        renderAuditLogs();
+      }
+    } catch(e) {}
+  }
+
+  function getAuditLogs() {
+    try {
+      var data = localStorage.getItem('smilehub_audit_log');
+      if (data) return JSON.parse(data);
+    } catch(e) {}
+    // Seed some sample entries
+    var samples = [
+      { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
+      { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
+      { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
+    ];
+    localStorage.setItem('smilehub_audit_log', JSON.stringify(samples));
+    return samples;
+  }
+
+  function renderAuditLogs() {
+    var body = document.getElementById('auditBody');
+    if (!body) return;
+    var logs = getAuditLogs();
+    if (logs.length === 0) {
+      body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
+      return;
+    }
+    body.innerHTML = logs.map(function(log) {
+      return '<tr><td>' + log.time + '</td><td>' + log.admin + '</td><td>' + log.action + '</td></tr>';
+    }).join('');
+  }
+
+  // --- NOTIFICATION TEMPLATES ---
+  var defaultTemplates = [
+    { key: 'order_confirmation', label: 'Order Confirmation', subject: 'Order Confirmed - {{order_number}}', body: 'Hi {{customer}},\n\nYour order {{order_number}} has been confirmed.\nTotal: {{total}}\nWe will notify you once it ships.\n\nThanks,\nSmileHub Dental Supplies' },
+    { key: 'payment_received', label: 'Payment Received', subject: 'Payment Received - {{order_number}}', body: 'Hi {{customer}},\n\nWe have received your payment for order {{order_number}}.\nAmount: {{total}}\nYour order is now being processed.\n\nThanks,\nSmileHub Dental Supplies' },
+    { key: 'order_shipped', label: 'Order Shipped', subject: 'Your Order Has Shipped - {{order_number}}', body: 'Hi {{customer}},\n\nYour order {{order_number}} is on its way!\nShipping to: {{address}}\n\nTrack your delivery and enjoy your purchase.\n\nThanks,\nSmileHub Dental Supplies' },
+    { key: 'order_delivered', label: 'Order Delivered', subject: 'Order Delivered - {{order_number}}', body: 'Hi {{customer}},\n\nYour order {{order_number}} has been delivered.\nWe hope you love your products!\n\nLeave a review and help other customers.\n\nThanks,\nSmileHub Dental Supplies' }
+  ];
+
+  function loadTemplates() {
+    var saved = null;
+    try { var d = localStorage.getItem('smilehub_notif_templates'); if (d) saved = JSON.parse(d); } catch(e) {}
+    if (!saved || !saved.length) {
+      saved = JSON.parse(JSON.stringify(defaultTemplates));
+      localStorage.setItem('smilehub_notif_templates', JSON.stringify(saved));
+    }
+    return saved;
+  }
+
+  function saveTemplates(data) {
+    localStorage.setItem('smilehub_notif_templates', JSON.stringify(data));
+  }
+
+  function renderNotificationTemplates() {
+    var container = document.getElementById('notifTemplates');
+    if (!container) return;
+    var templates = loadTemplates();
+
+    container.innerHTML = templates.map(function(t, i) {
+      return '<div class="card form-card" style="margin-bottom:14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<h3 style="margin:0;">' + t.label + '</h3>' +
+        '<button class="btn btn-light reset-template" data-index="' + i + '" style="padding:4px 12px;font-size:0.8rem;">Reset</button>' +
+        '</div>' +
+        '<div class="form-group"><label>Subject</label><input class="notif-subject" data-index="' + i + '" value="' + t.subject.replace(/"/g, '&quot;') + '" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;"></div>' +
+        '<div class="form-group"><label>Body</label><textarea class="notif-body" data-index="' + i + '" rows="3" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;">' + t.body.replace(/"/g, '&quot;') + '</textarea></div>' +
+        '<small class="muted">Use {{customer}}, {{order_number}}, {{total}}, {{address}} as placeholders.</small>' +
+        '</div>';
+    }).join('');
+
+    container.querySelectorAll('.notif-subject, .notif-body').forEach(function(el) {
+      el.addEventListener('input', function() {
+        var templates = loadTemplates();
+        var idx = parseInt(this.dataset.index);
+        var subjects = container.querySelectorAll('.notif-subject');
+        var bodies = container.querySelectorAll('.notif-body');
+        subjects.forEach(function(s, i) { if (templates[i]) templates[i].subject = s.value; });
+        bodies.forEach(function(b, i) { if (templates[i]) templates[i].body = b.value; });
+        saveTemplates(templates);
+      });
+    });
+
+    container.querySelectorAll('.reset-template').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(this.dataset.index);
+        var templates = loadTemplates();
+        templates[idx] = JSON.parse(JSON.stringify(defaultTemplates[idx]));
+        saveTemplates(templates);
+        renderNotificationTemplates();
+        showToast('Template reset to default', false, false);
+      });
+    });
+
+    var saveBtn = document.getElementById('saveNotifBtn');
+    if (saveBtn) {
+      saveBtn.onclick = function() {
+        showToast('Templates saved!', false, true);
+      };
+    }
+  }
+
   // --- INIT ---
   function init() {
+    applyRoleVisibility();
+
     // Hide all sections first
-    document.querySelectorAll('.admin-section').forEach(function(s) {
+    document.querySelectorAll('.admin-section, #dashboard').forEach(function(s) {
       s.style.display = 'none';
     });
     
     // Show dashboard by default
     const dash = document.getElementById('dashboard');
-    if (dash) dash.style.display = 'block';
+    if (dash) {
+      dash.style.display = 'block';
+      dash.querySelectorAll('.admin-section').forEach(function(s) { s.style.display = ''; });
+    }
     
     // Set active sidebar link
     document.querySelectorAll('.admin-menu a').forEach(function(link) {
@@ -779,8 +1638,37 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSidebarNavigation();
     setupBulkStock();
     setupImagePreview();
-    setupFormSubmit(); // This is the key fix!
-    updateKPIs();
+    setupFormSubmit();
+    setupCms();
+    setupAccountSearch();
+    renderAccounts();
+    renderNotificationTemplates();
+    updateDashboard();
+
+    // Report period filter
+    var periodSelect = document.getElementById('reportPeriod');
+    if (periodSelect) {
+      periodSelect.addEventListener('change', function() { renderReports(this.value); });
+    }
+
+    // Print report
+    var printBtn = document.getElementById('printReportBtn');
+    if (printBtn) {
+      printBtn.addEventListener('click', printReport);
+    }
+
+    // Clear audit log
+    var clearAuditBtn = document.getElementById('clearAuditBtn');
+    if (clearAuditBtn) {
+      clearAuditBtn.addEventListener('click', function() {
+        if (confirm('Clear all audit log entries?')) {
+          localStorage.removeItem('smilehub_audit_log');
+          renderAuditLogs();
+          addAuditLog('Audit log cleared');
+          showToast('Audit log cleared', false, false);
+        }
+      });
+    }
 
     // Hide chatbot
     const wrapper = document.getElementById('chatbotWrapper');
@@ -833,7 +1721,10 @@ window.navigateTo = function(sectionId) {
     s.style.display = 'none';
   });
   const target = document.querySelector(sectionId);
-  if (target) target.style.display = 'block';
+  if (target) {
+    target.style.display = 'block';
+    target.querySelectorAll('.admin-section').forEach(function(s) { s.style.display = ''; });
+  }
   document.querySelectorAll('.admin-menu a').forEach(function(l) {
     l.classList.remove('active');
     if (l.getAttribute('href') === sectionId) l.classList.add('active');

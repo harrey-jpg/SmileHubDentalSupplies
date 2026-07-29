@@ -89,11 +89,7 @@
                 Developers
               </a>
             </li>
-            <li>
-              <a href="admin.html">
-                Admin Demo
-              </a>
-            </li>
+
           </ul>
         </div>
       </nav>
@@ -116,148 +112,77 @@
     </section>
     <main class="section-sm">
       <div class="container checkout-layout">
-        <form class="card form-card" id="checkoutForm">
-          <h2>
-            Shipping Information
-          </h2>
+        <form class="card form-card" id="checkoutForm" novalidate>
+          <h2>Shipping Information</h2>
           <div class="form-grid">
             <div class="form-group">
-              <label>
-                First Name
-              </label>
-              <input required>
+              <label for="checkoutFirstName">First Name</label>
+              <input id="checkoutFirstName" name="firstName" required>
             </div>
             <div class="form-group">
-              <label>
-                Last Name
-              </label>
-              <input required>
+              <label for="checkoutLastName">Last Name</label>
+              <input id="checkoutLastName" name="lastName" required>
             </div>
             <div class="form-group">
-              <label>
-                Email
-              </label>
-              <input type="email" required>
+              <label for="checkoutEmail">Email</label>
+              <input id="checkoutEmail" name="email" type="email" required>
             </div>
             <div class="form-group">
-              <label>
-                Phone
-              </label>
-              <input required>
+              <label for="checkoutPhone">Phone</label>
+              <input id="checkoutPhone" name="phone" type="tel" required>
             </div>
           </div>
           <div class="form-group">
-            <label>
-              Complete Address
-            </label>
-            <textarea required placeholder="House number, street, barangay, city, province">
-            </textarea>
+            <label for="checkoutAddress">Complete Address</label>
+            <textarea id="checkoutAddress" name="address" required placeholder="House number, street, barangay, city, province"></textarea>
           </div>
           <div class="form-grid">
             <div class="form-group">
-              <label>
-                Postal Code
-              </label>
-              <input required>
+              <label for="checkoutPostal">Postal Code</label>
+              <input id="checkoutPostal" name="postal" required>
             </div>
             <div class="form-group">
-              <label>
-                Billing Address
-              </label>
-              <select>
-                <option>
-                  Same as shipping address
-                </option>
-                <option>
-                  Use another address
-                </option>
-              </select>
+              <label for="checkoutCity">City</label>
+              <input id="checkoutCity" name="city" required>
             </div>
           </div>
-          <h2>
-            Payment Method
-          </h2>
+          <h2>Payment Method</h2>
           <div class="payment-options">
             <label class="payment-option">
-              <input type="radio" name="payment" checked>
-              <span>
-                <strong>
-                  GCash
-                </strong>
-                <br>
-                <small class="muted">
-                  Simulated mobile-wallet payment
-                </small>
-              </span>
+              <input type="radio" name="payment" value="GCash" checked>
+              <span><strong>GCash</strong><br><small class="muted">Simulated mobile-wallet payment</small></span>
             </label>
             <label class="payment-option">
-              <input type="radio" name="payment">
-              <span>
-                <strong>
-                  Credit Card
-                </strong>
-                <br>
-                <small class="muted">
-                  Simulated Visa or Mastercard
-                </small>
-              </span>
+              <input type="radio" name="payment" value="Credit Card">
+              <span><strong>Credit Card</strong><br><small class="muted">Simulated Visa or Mastercard</small></span>
             </label>
             <label class="payment-option">
-              <input type="radio" name="payment">
-              <span>
-                <strong>
-                  Cash on Delivery
-                </strong>
-                <br>
-                <small class="muted">
-                  Pay when the order arrives
-                </small>
-              </span>
+              <input type="radio" name="payment" value="Cash on Delivery">
+              <span><strong>Cash on Delivery</strong><br><small class="muted">Pay when the order arrives</small></span>
             </label>
           </div>
-          <button class="btn btn-primary btn-block" style="margin-top:20px">
-            Place Order
-          </button>
+          <button class="btn btn-primary btn-block" style="margin-top:20px" type="submit">Place Order</button>
         </form>
         <aside class="card summary-card">
-          <h2>
-            Order Review
-          </h2>
-          <div id="checkoutItems">
-          </div>
-          <div class="summary-row">
-            <span>
-              Subtotal
-            </span>
-            <strong id="checkoutSubtotal">
-              ₱0.00
-            </strong>
-          </div>
-          <div class="summary-row">
-            <span>
-              Shipping
-            </span>
-            <strong id="checkoutShipping">
-              ₱0.00
-            </strong>
-          </div>
-          <div class="summary-row">
-            <span>
-              VAT
-            </span>
-            <strong id="checkoutTax">
-              ₱0.00
-            </strong>
-          </div>
-          <div class="summary-row summary-total">
-            <span>
-              Total
-            </span>
-            <strong id="checkoutTotal">
-              ₱0.00
-            </strong>
-          </div>
+          <h2>Order Review</h2>
+          <div id="checkoutItems"></div>
+          <div class="summary-row"><span>Subtotal</span><strong id="checkoutSubtotal">₱0.00</strong></div>
+          <div class="summary-row"><span>Shipping</span><strong id="checkoutShipping">₱0.00</strong></div>
+          <div class="summary-row"><span>VAT (12%)</span><strong id="checkoutTax">₱0.00</strong></div>
+          <div class="summary-row summary-total"><span>Total</span><strong id="checkoutTotal">₱0.00</strong></div>
         </aside>
+        <div id="orderConfirmModal" class="modal-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+          <div class="card" style="max-width:420px;width:90%;padding:30px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:10px;">&#10003;</div>
+            <h2>Order Placed!</h2>
+            <p class="muted">Your order <strong id="confirmOrderNumber"></strong> has been placed successfully.</p>
+            <p class="muted">We'll send a confirmation to <strong id="confirmEmail"></strong>.</p>
+            <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+              <a class="btn btn-primary" href="orders.html">View Orders</a>
+              <a class="btn btn-light" href="products.html">Continue Shopping</a>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
     <section class="newsletter">

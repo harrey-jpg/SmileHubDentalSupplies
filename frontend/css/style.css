@@ -175,8 +175,8 @@ body.dark .hero-card { background: rgba(23,35,46,.82); border-color: var(--borde
 .price { color: var(--blue); font-weight: 800; font-size: 1.12rem; }
 .stock { color: var(--success); font-size: .82rem; }
 .product-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-.badge { position: absolute; top: 12px; left: 12px; padding: 5px 9px; border-radius: 999px; background: var(--teal); color: white; font-size: .75rem; font-weight: 700; }
-.wish-button { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 50%; background: var(--white); color: var(--danger); }
+.badge { position: absolute; top: 12px; left: 12px; padding: 5px 9px; border-radius: 999px; background: var(--teal); color: white; font-size: .75rem; font-weight: 700; z-index: 2; }
+.wish-button { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 50%; background: var(--white); color: var(--danger); z-index: 2; }
 
 .promo { background: linear-gradient(120deg, var(--blue), var(--teal)); color: white; border-radius: 24px; padding: 38px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
 .promo h2 { margin: 0 0 8px; }
@@ -562,4 +562,221 @@ body.dark.admin-body { background: #0d141a; }
 /* Hide chatbot on admin */
 .admin-body #chatbotWrapper {
   display: none !important;
+}
+
+/* ===== ADMIN DASHBOARD IMPROVEMENTS ===== */
+
+/* Sidebar */
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #0b3b5e 0%, #0a2f4a 100%);
+}
+.admin-sidebar .logo {
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 20px;
+}
+.admin-sidebar .logo span { font-size: 1.1rem; }
+.admin-sidebar-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  padding: 8px 12px 4px;
+  display: block;
+}
+.admin-menu a {
+  position: relative;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.admin-menu a.active {
+  background: rgba(255,255,255,0.15);
+  box-shadow: inset 3px 0 0 #4fc3f7;
+}
+.admin-menu a:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(3px);
+}
+
+/* KPI Cards */
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 4px solid transparent;
+  border-radius: var(--radius);
+}
+.kpi-card:nth-child(1) { border-top-color: #1261a0; }
+.kpi-card:nth-child(2) { border-top-color: #0f9d9a; }
+.kpi-card:nth-child(3) { border-top-color: #7b61ff; }
+.kpi-card:nth-child(4) { border-top-color: #f0a320; }
+.kpi-card strong { font-size: 1.8rem; letter-spacing: -0.02em; }
+.kpi-card .muted { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.kpi-card small { display: block; margin-top: 4px; }
+.kpi-card.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+}
+
+/* Tables */
+.table-wrap {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+table thead th {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 14px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+table tbody tr { transition: background 0.15s ease; }
+table tbody tr:hover { background: var(--sky); }
+table tbody td { padding: 12px 16px; }
+
+/* Status badges */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status.low::before { background: #b93434; }
+.status.processing::before { background: #9b6800; }
+.status.delivered::before { background: #16864f; }
+.status.out-of-stock::before { background: #6b7a8c; }
+.status.in-stock::before { background: #1e9b61; }
+
+/* Bar chart */
+.chart-placeholder { gap: 10px; padding: 30px 24px; }
+.bar {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 30px;
+}
+.bar:hover {
+  opacity: 0.8;
+  transform: scaleY(1.05);
+  transform-origin: bottom;
+}
+
+/* Section transitions */
+.admin-section {
+  animation: fadeSlideIn 0.3s ease;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Admin form */
+.admin-form {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+}
+.admin-form.show { animation: fadeSlideIn 0.3s ease; }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(18, 97, 160, 0.12);
+  outline: none;
+}
+
+/* Admin top bar */
+.admin-top {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.admin-top h1 { margin: 0; font-size: 1.6rem; }
+.admin-top .eyebrow { font-size: 0.75rem; }
+
+/* User badge */
+.admin-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--sky);
+  padding: 6px 14px 6px 6px;
+  border-radius: 30px;
+  font-weight: 600;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.admin-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Inventory alert items */
+.inventory-alert-item:hover {
+  background: var(--sky);
+  border-color: var(--blue);
+  transform: translateX(4px);
+}
+
+/* ===== HOMEPAGE ENHANCEMENTS ===== */
+
+/* Category image tints */
+.product-image[data-category="Oral Care"] { background: #e3f2fd; }
+.product-image[data-category="Instruments"] { background: #f3e5f5; }
+.product-image[data-category="PPE"] { background: #e8f5e9; }
+.product-image[data-category="Restorative"] { background: #fff3e0; }
+.product-image[data-category="Disposables"] { background: #fce4ec; }
+.product-image[data-category="Impression"] { background: #e0f7fa; }
+.product-image[data-category="Orthodontics"] { background: #f1f8e9; }
+.product-image[data-category="Rotary"] { background: #ede7f6; }
+.product-image[data-category="Equipment"] { background: #e8eaf6; }
+.product-image[data-category="Cosmetic"] { background: #fce4ec; }
+
+/* Brand links */
+.brand-pill a { color: inherit; display: block; }
+.brand-pill:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); transition: all 0.2s; }
+
+/* Mobile nav animation */
+.nav-list.open { display: flex; animation: fadeSlideIn 0.2s ease; }
+
+/* Hero CTA hover */
+.hero-actions .btn-primary { transition: all 0.3s ease; }
+.hero-actions .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(18,97,160,0.3); }
+
+/* Product card image hover */
+.product-image { transition: background 0.3s ease; }
+.product-card:hover .product-image { filter: brightness(1.05); }
+
+/* Responsive */
+@media (max-width: 960px) {
+  .admin-sidebar { height: auto; position: static; }
+}
+@media (max-width: 620px) {
+  .admin-top .admin-user-badge .admin-username { display: none; }
 }
