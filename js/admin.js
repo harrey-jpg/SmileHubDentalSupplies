@@ -444,18 +444,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderRecentOrders() {
-    const body = document.getElementById('dashRecentOrders');
+    var body = document.getElementById('dashRecentOrders');
     if (!body) return;
-    const orders = getOrders();
-    const recent = orders.sort(function(a, b) { return new Date(b.date) - new Date(a.date); }).slice(0, 5);
-
-    if (recent.length === 0) {
+    var orders = getOrders();
+    if (!orders || orders.length === 0) {
       body.innerHTML = '<tr><td colspan="4" class="text-center muted" style="padding:30px;">No orders yet</td></tr>';
       return;
     }
+    var sorted = orders.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    var recent = sorted.slice(0, 5);
 
     body.innerHTML = recent.map(function(o) {
-      const cls = o.status === 'Delivered' ? 'delivered' : o.status === 'Cancelled' ? 'low' : 'processing';
+      var cls = o.status === 'Delivered' ? 'delivered' : o.status === 'Cancelled' ? 'low' : 'processing';
       return '<tr>' +
         '<td><strong>' + o.number + '</strong></td>' +
         '<td>' + o.customer + '</td>' +
@@ -1627,10 +1627,11 @@ document.addEventListener('DOMContentLoaded', function() {
       productsLoaded = true;
       tryRenderDashboard();
     });
-    fetchOrders(function() {
+    fetchOrders(function(data) {
       renderOrders('all');
       ordersLoaded = true;
       tryRenderDashboard();
+      renderRecentOrders();
     });
     fetchCms(function() {
       renderCms();
