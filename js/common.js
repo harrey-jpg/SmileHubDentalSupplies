@@ -124,6 +124,11 @@ function addToCart(button) {
 
 // Toggle wishlist (add or remove)
 function toggleWishlist(button) {
+  if (!customerIsLoggedIn()) {
+    askUserToLogin(location.pathname.split('/').pop() + location.search);
+    return;
+  }
+
   const wishlist = getStoredList(WISH_KEY);
   const productId = Number(button.dataset.id);
   

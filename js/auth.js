@@ -152,10 +152,12 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
 
     Promise.all([
       fetchUserProfile(firebaseUser.uid),
-      firebase.firestore().collection('user_registrations').doc(firebaseUser.email).get()
+      firebase.firestore().collection('user_registrations').doc(firebaseUser.email).get(),
+      firebase.firestore().collection('accounts').doc(firebaseUser.email).get()
     ]).then(function(results) {
       var profile = results[0];
       var regDoc = results[1];
+      var accountDoc = results[2];
 
       var role = demo.role || 'customer';
       var firstName = demo.firstName || '';
@@ -175,6 +177,14 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         firstName = reg.firstName || firstName;
         lastName = reg.lastName || lastName;
         name = reg.displayName || name;
+      }
+
+      if (!profile && !demo.role && accountDoc.exists) {
+        var acct = accountDoc.data();
+        role = acct.role || role;
+        firstName = acct.firstName || firstName;
+        lastName = acct.lastName || lastName;
+        name = acct.name || name;
       }
 
       cacheUser({
@@ -229,54 +239,60 @@ function handleGoogleLogin() {
 
     showAuthMessage('Signing in with Google...');
 
-    return fetchUserProfile(uid).then(function(profile) {
-      if (profile) {
-        cacheUser({
-          uid: uid,
-          name: profile.displayName || displayName,
-          email: email,
-          role: profile.role || 'customer',
-          phone: profile.phone || '',
-          address: profile.address || '',
-          firstName: profile.firstName || firstName,
-          lastName: profile.lastName || lastName,
-          password: ''
-        });
-        redirectAfterLogin();
-        return;
-      }
-      return firebase.firestore().collection('users').doc(uid).set({
-        firstName: firstName,
-        lastName: lastName,
-        displayName: displayName,
-        email: email,
-        role: 'customer',
-        phone: '',
-        address: ''
-      }).then(function() {
-        return firebase.firestore().collection('accounts').doc(email).set({
+    return firebase.firestore().collection('accounts').doc(email).get().then(function(accountDoc) {
+      var existingRole = accountDoc.exists ? accountDoc.data().role || 'customer' : null;
+
+      return fetchUserProfile(uid).then(function(profile) {
+        if (profile) {
+          cacheUser({
+            uid: uid,
+            name: profile.displayName || displayName,
+            email: email,
+            role: profile.role || existingRole || 'customer',
+            phone: profile.phone || '',
+            address: profile.address || '',
+            firstName: profile.firstName || firstName,
+            lastName: profile.lastName || lastName,
+            password: ''
+          });
+          redirectAfterLogin();
+          return;
+        }
+
+        var role = existingRole || 'customer';
+        return firebase.firestore().collection('users').doc(uid).set({
           firstName: firstName,
           lastName: lastName,
-          name: displayName,
+          displayName: displayName,
           email: email,
+          role: role,
           phone: '',
-          address: '',
-          role: 'customer',
-          status: 'active'
+          address: ''
+        }).then(function() {
+          return firebase.firestore().collection('accounts').doc(email).set({
+            firstName: firstName,
+            lastName: lastName,
+            name: displayName,
+            email: email,
+            phone: '',
+            address: '',
+            role: role,
+            status: 'active'
+          });
+        }).then(function() {
+          cacheUser({
+            uid: uid,
+            name: displayName,
+            email: email,
+            role: role,
+            phone: '',
+            address: '',
+            firstName: firstName,
+            lastName: lastName,
+            password: ''
+          });
+          redirectAfterLogin();
         });
-      }).then(function() {
-        cacheUser({
-          uid: uid,
-          name: displayName,
-          email: email,
-          role: 'customer',
-          phone: '',
-          address: '',
-          firstName: firstName,
-          lastName: lastName,
-          password: ''
-        });
-        redirectAfterLogin();
       });
     });
   }).catch(function(error) {

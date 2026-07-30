@@ -80,7 +80,7 @@ async function sendMessage() {
   try {
     // Build conversation context
     const messages = [
-      { role: "system", content: "You are SmileBot, a helpful assistant for SmileHub Dental Supplies. Answer questions about dental products, orders, shipping, and the website. Keep responses friendly, informative, and concise." }
+      { role: "system", content: "You are SmileBot, an assistant ONLY for SmileHub Dental Supplies. ONLY answer questions about: dental products, orders, shipping, the website, or account help. For ANY other topic, politely say: 'I'm only able to help with SmileHub-related questions. Please ask me about our products, orders, or account!' Keep responses friendly, informative, and concise." }
     ];
 
     const recentHistory = chatHistory.slice(-10);
