@@ -1,8 +1,9 @@
-// chatbot.js - GPT-API-free Version (No API Key Needed!)
-// Uses free DeepSeek API via chatanywhere.tech
+// chatbot.js - Uses DeepSeek API via chatanywhere.tech
+// Set CHAT_API_KEY below or leave empty for anonymous access (rate-limited)
 
+const CHAT_API_KEY = ''; // Optional: set your API key here
 const API_URL = "https://api.chatanywhere.tech/v1/chat/completions";
-const MODEL_NAME = "deepseek-v3.2"; // or "deepseek-r1", "deepseek-v4"
+const MODEL_NAME = "deepseek-v3.2";
 
 let chatVisible = false;
 let chatHistory = [];
@@ -90,11 +91,16 @@ async function sendMessage() {
 
     messages.push({ role: "user", content: text });
 
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+    if (CHAT_API_KEY) {
+      headers['Authorization'] = 'Bearer ' + CHAT_API_KEY;
+    }
+
     const response = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: headers,
       body: JSON.stringify({
         model: MODEL_NAME,
         messages: messages,

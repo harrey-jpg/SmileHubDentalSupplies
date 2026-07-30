@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // --- DATA STORE ---
   let products = [];
+  var accounts = [];
   
   // Category to image mapping
   const categoryImages = {
@@ -18,55 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
     'Cosmetic': 'assets/products/restorative.svg'
   };
 
-  // Default products
-  const defaultProducts = [
-    { id: 1, sku: 'SH-OC-001', name: 'ProClean Soft Toothbrush 4-Pack', brand: 'SmilePro', category: 'Oral Care', price: 189, stock: 86, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Soft rounded bristles for gentle daily plaque removal and comfortable gum care.', specs: ['4 toothbrushes', 'Soft nylon bristles', 'Ergonomic non-slip handle'] },
-    { id: 2, sku: 'SH-OC-002', name: 'SonicWave Electric Toothbrush', brand: 'Dentiva', category: 'Oral Care', price: 1299, stock: 24, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Rechargeable sonic toothbrush with three cleaning modes and two-minute timer.', specs: ['3 cleaning modes', 'USB-C rechargeable', '2 brush heads included'] },
-    { id: 3, sku: 'SH-OC-003', name: 'MintShield Fluoride Toothpaste 150g', brand: 'Oracare', category: 'Oral Care', price: 159, stock: 120, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Daily fluoride toothpaste formulated to strengthen enamel and freshen breath.', specs: ['150g tube', '1450 ppm fluoride', 'Fresh mint flavor'] },
-    { id: 4, sku: 'SH-OC-004', name: 'FreshGuard Antibacterial Mouthwash 500mL', brand: 'Oracare', category: 'Oral Care', price: 249, stock: 67, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Alcohol-free antibacterial rinse for everyday oral hygiene and long-lasting freshness.', specs: ['500mL bottle', 'Alcohol-free', 'Cool mint'] },
-    { id: 5, sku: 'SH-OC-005', name: 'GlideEase Dental Floss 50m', brand: 'SmilePro', category: 'Oral Care', price: 99, stock: 144, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Waxed shred-resistant floss that slides comfortably between tight contacts.', specs: ['50 meters', 'Waxed PTFE fiber', 'Mint flavored'] },
-    { id: 6, sku: 'SH-IN-006', name: 'Stainless Dental Mirror No. 5', brand: 'Clinix', category: 'Instruments', price: 185, stock: 58, status: 'Active', image: 'assets/products/instrument.svg', description: 'Front-surface stainless dental mirror for clear intraoral visibility during examination.', specs: ['No. 5 mirror head', 'Autoclavable', 'Textured handle'] },
-    { id: 7, sku: 'SH-IN-007', name: 'Double-Ended Explorer 17/23', brand: 'Clinix', category: 'Instruments', price: 295, stock: 37, status: 'Active', image: 'assets/products/instrument.svg', description: 'Precision explorer with sharp working ends for caries detection and calculus assessment.', specs: ['17/23 pattern', 'Surgical stainless steel', 'Autoclavable'] },
-    { id: 8, sku: 'SH-IN-008', name: 'Universal Scaler U15/30', brand: 'Clinix', category: 'Instruments', price: 449, stock: 29, status: 'Active', image: 'assets/products/instrument.svg', description: 'Balanced universal scaler designed for efficient supragingival calculus removal.', specs: ['U15/30 tips', 'Hollow grip handle', 'Corrosion resistant'] },
-    { id: 9, sku: 'SH-IN-009', name: 'Premium Extraction Forceps No. 150', brand: 'SurgiDent', category: 'Instruments', price: 1899, stock: 11, status: 'Low Stock', image: 'assets/products/instrument.svg', description: 'Universal upper extraction forceps with serrated beaks and secure ergonomic grip.', specs: ['No. 150 pattern', 'German stainless steel', 'Reinforced hinge'] },
-    { id: 10, sku: 'SH-PP-010', name: 'Nitrile Examination Gloves 100s', brand: 'SafeTouch', category: 'PPE', price: 399, stock: 78, status: 'Active', image: 'assets/products/ppe.svg', description: 'Powder-free nitrile examination gloves offering dependable barrier protection and dexterity.', specs: ['100 pieces/box', 'Powder-free', 'Non-sterile', 'Medium'] },
-    { id: 11, sku: 'SH-PP-011', name: 'Level 3 Surgical Face Masks 50s', brand: 'SafeTouch', category: 'PPE', price: 279, stock: 94, status: 'Active', image: 'assets/products/ppe.svg', description: 'Three-ply high-filtration masks with comfortable ear loops and adjustable nose strip.', specs: ['50 pieces/box', 'Level 3 protection', 'Fluid resistant'] },
-    { id: 12, sku: 'SH-PP-012', name: 'Full-Coverage Face Shield 10s', brand: 'MediGuard', category: 'PPE', price: 349, stock: 43, status: 'Active', image: 'assets/products/ppe.svg', description: 'Anti-fog clear shields with soft forehead foam for full facial splash protection.', specs: ['10 pieces/pack', 'Anti-fog PET visor', 'Elastic headband'] },
-    { id: 13, sku: 'SH-RS-013', name: 'NanoFill Composite Resin A2', brand: 'Restora', category: 'Restorative', price: 899, stock: 32, status: 'Active', image: 'assets/products/restorative.svg', description: 'Light-cured nanohybrid composite with smooth handling and excellent polish retention.', specs: ['4g syringe', 'Shade A2', 'Universal anterior/posterior use'] },
-    { id: 14, sku: 'SH-RS-014', name: 'Universal Bonding Agent 5mL', brand: 'Restora', category: 'Restorative', price: 1249, stock: 21, status: 'Active', image: 'assets/products/restorative.svg', description: 'Single-bottle universal adhesive compatible with self-etch and total-etch techniques.', specs: ['5mL bottle', 'Light cured', 'Universal bonding protocol'] },
-    { id: 15, sku: 'SH-RS-015', name: 'Phosphoric Acid Etchant Gel 3-Pack', brand: 'Restora', category: 'Restorative', price: 329, stock: 49, status: 'Active', image: 'assets/products/restorative.svg', description: 'Controlled-flow 37% phosphoric acid gel for enamel and dentin etching procedures.', specs: ['3 x 3mL syringes', '37% phosphoric acid', 'Blue contrast color'] },
-    { id: 16, sku: 'SH-RS-016', name: 'Glass Ionomer Luting Cement Kit', brand: 'CemDent', category: 'Restorative', price: 1399, stock: 18, status: 'Active', image: 'assets/products/restorative.svg', description: 'Radiopaque glass ionomer cement for durable luting of crowns, bridges, and bands.', specs: ['Powder 15g', 'Liquid 10mL', 'High fluoride release'] },
-    { id: 17, sku: 'SH-DI-017', name: 'Disposable Dental Bibs 125s', brand: 'ClinicEssentials', category: 'Disposables', price: 449, stock: 70, status: 'Active', image: 'assets/products/disposable.svg', description: 'Two-ply absorbent paper with poly backing for reliable patient protection.', specs: ['125 sheets', '33 x 45 cm', '2-ply paper + poly'] },
-    { id: 18, sku: 'SH-DI-018', name: 'Self-Sealing Sterilization Pouches 200s', brand: 'SteriliSafe', category: 'Disposables', price: 699, stock: 34, status: 'Active', image: 'assets/products/disposable.svg', description: 'Medical-grade self-seal pouches with process indicators for steam sterilization.', specs: ['200 pieces', '90 x 260 mm', 'Dual process indicators'] },
-    { id: 19, sku: 'SH-DI-019', name: 'Disposable Dental Syringes 100s', brand: 'ClinicEssentials', category: 'Disposables', price: 549, stock: 55, status: 'Active', image: 'assets/products/disposable.svg', description: 'Luer-lock disposable syringes for irrigation and dental material dispensing.', specs: ['100 pieces', '5mL capacity', 'Sterile, individually packed'] },
-    { id: 20, sku: 'SH-DI-020', name: 'Absorbent Cotton Rolls 1000s', brand: 'ClinicEssentials', category: 'Disposables', price: 799, stock: 46, status: 'Active', image: 'assets/products/disposable.svg', description: 'Soft, highly absorbent cotton rolls that retain shape during dental procedures.', specs: ['1000 pieces', 'Size No. 2', 'Non-sterile'] },
-    { id: 21, sku: 'SH-DI-021', name: 'Fine Microbrush Applicators 100s', brand: 'MicroTip', category: 'Disposables', price: 199, stock: 105, status: 'Active', image: 'assets/products/disposable.svg', description: 'Bendable non-linting micro applicators for bonding agents, etchants, and solutions.', specs: ['100 pieces', 'Fine tip', 'Bendable neck'] },
-    { id: 22, sku: 'SH-DI-022', name: 'Flexible Saliva Ejectors 100s', brand: 'ClinicEssentials', category: 'Disposables', price: 219, stock: 88, status: 'Active', image: 'assets/products/disposable.svg', description: 'Smooth-tip flexible ejectors with shape-retaining wire for patient comfort.', specs: ['100 pieces', 'Non-removable tip', 'Latex-free'] },
-    { id: 23, sku: 'SH-IM-023', name: 'Premium Alginate Impression Material', brand: 'Impressa', category: 'Impression', price: 499, stock: 40, status: 'Active', image: 'assets/products/impression.svg', description: 'Fast-setting chromatic alginate with smooth consistency and high tear resistance.', specs: ['500g pouch', 'Fast set', 'Mint aroma'] },
-    { id: 24, sku: 'SH-IM-024', name: 'VPS Putty Impression Material Kit', brand: 'Impressa', category: 'Impression', price: 2499, stock: 14, status: 'Active', image: 'assets/products/impression.svg', description: 'High-viscosity vinyl polysiloxane putty with excellent dimensional stability.', specs: ['Base 300mL', 'Catalyst 300mL', 'Regular set'] },
-    { id: 25, sku: 'SH-OR-025', name: 'Orthodontic Relief Wax 10-Pack', brand: 'OrthoEase', category: 'Orthodontics', price: 299, stock: 73, status: 'Active', image: 'assets/products/orthodontic.svg', description: 'Clear medical-grade wax that protects oral tissue from brackets and wires.', specs: ['10 cases', 'Unscented', 'Pre-portioned strips'] },
-    { id: 26, sku: 'SH-OR-026', name: 'Elastic Chain Assortment 15ft', brand: 'OrthoEase', category: 'Orthodontics', price: 749, stock: 27, status: 'Active', image: 'assets/products/orthodontic.svg', description: 'Continuous orthodontic power chain assortment with consistent force delivery.', specs: ['15 feet total', '3 spool assortment', 'Latex-free'] },
-    { id: 27, sku: 'SH-RO-027', name: 'Diamond Dental Bur Set 30pcs', brand: 'BurMaster', category: 'Rotary', price: 1199, stock: 19, status: 'Active', image: 'assets/products/instrument.svg', description: 'Assorted high-speed diamond burs for crown preparation, contouring, and finishing.', specs: ['30-piece set', 'FG shank', 'Autoclavable bur block'] },
-    { id: 28, sku: 'SH-EQ-028', name: 'LED Curing Light 1200mW', brand: 'LumaDent', category: 'Equipment', price: 3299, stock: 12, status: 'Active', image: 'assets/products/equipment.svg', description: 'Cordless LED curing light with focused output, timer modes, and ergonomic design.', specs: ['1000-1200 mW/cm²', '5/10/15/20 sec timer', 'USB charging dock'] },
-    { id: 29, sku: 'SH-EQ-029', name: 'Ultrasonic Scaler with 5 Tips', brand: 'ProSonic', category: 'Equipment', price: 6999, stock: 7, status: 'Low Stock', image: 'assets/products/equipment.svg', description: 'Compact piezoelectric scaler with adjustable power and detachable autoclavable handpiece.', specs: ['5 scaler tips', 'Water flow control', '220V'] },
-    { id: 30, sku: 'SH-EQ-030', name: 'Class B Autoclave 18L Demo Unit', brand: 'SteriliTech', category: 'Equipment', price: 89999, stock: 2, status: 'Low Stock', image: 'assets/products/equipment.svg', description: 'Demo listing for an 18-liter Class B sterilizer with digital cycles and safety monitoring.', specs: ['18L chamber', 'Class B cycles', 'Demo / quotation item'] },
-    { id: 31, sku: 'SH-EQ-031', name: 'Ergonomic Dental Chair Demo Package', brand: 'ChairPro', category: 'Equipment', price: 189999, stock: 1, status: 'Low Stock', image: 'assets/products/equipment.svg', description: 'Demo dental unit package with programmable chair, delivery system, light, and assistant arm.', specs: ['Programmable chair', 'LED operating light', 'Demo / quotation item'] },
-    { id: 32, sku: 'SH-CO-032', name: 'Professional Teeth Whitening Kit', brand: 'BrightDent', category: 'Cosmetic', price: 2899, stock: 16, status: 'Active', image: 'assets/products/restorative.svg', description: 'Clinic-use whitening kit with controlled gel delivery and gingival barrier materials.', specs: ['3 patient treatments', '35% carbamide peroxide', 'Clinic-use demo'] }
-  ];
+  // Default products data stored in firestore-data.js
 
   // --- LOAD PRODUCTS ---
   var _loadingProducts = false;
 
   function loadProducts(callback) {
-    var cached = SmileHubStorage.get('smilehub_products_cache', null);
-    if (cached && cached.length > 0) {
-      products = cached;
-    }
     if (!_loadingProducts) {
       _loadingProducts = true;
       SmileHubData.getProducts(function(data) {
         products = data;
-        SmileHubStorage.set('smilehub_products_cache', data);
         _loadingProducts = false;
         if (callback) callback(products);
       });
@@ -76,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function saveProducts(data, callback) {
     products = data;
-    SmileHubStorage.set('smilehub_products_cache', data);
     SmileHubData.saveProducts(data, callback);
   }
 
@@ -190,7 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
       renderNotificationTemplates();
     }
     if (sectionId === '#audit') {
-      renderAuditLogs();
+      if (getAuditLogs().length === 0) {
+        fetchAuditLogs(renderAuditLogs);
+      } else {
+        renderAuditLogs();
+      }
     }
   }
 
@@ -658,21 +623,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- ORDERS ---
+  var ordersCache = [];
+
   function getOrders() {
-    var cached = SmileHubStorage.get('smilehub_orders', []);
-    if (cached.length > 0) return cached;
-    var defaults = [
-      { number: 'SH-2026031', customer: 'Maria Santos', email: 'maria@email.com', date: new Date().toLocaleDateString(), total: 2743.20, items: [{ name: 'ProClean Toothbrush', quantity: 2, price: 189 }, { name: 'Nitrile Gloves', quantity: 1, price: 399 }], status: 'Pending', address: '123 Sample St, Quezon City' },
-      { number: 'SH-2026030', customer: 'BrightSmile Clinic', email: 'clinic@brightsmile.com', date: new Date(Date.now() - 86400000).toLocaleDateString(), total: 899.00, items: [{ name: 'Composite Resin A2', quantity: 1, price: 899 }], status: 'Delivered', address: '456 Dental Ave, Makati' },
-      { number: 'SH-2026029', customer: 'John Dela Cruz', email: 'john@email.com', date: new Date(Date.now() - 172800000).toLocaleDateString(), total: 2345.50, items: [{ name: 'SonicWave Toothbrush', quantity: 1, price: 1299 }, { name: 'MintShield Toothpaste', quantity: 3, price: 159 }], status: 'Delivered', address: '789 Health St, Mandaluyong' }
-    ];
-    SmileHubStorage.set('smilehub_orders', defaults);
-    SmileHubData.saveOrders(defaults);
-    return defaults;
+    return ordersCache;
+  }
+
+  function fetchOrders(callback) {
+    SmileHubData.getOrders(function(data) {
+      ordersCache = data;
+      if (callback) callback(data);
+    });
   }
 
   function saveOrders(data) {
-    SmileHubStorage.set('smilehub_orders', data);
+    ordersCache = data;
     SmileHubData.saveOrders(data);
   }
 
@@ -991,21 +956,21 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
+  var cmsCache = null;
+
   function loadCms() {
-    var defaults = getDefaultCms();
-    var cached = SmileHubStorage.get('smilehub_cms_live', null);
-    if (cached) {
-      for (var key in defaults) {
-        if (!(key in cached)) cached[key] = defaults[key];
-      }
-      return cached;
-    }
-    SmileHubStorage.set('smilehub_cms_live', defaults);
-    return defaults;
+    return cmsCache || getDefaultCms();
+  }
+
+  function fetchCms(callback) {
+    SmileHubData.getCms(function(data) {
+      cmsCache = data;
+      if (callback) callback(data);
+    });
   }
 
   function saveCms(data) {
-    SmileHubStorage.set('smilehub_cms_live', data);
+    cmsCache = data;
     SmileHubData.saveCms(data);
   }
 
@@ -1069,8 +1034,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function setupCms() {
-    renderCms();
-
     var addBtn = document.getElementById('addFaqBtn');
     if (addBtn) {
       addBtn.addEventListener('click', function() {
@@ -1122,10 +1085,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderAccounts() {
     var body = document.getElementById('accountsBody');
     if (!body) return;
-    var accounts = [];
-    try {
-      if (window.SmileHubAuth) accounts = window.SmileHubAuth.getAccounts() || [];
-    } catch(e) {}
 
     if (accounts.length === 0) {
       body.innerHTML = '<tr><td colspan="5" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
@@ -1180,13 +1139,11 @@ document.addEventListener('DOMContentLoaded', function() {
       sel.addEventListener('change', function() {
         var email = this.dataset.email;
         var newRole = this.value;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           var oldRole = accounts[idx].role;
           accounts[idx].role = newRole;
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
           showToast('Role updated for ' + email, false, true);
         }
@@ -1198,12 +1155,10 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         var newStatus = this.dataset.status;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           accounts[idx].status = newStatus;
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
           showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
         }
@@ -1215,13 +1170,11 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         if (!confirm('Delete account "' + email + '"? This cannot be undone.')) return;
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
-          window.SmileHubAuth.saveAccounts(accounts);
-          renderAccounts();
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
@@ -1283,7 +1236,6 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
-        var accounts = window.SmileHubAuth ? window.SmileHubAuth.getAccounts() : [];
         if (accounts.some(function(a) { return a.email === email; })) {
           showToast('Email already registered', true);
           return;
@@ -1303,16 +1255,18 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         accounts.push(newAccount);
-        window.SmileHubAuth.saveAccounts(accounts);
 
-        firebase.firestore().collection('user_registrations').doc(email).set({
-          firstName: firstName,
-          lastName: lastName,
-          displayName: firstName + ' ' + lastName,
-          email: email,
-          role: role,
-          claimed: false
-        }).then(function() {
+        Promise.all([
+          window.SmileHubAuth.saveAccounts(accounts),
+          firebase.firestore().collection('user_registrations').doc(email).set({
+            firstName: firstName,
+            lastName: lastName,
+            displayName: firstName + ' ' + lastName,
+            email: email,
+            role: role,
+            claimed: false
+          })
+        ]).then(function() {
           form.classList.remove('show');
           form.reset();
           renderAccounts();
@@ -1500,19 +1454,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- AUDIT TRAIL ---
+  var auditLogsCache = [];
+
   function addAuditLog(action) {
     try {
       var user = window.SmileHubAuth ? window.SmileHubAuth.getLoggedInUser() : null;
       var name = user ? user.name : 'Unknown';
-      var logs = getAuditLogs();
-      logs.unshift({
+      var entry = {
         time: new Date().toLocaleString(),
         admin: name,
-        action: action
-      });
-      if (logs.length > 200) logs = logs.slice(0, 200);
-      SmileHubStorage.set('smilehub_audit_log', logs);
-      // Re-render if audit section is visible
+        action: action,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      auditLogsCache.unshift(entry);
+      if (auditLogsCache.length > 200) auditLogsCache = auditLogsCache.slice(0, 200);
+      firebase.firestore().collection('audit_logs').add(entry).catch(function() {});
       var auditSection = document.getElementById('audit');
       if (auditSection && auditSection.style.display !== 'none') {
         renderAuditLogs();
@@ -1521,17 +1477,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getAuditLogs() {
-    try {
-      var data = SmileHubStorage.get('smilehub_audit_log', null);
-      if (data) return data;
-    } catch(e) {}
-    var samples = [
-      { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
-      { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
-      { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
-    ];
-    SmileHubStorage.set('smilehub_audit_log', samples);
-    return samples;
+    return auditLogsCache;
+  }
+
+  function fetchAuditLogs(callback) {
+    firebase.firestore().collection('audit_logs').orderBy('timestamp', 'desc').limit(200).get().then(function(snapshot) {
+      auditLogsCache = [];
+      snapshot.forEach(function(doc) { auditLogsCache.push(doc.data()); });
+      if (auditLogsCache.length === 0) {
+        auditLogsCache = [
+          { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
+          { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
+          { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
+        ];
+        var batch = firebase.firestore().batch();
+        auditLogsCache.forEach(function(e) {
+          batch.add(firebase.firestore().collection('audit_logs'), e);
+        });
+        batch.commit().catch(function() {});
+      }
+      if (callback) callback(auditLogsCache);
+    }).catch(function() {
+      if (callback) callback(auditLogsCache || []);
+    });
   }
 
   function renderAuditLogs() {
@@ -1641,20 +1609,31 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    setupImagePreview();
+    setupSidebarNavigation();
+    setupFormSubmit();
+    setupBulkStock();
     loadProducts(function() {
       renderProducts();
       renderInventory();
       updateDashboard();
       makeDashboardClickable();
     });
-    renderOrders('all');
-    setupSidebarNavigation();
-    setupBulkStock();
-    setupImagePreview();
-    setupFormSubmit();
-    setupCms();
+    fetchOrders(function() { renderOrders('all'); });
+    fetchCms(function() {
+      renderCms();
+      setupCms();
+    });
+    fetchAuditLogs();
     setupAccountSearch();
-    renderAccounts();
+    if (window.SmileHubAuth) {
+      window.SmileHubAuth.getAccounts().then(function(a) {
+        accounts = a;
+        renderAccounts();
+      });
+    } else {
+      renderAccounts();
+    }
     renderNotificationTemplates();
 
     // Report period filter

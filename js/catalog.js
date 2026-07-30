@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (brand && params.get('brand')) { brand.value = params.get('brand'); }
 
   function filterProducts() {
-    var cards = [...grid.querySelectorAll('.product-card')];
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.product-card'));
     var term = (search ? search.value : '').toLowerCase();
     var selectedCategory = category ? category.value : 'all';
     var selectedBrand = brand ? brand.value : 'all';
