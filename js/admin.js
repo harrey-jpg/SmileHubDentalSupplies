@@ -1613,13 +1613,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSidebarNavigation();
     setupFormSubmit();
     setupBulkStock();
+    var productsLoaded = false;
+    var ordersLoaded = false;
+    function tryRenderDashboard() {
+      if (productsLoaded && ordersLoaded) {
+        updateDashboard();
+      }
+    }
     loadProducts(function() {
       renderProducts();
       renderInventory();
-      updateDashboard();
       makeDashboardClickable();
+      productsLoaded = true;
+      tryRenderDashboard();
     });
-    fetchOrders(function() { renderOrders('all'); });
+    fetchOrders(function() {
+      renderOrders('all');
+      ordersLoaded = true;
+      tryRenderDashboard();
+    });
     fetchCms(function() {
       renderCms();
       setupCms();
