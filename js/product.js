@@ -55,19 +55,14 @@ function getProductDetails(id, callback) {
 
 document.addEventListener('DOMContentLoaded', function() {
   var id = Number(new URLSearchParams(location.search).get('id')) || 1;
-  var loading = document.getElementById('detailLoading');
-  var container = document.getElementById('productDetailContainer');
 
   getProductDetails(id, function(product) {
-    if (loading) loading.style.display = 'none';
     if (!product) {
-      if (container) container.style.display = 'block';
       document.getElementById('detailName').textContent = 'Product Not Found';
       document.getElementById('detailDescription').textContent = 'This product does not exist.';
       return;
     }
 
-    if (container) container.style.display = 'block';
     document.getElementById('detailName').textContent = product.name;
     document.getElementById('detailBrand').textContent = product.brand || 'SmileHub';
     document.getElementById('detailCategory').textContent = product.category || 'General';

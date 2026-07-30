@@ -29,21 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (!grid) return;
 
-  // Show skeleton cards while loading
-  grid.innerHTML = '<div class="grid grid-3" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">' +
-    Array(6).fill().map(function() {
-      return '<article class="card product-card">' +
-        '<div class="skeleton skeleton-image" style="height:200px;border-radius:12px 12px 0 0;margin:-16px -16px 12px"></div>' +
-        '<div class="product-body">' +
-        '<div class="skeleton skeleton-text" style="width:40%;height:0.8em;margin-bottom:8px"></div>' +
-        '<div class="skeleton skeleton-text" style="width:80%;height:1.2em;margin-bottom:6px"></div>' +
-        '<div class="skeleton skeleton-text" style="width:55%;height:0.8em;margin-bottom:12px"></div>' +
-        '<div class="skeleton skeleton-price" style="margin-bottom:12px"></div>' +
-        '<div class="skeleton skeleton-btn" style="border-radius:8px"></div>' +
-        '</div></article>';
-    }).join('') +
-    '</div>';
-
   getCatalogProducts(function(products) {
     initCatalog(products);
   });
