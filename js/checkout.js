@@ -94,6 +94,18 @@ document.addEventListener('DOMContentLoaded', function() {
     simpleOrders.unshift({ number: order.number, date: order.date, total: total, status: order.status });
     saveStoredList('smilehub_simple_orders', simpleOrders);
 
+    // Subtract stock for each purchased item
+    SmileHubData.getProducts(function(products) {
+      cart.forEach(function(item) {
+        var product = products.find(function(p) { return String(p.id) === String(item.id); });
+        if (product) {
+          product.stock = Math.max(0, product.stock - item.quantity);
+          product.status = product.stock === 0 ? 'Out of Stock' : product.stock <= 10 ? 'Low Stock' : 'Active';
+        }
+      });
+      SmileHubData.saveProducts(products);
+    });
+
     // Clear cart
     saveStoredList(CART_KEY, []);
     updateCartCount();
