@@ -586,4 +586,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
+
+  // Forgot password toggle
+  var forgotLink = document.getElementById('forgotPasswordLink');
+  var forgotSection = document.getElementById('forgotPasswordSection');
+  var loginCard = document.getElementById('loginForm');
+  var backLink = document.getElementById('backToLoginLink');
+  var resetBtn = document.getElementById('sendResetBtn');
+  var resetEmail = document.getElementById('resetEmail');
+  var resetMessage = document.getElementById('resetMessage');
+
+  if (forgotLink && forgotSection && loginCard) {
+    forgotLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      loginCard.style.display = 'none';
+      forgotSection.style.display = 'block';
+      resetMessage.classList.add('hidden');
+      resetMessage.classList.remove('error');
+      resetMessage.textContent = '';
+      resetEmail.value = '';
+    });
+  }
+
+  if (backLink && forgotSection && loginCard) {
+    backLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      forgotSection.style.display = 'none';
+      loginCard.style.display = 'block';
+      resetMessage.classList.add('hidden');
+      resetMessage.classList.remove('error');
+      resetMessage.textContent = '';
+      resetEmail.value = '';
+    });
+  }
+
+  if (resetBtn && resetEmail && resetMessage) {
+    resetBtn.addEventListener('click', function() {
+      var email = resetEmail.value.trim();
+      if (!email) {
+        resetMessage.textContent = 'Enter your email address.';
+        resetMessage.classList.remove('hidden');
+        resetMessage.classList.add('error');
+        return;
+      }
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Sending...';
+      firebase.auth().sendPasswordResetEmail(email).then(function() {
+        resetMessage.textContent = 'Reset link sent! Check your email (including spam).';
+        resetMessage.classList.remove('hidden', 'error');
+        resetBtn.textContent = 'Send Reset Link';
+        resetBtn.disabled = false;
+      }).catch(function(error) {
+        var msg = 'Failed to send reset email.';
+        if (error.code === 'auth/user-not-found') msg = 'No account found with that email.';
+        else if (error.code === 'auth/invalid-email') msg = 'Enter a valid email address.';
+        else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+        resetMessage.textContent = msg;
+        resetMessage.classList.remove('hidden');
+        resetMessage.classList.add('error');
+        resetBtn.textContent = 'Send Reset Link';
+        resetBtn.disabled = false;
+      });
+    });
+  }
 });
