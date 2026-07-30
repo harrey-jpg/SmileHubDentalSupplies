@@ -321,6 +321,17 @@ function handleRegister(event) {
           });
         }
       }).then(function() {
+        return firebase.firestore().collection('accounts').doc(email).set({
+          firstName: firstName,
+          lastName: lastName,
+          name: firstName + ' ' + lastName,
+          email: email,
+          phone: '',
+          address: '',
+          role: role,
+          status: 'active'
+        });
+      }).then(function() {
         cacheUser({
           uid: uid,
           name: firstName + ' ' + lastName,
