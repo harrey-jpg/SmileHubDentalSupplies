@@ -390,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirm('🗑️ Delete "' + product.name + '"?')) {
       products = products.filter(function(p) { return p.id !== id; });
       saveProducts(products);
+      db.collection('products').doc(String(id)).delete().catch(function() {});
       renderProducts();
       updateDashboard();
       addAuditLog('Deleted product "' + product.name + '"');
