@@ -409,6 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.textContent = '💾 Save Product';
     }
+    var title = document.getElementById('productModalTitle');
+    if (title) title.textContent = 'Add Product';
     if (productModal) productModal.style.display = 'none';
   }
 
@@ -1723,13 +1725,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (pModal && e.target === pModal) resetForm();
     });
 
-    // Product modal close button
-    var closeProdBtn = document.getElementById('closeProductModal');
-    if (closeProdBtn) closeProdBtn.addEventListener('click', resetForm);
-
-    // Product modal cancel button
-    var cancelProdBtn = document.getElementById('cancelProductForm');
-    if (cancelProdBtn) cancelProdBtn.addEventListener('click', resetForm);
   }
 
   init();
