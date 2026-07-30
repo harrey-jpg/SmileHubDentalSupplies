@@ -59,11 +59,13 @@ function updateCartCount() {
     }, 0);
   }
 
-  // Only target elements with JUST the cart-count class (not wishlist-count)
   document.querySelectorAll('.cart-count:not(.wishlist-count)').forEach(function (element) {
     if (total > 0) {
       element.textContent = total;
       element.style.display = 'inline-grid';
+      element.classList.remove('bounce');
+      void element.offsetWidth;
+      element.classList.add('bounce');
     } else {
       element.style.display = 'none';
     }
@@ -77,11 +79,13 @@ function updateWishlistCount() {
     total = getStoredList(WISH_KEY).length;
   }
 
-  // Target elements with wishlist-count class
   document.querySelectorAll('.wishlist-count').forEach(function (element) {
     if (total > 0) {
       element.textContent = total;
       element.style.display = 'inline-grid';
+      element.classList.remove('bounce');
+      void element.offsetWidth;
+      element.classList.add('bounce');
     } else {
       element.style.display = 'none';
     }

@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!product) {
       document.getElementById('detailName').textContent = 'Product Not Found';
       document.getElementById('detailDescription').textContent = 'This product does not exist.';
+      document.querySelectorAll('.product-detail .skeleton').forEach(function(el) { el.classList.remove('skeleton'); });
       return;
     }
 
@@ -71,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('detailSku').textContent = product.sku || 'N/A';
     document.getElementById('detailDescription').textContent = product.description || 'No description available.';
     document.getElementById('detailImage').src = product.image || 'assets/products/default.svg';
+    document.querySelectorAll('.product-detail .skeleton').forEach(function(el) { el.classList.remove('skeleton'); });
 
     if (product.specs && product.specs.length > 0) {
       document.getElementById('detailSpecs').innerHTML = product.specs.map(function(spec) {
