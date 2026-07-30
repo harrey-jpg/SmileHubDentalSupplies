@@ -144,7 +144,7 @@
         </button>
 
         <div class="auth-links">
-          <a href="#" id="forgotPasswordLink">
+          <a href="javascript:void(0)" id="forgotPasswordLink">
             Forgot password?
           </a>
           <a href="register.html">
@@ -156,14 +156,14 @@
       <div id="forgotPasswordSection" class="card auth-card" style="display:none;">
         <h1>Reset Password</h1>
         <p class="muted">Enter your email and we'll send you a password reset link.</p>
-        <div id="resetMessage" class="auth-message hidden"></div>
+        <div id="resetMessage" class="auth-message" style="display:none;"></div>
         <div class="form-group">
           <label>Email Address</label>
           <input id="resetEmail" name="email" type="email" autocomplete="email" required>
         </div>
         <button class="btn btn-primary btn-block" type="button" id="sendResetBtn">Send Reset Link</button>
         <div class="auth-links">
-          <a href="#" id="backToLoginLink">Back to Login</a>
+          <a href="javascript:void(0)" id="backToLoginLink">Back to Login</a>
         </div>
       </div>
     </main>

@@ -597,25 +597,23 @@ document.addEventListener('DOMContentLoaded', function() {
   var resetMessage = document.getElementById('resetMessage');
 
   if (forgotLink && forgotSection && loginCard) {
-    forgotLink.addEventListener('click', function(e) {
-      e.preventDefault();
+    forgotLink.addEventListener('click', function() {
       loginCard.style.display = 'none';
       forgotSection.style.display = 'block';
-      resetMessage.classList.add('hidden');
-      resetMessage.classList.remove('error');
+      resetMessage.style.display = 'none';
       resetMessage.textContent = '';
+      resetMessage.className = 'auth-message';
       resetEmail.value = '';
     });
   }
 
   if (backLink && forgotSection && loginCard) {
-    backLink.addEventListener('click', function(e) {
-      e.preventDefault();
+    backLink.addEventListener('click', function() {
       forgotSection.style.display = 'none';
       loginCard.style.display = 'block';
-      resetMessage.classList.add('hidden');
-      resetMessage.classList.remove('error');
+      resetMessage.style.display = 'none';
       resetMessage.textContent = '';
+      resetMessage.className = 'auth-message';
       resetEmail.value = '';
     });
   }
@@ -625,15 +623,16 @@ document.addEventListener('DOMContentLoaded', function() {
       var email = resetEmail.value.trim();
       if (!email) {
         resetMessage.textContent = 'Enter your email address.';
-        resetMessage.classList.remove('hidden');
-        resetMessage.classList.add('error');
+        resetMessage.style.display = 'block';
+        resetMessage.className = 'auth-message error';
         return;
       }
       resetBtn.disabled = true;
       resetBtn.textContent = 'Sending...';
       firebase.auth().sendPasswordResetEmail(email).then(function() {
         resetMessage.textContent = 'Reset link sent! Check your email (including spam).';
-        resetMessage.classList.remove('hidden', 'error');
+        resetMessage.style.display = 'block';
+        resetMessage.className = 'auth-message';
         resetBtn.textContent = 'Send Reset Link';
         resetBtn.disabled = false;
       }).catch(function(error) {
@@ -642,8 +641,8 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (error.code === 'auth/invalid-email') msg = 'Enter a valid email address.';
         else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
         resetMessage.textContent = msg;
-        resetMessage.classList.remove('hidden');
-        resetMessage.classList.add('error');
+        resetMessage.style.display = 'block';
+        resetMessage.className = 'auth-message error';
         resetBtn.textContent = 'Send Reset Link';
         resetBtn.disabled = false;
       });
