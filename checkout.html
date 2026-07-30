@@ -154,17 +154,49 @@
           <div class="payment-options">
             <label class="payment-option">
               <input type="radio" name="payment" value="GCash" checked>
-              <span><strong>GCash</strong><br><small class="muted">Simulated mobile-wallet payment</small></span>
+              <span><strong>GCash</strong><br><small class="muted">Pay via GCash mobile wallet</small></span>
             </label>
             <label class="payment-option">
               <input type="radio" name="payment" value="Credit Card">
-              <span><strong>Credit Card</strong><br><small class="muted">Simulated Visa or Mastercard</small></span>
+              <span><strong>Credit Card</strong><br><small class="muted">Visa, Mastercard, JCB</small></span>
             </label>
             <label class="payment-option">
               <input type="radio" name="payment" value="Cash on Delivery">
               <span><strong>Cash on Delivery</strong><br><small class="muted">Pay when the order arrives</small></span>
             </label>
           </div>
+
+          <div id="billingSection" style="display:none;margin-top:16px;">
+            <h2>Billing Details</h2>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:0.9rem;cursor:pointer;">
+              <input type="checkbox" id="sameAsShipping" checked>
+              Same as shipping information
+            </label>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="billingFirstName">First Name</label>
+                <input id="billingFirstName" name="billingFirstName">
+              </div>
+              <div class="form-group">
+                <label for="billingLastName">Last Name</label>
+                <input id="billingLastName" name="billingLastName">
+              </div>
+              <div class="form-group">
+                <label for="billingEmail">Email</label>
+                <input id="billingEmail" name="billingEmail" type="email">
+              </div>
+              <div class="form-group">
+                <label for="billingPhone">Phone</label>
+                <input id="billingPhone" name="billingPhone" type="tel">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="billingAddress">Billing Address</label>
+              <textarea id="billingAddress" name="billingAddress" placeholder="House number, street, city, province"></textarea>
+            </div>
+            <p class="muted" style="font-size:0.85rem;">Payment is processed securely via PayMongo.</p>
+          </div>
+
           <button class="btn btn-primary btn-block" style="margin-top:20px" type="submit">Place Order</button>
         </form>
         <aside class="card summary-card">
@@ -281,6 +313,8 @@
     </script>
     <script src="js/firestore-data.js"></script>
     <script src="js/chatbot.js"></script>
+    <script src="https://js.paymongo.com/v1/paymongo.js">
+    </script>
     <script src="js/checkout.js">
     </script>
   </body>
