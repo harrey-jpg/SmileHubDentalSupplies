@@ -358,7 +358,8 @@
           latest.innerHTML = newest.map(function(p) { return productCard(p, 'New'); }).join('');
         }
 
-
+        document.querySelectorAll('#featuredProducts .add-cart, #latestProducts .add-cart').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); nb.addEventListener('click', function() { addToCart(this); }); });
+        document.querySelectorAll('#featuredProducts .add-wishlist, #latestProducts .add-wishlist').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); var wl = getStoredList('smilehub_simple_wishlist'); nb.textContent = wl.some(function(i){return i.id===Number(nb.dataset.id)}) ? '\u2665' : '\u2661'; nb.classList.toggle('wished', wl.some(function(i){return i.id===Number(nb.dataset.id)})); nb.addEventListener('click', function() { toggleWishlist(this); }); });
       });
       }
 
