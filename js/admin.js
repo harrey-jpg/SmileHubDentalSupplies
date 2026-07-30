@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- DOM REFS ---
   const formBox = document.getElementById('productFormBox');
+  const productModal = document.getElementById('productModal');
   const showFormBtn = document.getElementById('showProductForm');
   const productsBody = document.getElementById('adminProductsBody');
   const adminSearch = document.getElementById('adminSearch');
@@ -349,7 +350,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
-      formBox.classList.add('show');
+      if (productModal) productModal.style.display = 'flex';
+      var title = document.getElementById('productModalTitle');
+      if (title) title.textContent = 'Edit Product';
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.textContent = 'Update Product';
       showToast('Editing: ' + product.name, false, false);
@@ -406,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.textContent = '💾 Save Product';
     }
-    formBox.classList.remove('show');
+    if (productModal) productModal.style.display = 'none';
   }
 
   // --- UPDATE DASHBOARD ---
@@ -1682,10 +1685,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show/Hide form
     if (showFormBtn) {
       showFormBtn.addEventListener('click', function() {
-        if (formBox.classList.contains('show')) { 
-          resetForm(); 
+        if (productModal && productModal.style.display === 'flex') {
+          resetForm();
         } else {
-          formBox.classList.add('show');
+          if (productModal) productModal.style.display = 'flex';
           const form = document.getElementById('adminProductForm');
           if (form) {
             form.reset();
@@ -1699,6 +1702,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const imgSelect = document.getElementById('productImageSelect');
             if (imgSelect) imgSelect.value = 'assets/products/oral-care.svg';
           }
+          var title = document.getElementById('productModalTitle');
+          if (title) title.textContent = 'Add Product';
         }
       });
     }
@@ -1710,11 +1715,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Modal close
+    // Modal close - order modal
     document.addEventListener('click', function(e) {
-      const modal = document.getElementById('orderModal');
+      var modal = document.getElementById('orderModal');
       if (modal && e.target === modal) closeOrderModal();
+      var pModal = document.getElementById('productModal');
+      if (pModal && e.target === pModal) resetForm();
     });
+
+    // Product modal close button
+    var closeProdBtn = document.getElementById('closeProductModal');
+    if (closeProdBtn) closeProdBtn.addEventListener('click', resetForm);
+
+    // Product modal cancel button
+    var cancelProdBtn = document.getElementById('cancelProductForm');
+    if (cancelProdBtn) cancelProdBtn.addEventListener('click', resetForm);
   }
 
   init();
