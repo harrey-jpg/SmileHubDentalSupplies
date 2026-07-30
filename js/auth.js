@@ -214,6 +214,99 @@ function afterAuthReady() {
   document.dispatchEvent(new Event('authReady'));
 }
 
+function handleGoogleLogin() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope('profile');
+  provider.addScope('email');
+  firebase.auth().signInWithPopup(provider).then(function(result) {
+    var user = result.user;
+    var uid = user.uid;
+    var email = user.email;
+    var displayName = user.displayName || email;
+    var nameParts = displayName.split(' ');
+    var firstName = nameParts[0] || '';
+    var lastName = nameParts.slice(1).join(' ') || '';
+
+    showAuthMessage('Signing in with Google...');
+
+    return fetchUserProfile(uid).then(function(profile) {
+      if (profile) {
+        cacheUser({
+          uid: uid,
+          name: profile.displayName || displayName,
+          email: email,
+          role: profile.role || 'customer',
+          phone: profile.phone || '',
+          address: profile.address || '',
+          firstName: profile.firstName || firstName,
+          lastName: profile.lastName || lastName,
+          password: ''
+        });
+        redirectAfterLogin();
+        return;
+      }
+      return firebase.firestore().collection('users').doc(uid).set({
+        firstName: firstName,
+        lastName: lastName,
+        displayName: displayName,
+        email: email,
+        role: 'customer',
+        phone: '',
+        address: ''
+      }).then(function() {
+        return firebase.firestore().collection('accounts').doc(email).set({
+          firstName: firstName,
+          lastName: lastName,
+          name: displayName,
+          email: email,
+          phone: '',
+          address: '',
+          role: 'customer',
+          status: 'active'
+        });
+      }).then(function() {
+        cacheUser({
+          uid: uid,
+          name: displayName,
+          email: email,
+          role: 'customer',
+          phone: '',
+          address: '',
+          firstName: firstName,
+          lastName: lastName,
+          password: ''
+        });
+        redirectAfterLogin();
+      });
+    });
+  }).catch(function(error) {
+    if (error.code === 'auth/popup-closed-by-user') return;
+    var message = 'Google sign-in failed.';
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      message = 'An account already exists with this email. Try logging in with email and password.';
+    }
+    showAuthMessage(message, true);
+  });
+}
+
+function redirectAfterLogin() {
+  var fbUser = firebase.auth().currentUser;
+  if (!fbUser) { location.href = 'homepage.html'; return; }
+  var cached = getCachedUser();
+  var role = cached ? cached.role : 'customer';
+  if (['admin', 'staff', 'superadmin'].includes(role)) {
+    location.href = 'admin.html';
+    return;
+  }
+  var returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
+  SmileHubStorage.remove(RETURN_KEY);
+  if (String(returnPage).startsWith('admin.html')) {
+    location.href = 'homepage.html';
+  } else {
+    location.href = returnPage || 'homepage.html';
+  }
+}
+
 function handleLogin(event) {
   event.preventDefault();
   var email = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -223,43 +316,7 @@ function handleLogin(event) {
     return firebase.auth().signInWithEmailAndPassword(email, password);
   }).then(function() {
     showAuthMessage('Login successful! Redirecting...');
-
-    setTimeout(function() {
-      var fbUser = firebase.auth().currentUser;
-      if (!fbUser) { location.href = 'homepage.html'; return; }
-
-      fetchUserProfile(fbUser.uid).then(function(profile) {
-        var demo = DEMO_ACCOUNTS[email] || {};
-        var role = demo.role || (profile && profile.role) || 'customer';
-        var firstName = (profile && profile.firstName) || demo.firstName || '';
-        var lastName = (profile && profile.lastName) || demo.lastName || '';
-        cacheUser({
-          uid: fbUser.uid,
-          name: (profile && profile.displayName) || fbUser.email,
-          email: fbUser.email,
-          role: role,
-          phone: (profile && profile.phone) || '',
-          address: (profile && profile.address) || '',
-          firstName: firstName,
-          lastName: lastName,
-          password: ''
-        });
-
-        if (['admin', 'staff', 'superadmin'].includes(role)) {
-          location.href = 'admin.html';
-          return;
-        }
-        var returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
-        SmileHubStorage.remove(RETURN_KEY);
-        if (String(returnPage).startsWith('admin.html')) {
-          location.href = 'homepage.html';
-        } else {
-          location.href = returnPage || 'homepage.html';
-        }
-      }).catch(function() {
-        location.href = 'homepage.html';
-      });
-    }, 300);
+    setTimeout(redirectAfterLogin, 300);
   }).catch(function(error) {
     var message = 'Login failed. Please try again.';
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -523,6 +580,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var loginForm = document.getElementById('loginForm');
   if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
+  var googleBtn = document.getElementById('googleSignInBtn');
+  if (googleBtn) googleBtn.addEventListener('click', handleGoogleLogin);
 
   var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
