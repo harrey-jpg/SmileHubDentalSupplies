@@ -1,9 +1,11 @@
-// chatbot.js - Uses DeepSeek API via chatanywhere.tech
-// Set CHAT_API_KEY below or leave empty for anonymous access (rate-limited)
+// chatbot.js - Supports OpenAI (ChatGPT) or DeepSeek API
+// Set one of the API keys below to enable. OpenAI takes priority if both are set.
+// For OpenAI: get key at https://platform.openai.com/api-keys
+// For DeepSeek: get key at https://platform.deepseek.com/api_keys
 
-const CHAT_API_KEY = ''; // Optional: set your API key here
-const API_URL = "https://api.chatanywhere.tech/v1/chat/completions";
-const MODEL_NAME = "deepseek-v3.2";
+const OPENAI_API_KEY = ''; // Your OpenAI API key (sk-...)
+const DEEPSEEK_API_KEY = ''; // Your DeepSeek API key (optional, fallback)
+const DEEPSEEK_API_URL = "https://api.chatanywhere.tech/v1/chat/completions";
 
 let chatVisible = false;
 let chatHistory = [];
@@ -91,18 +93,21 @@ async function sendMessage() {
 
     messages.push({ role: "user", content: text });
 
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    if (CHAT_API_KEY) {
-      headers['Authorization'] = 'Bearer ' + CHAT_API_KEY;
-    }
+    var useOpenAI = OPENAI_API_KEY.length > 0;
+    var apiUrl = useOpenAI ? 'https://api.openai.com/v1/chat/completions' : DEEPSEEK_API_URL;
+    var apiKey = useOpenAI ? OPENAI_API_KEY : DEEPSEEK_API_KEY;
+    var model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-v3.2';
 
-    const response = await fetch(API_URL, {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    };
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
-        model: MODEL_NAME,
+        model: model,
         messages: messages,
         temperature: 0.7,
         max_tokens: 500

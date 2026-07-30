@@ -1,4 +1,24 @@
 var PAYMONGO_PUBLISHABLE_KEY = '';
+var GOOGLE_MAPS_KEY = ''; // Set your Google Maps API key for address autocomplete
+
+function initMapAutocomplete() {
+  var input = document.getElementById('checkoutAddress');
+  if (!input || !GOOGLE_MAPS_KEY || !window.google) return;
+  var autocomplete = new google.maps.places.Autocomplete(input, { types: ['address'], componentRestrictions: { country: 'PH' } });
+  autocomplete.addListener('place_changed', function() {
+    var place = autocomplete.getPlace();
+    if (place.address_components) {
+      var city = '';
+      var postal = '';
+      place.address_components.forEach(function(c) {
+        if (c.types.indexOf('locality') > -1) city = c.long_name;
+        if (c.types.indexOf('postal_code') > -1) postal = c.long_name;
+      });
+      if (document.getElementById('checkoutCity')) document.getElementById('checkoutCity').value = city;
+      if (document.getElementById('checkoutPostal')) document.getElementById('checkoutPostal').value = postal;
+    }
+  });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   var cart = getStoredList(CART_KEY);
