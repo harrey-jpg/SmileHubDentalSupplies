@@ -321,7 +321,6 @@ function handleRegister(event) {
           });
         }
       }).then(function() {
-        console.log('[register] Writing to accounts collection...');
         return firebase.firestore().collection('accounts').doc(email).set({
           firstName: firstName,
           lastName: lastName,
@@ -331,11 +330,6 @@ function handleRegister(event) {
           address: '',
           role: role,
           status: 'active'
-        }).then(function() {
-          console.log('[register] Accounts write SUCCEEDED for', email);
-        }, function(err) {
-          console.error('[register] Accounts write FAILED:', err);
-          throw err;
         });
       }).then(function() {
         cacheUser({
@@ -356,7 +350,6 @@ function handleRegister(event) {
       });
     });
   }).catch(function(error) {
-    console.error('[register] CATCH block hit:', error.code, error.message);
     var message = 'Registration failed.';
     if (error.code === 'auth/email-already-in-use') {
       message = 'That email is already registered.';
