@@ -89,10 +89,22 @@ function saveProducts(products, callback) {
     var ref = db.collection('products').doc(String(p.id));
     batch.set(ref, p);
   });
+  batch.set(db.collection('products_meta').doc('latest'), {
+    version: firebase.firestore.FieldValue.increment(1),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
   batch.commit().then(function() {
     if (callback) callback();
   }).catch(function() {
     if (callback) callback();
+  });
+}
+
+function getProductsMeta(callback) {
+  db.collection('products_meta').doc('latest').get().then(function(doc) {
+    callback(doc.exists ? doc.data() : null);
+  }).catch(function() {
+    callback(null);
   });
 }
 
@@ -144,21 +156,48 @@ function deleteProductById(id, callback) {
   });
 }
 
+function getLocalOrders() {
+  try {
+    var raw = localStorage.getItem('smilehub_orders');
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function mergeOrders(local, remote) {
+  var byNumber = {};
+  remote.forEach(function(o) {
+    var n = o.number || o.orderNumber;
+    if (n) byNumber[n] = o;
+  });
+  local.forEach(function(o) {
+    var n = o.number || o.orderNumber;
+    if (n && !byNumber[n]) byNumber[n] = o;
+  });
+  return Object.keys(byNumber).map(function(n) { return byNumber[n]; });
+}
+
 function getOrders(callback) {
+  var local = getLocalOrders();
   db.collection('orders').orderBy('date', 'desc').get().then(function(snapshot) {
     var orders = [];
     snapshot.forEach(function(doc) {
       orders.push(doc.data());
     });
     if (orders.length === 0) {
-      orders = getDefaultOrders();
+      var defaults = getDefaultOrders();
+      orders = mergeOrders(local, defaults);
       var batch = db.batch();
-      orders.forEach(function(o) { batch.set(db.collection('orders').doc(o.number), o); });
+      defaults.forEach(function(o) { batch.set(db.collection('orders').doc(o.number), o); });
       batch.commit().catch(function() {});
+    } else {
+      orders = mergeOrders(local, orders);
     }
     callback(orders);
   }).catch(function() {
-    callback(getDefaultOrders());
+    callback(mergeOrders(local, getDefaultOrders()));
   });
 }
 
@@ -230,6 +269,7 @@ function saveCms(data, callback) {
 var SmileHubData = {
   getProducts: getProducts,
   getProductsSync: getProductsSync,
+  getProductsMeta: getProductsMeta,
   saveProducts: saveProducts,
   addProduct: addProduct,
   updateProductById: updateProductById,

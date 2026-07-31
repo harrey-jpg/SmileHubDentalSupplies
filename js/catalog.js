@@ -5,14 +5,32 @@ var catalogProducts = [];
 
 function getCatalogProducts(callback) {
   var cached = SmileHubStorage.get('smilehub_products_cache', null);
-  if (cached && cached.length > 0) {
-    catalogProducts = cached;
-    if (callback) callback(cached);
+  var cachedMeta = SmileHubStorage.get('smilehub_products_meta', null);
+
+  function useCached() {
+    if (cached && cached.length > 0) {
+      catalogProducts = cached;
+      if (callback) callback(cached);
+      return true;
+    }
+    return false;
   }
-  SmileHubData.getProducts(function(data) {
-    catalogProducts = data;
-    SmileHubStorage.set('smilehub_products_cache', data);
-    if (callback) callback(data);
+
+  SmileHubData.getProductsMeta(function(meta) {
+    if (meta && cached && cached.length > 0 && cachedMeta && cachedMeta.version === meta.version) {
+      catalogProducts = cached;
+      if (callback) callback(cached);
+      return;
+    }
+    // Meta unavailable (e.g. offline): fall back to the cached copy.
+    if (!meta && useCached()) return;
+
+    SmileHubData.getProducts(function(data) {
+      catalogProducts = data;
+      SmileHubStorage.set('smilehub_products_cache', data);
+      if (meta) SmileHubStorage.set('smilehub_products_meta', meta);
+      if (callback) callback(data);
+    });
   });
 }
 

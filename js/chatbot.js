@@ -5,7 +5,41 @@
 
 const OPENAI_API_KEY = ''; // Your OpenAI API key (sk-...)
 const DEEPSEEK_API_KEY = ''; // Your DeepSeek API key (optional, fallback)
-const DEEPSEEK_API_URL = "https://api.chatanywhere.tech/v1/chat/completions";
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+
+// If no API keys are set, SmileBot answers from a built-in knowledge base.
+function getLocalAnswer(text) {
+  var q = String(text || '').toLowerCase();
+
+  if (/(shipping|deliver|ship|delivery)/.test(q) && /(fee|cost|price|much|free|charge)/.test(q)) {
+    return 'Shipping is free on orders over ₱3,000. Metro Manila orders otherwise cost ₱150 and arrive within 1-3 business days. Provincial orders may take 3-7 business days.';
+  }
+  if (/(order|track|status)/.test(q)) {
+    return 'Log in and open the Orders page to see your order status: Pending, Processing, Shipped, or Delivered. Each order has a printable invoice.';
+  }
+  if (/(payment|pay|gcash|card|cash on delivery|billing)/.test(q)) {
+    return 'We accept GCash, Credit Card, and Cash on Delivery within Metro Manila. GCash and card payments are simulated in this demo checkout.';
+  }
+  if (/(product|item|catalog|stock|buy|available|brand)/.test(q)) {
+    return 'Browse our catalog on the Products page. We carry oral care, instruments, PPE, restorative materials, disposables, impression materials, orthodontics, and equipment.';
+  }
+  if (/(return|refund|exchange|policy)/.test(q)) {
+    return 'Unopened items can be returned within 7 days of delivery. Contact support through the Contact page to start a return.';
+  }
+  if (/(account|login|sign in|register|password|profile)/.test(q)) {
+    return 'Create an account on the Register page and sign in on the Login page. Use the Profile page to update your details or change your password.';
+  }
+  if (/(coupon|discount|promo|voucher|code)/.test(q)) {
+    return 'Use coupon code SMILE10 at checkout to get 10% off your order. Apply it on the cart or checkout page.';
+  }
+  if (/(contact|support|email|phone|call|help)/.test(q)) {
+    return 'Reach us through the Contact page, or check the FAQ page for quick answers about shipping, returns, and payments.';
+  }
+  if (/(hello|hi|hey|good (morning|afternoon|evening))/.test(q)) {
+    return "Hello! I'm SmileBot. Ask me about products, orders, shipping, payments, or coupons.";
+  }
+  return "I'm only able to help with SmileHub-related questions. Please ask me about our products, orders, shipping, or account!";
+}
 
 let chatVisible = false;
 let chatHistory = [];
@@ -44,7 +78,7 @@ function initChatbot() {
 
   if (chatHistory.length === 0) {
     setTimeout(function() {
-      addBotMessage("Hi there! 😁 I'm SmileBot, powered by DeepSeek AI. Ask me about products, orders, shipping, or anything about SmileHub!");
+      addBotMessage("Hi there! 😁 I'm SmileBot. Ask me about products, orders, shipping, or anything about SmileHub!");
     }, 500);
   }
 }
@@ -61,7 +95,7 @@ function toggleChat() {
     renderMessages();
     document.getElementById('chatbotInput').focus();
     if (!document.querySelector('.chatbot-message.bot') && chatHistory.length === 0) {
-      addBotMessage("Hi there! 😁 I'm SmileBot, powered by DeepSeek AI. Ask me about products, orders, shipping, or anything about SmileHub!");
+      addBotMessage("Hi there! 😁 I'm SmileBot. Ask me about products, orders, shipping, or anything about SmileHub!");
     }
   }
 }
@@ -94,9 +128,19 @@ async function sendMessage() {
     messages.push({ role: "user", content: text });
 
     var useOpenAI = OPENAI_API_KEY.length > 0;
+    var useDeepSeek = !useOpenAI && DEEPSEEK_API_KEY.length > 0;
+
+    if (!useOpenAI && !useDeepSeek) {
+      setTimeout(function() {
+        typingDiv.remove();
+        addBotMessage(getLocalAnswer(text));
+      }, 600);
+      return;
+    }
+
     var apiUrl = useOpenAI ? 'https://api.openai.com/v1/chat/completions' : DEEPSEEK_API_URL;
     var apiKey = useOpenAI ? OPENAI_API_KEY : DEEPSEEK_API_KEY;
-    var model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-v3.2';
+    var model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-chat';
 
     const headers = {
       'Content-Type': 'application/json',

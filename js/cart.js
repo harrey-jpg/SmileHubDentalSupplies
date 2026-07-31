@@ -1,7 +1,44 @@
 document.addEventListener('DOMContentLoaded', function() {
+  var savedCoupon = getAppliedCoupon();
+  var couponInput = document.getElementById('couponInput');
+  if (savedCoupon && couponInput) couponInput.value = savedCoupon;
+
+  var applyBtn = document.getElementById('applyCouponBtn');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', applyCouponFromInput);
+  }
+  if (couponInput) {
+    couponInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyCouponFromInput(); }
+    });
+  }
+
   renderCart();
   updateCartCount(); // Hide badge if empty
 });
+
+function applyCouponFromInput() {
+  var input = document.getElementById('couponInput');
+  var feedback = document.getElementById('couponFeedback');
+  var code = input ? input.value.trim() : '';
+
+  if (couponDiscountRate(code) > 0) {
+    setAppliedCoupon(code.toUpperCase());
+    if (feedback) {
+      feedback.textContent = 'Coupon applied: ' + code.toUpperCase() + ' (10% off)';
+      feedback.style.color = '#1e9b61';
+    }
+    showToast('Coupon applied: ' + code.toUpperCase());
+  } else {
+    setAppliedCoupon(null);
+    if (feedback) {
+      feedback.textContent = code ? 'Invalid coupon code.' : 'Enter a coupon code to apply.';
+      feedback.style.color = '#d64545';
+    }
+    if (code) showToast('Invalid coupon code', true);
+  }
+  renderCart();
+}
 
 function renderCart() {
   const cart = getStoredList(CART_KEY);
@@ -52,8 +89,20 @@ function updateSummary(cart) {
   const subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
   const shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
   const tax = subtotal * 0.12;
+  const discount = subtotal * couponDiscountRate(getAppliedCoupon());
+  const total = subtotal + shipping + tax - discount;
   document.getElementById('cartSubtotal').textContent = money(subtotal);
   document.getElementById('cartShipping').textContent = money(shipping);
   document.getElementById('cartTax').textContent = money(tax);
-  document.getElementById('cartTotal').textContent = money(subtotal + shipping + tax);
+  const discountRow = document.getElementById('cartDiscountRow');
+  const discountEl = document.getElementById('cartDiscount');
+  if (discountRow && discountEl) {
+    if (discount > 0) {
+      discountRow.style.display = 'flex';
+      discountEl.textContent = '−' + money(discount);
+    } else {
+      discountRow.style.display = 'none';
+    }
+  }
+  document.getElementById('cartTotal').textContent = money(total);
 }

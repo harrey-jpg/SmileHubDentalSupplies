@@ -35,12 +35,41 @@ document.addEventListener('DOMContentLoaded', function() {
     if (email) email.value = fullAccount.email || '';
   }
 
-  function renderSummary() {
-    var items = document.getElementById('checkoutItems');
+  function getOrderTotals() {
     var subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
     var shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
     var tax = subtotal * 0.12;
-    var total = subtotal + shipping + tax;
+    var discount = subtotal * couponDiscountRate(getAppliedCoupon());
+    var total = subtotal + shipping + tax - discount;
+    return { subtotal: subtotal, shipping: shipping, tax: tax, discount: discount, total: total };
+  }
+
+  function applyCouponFromInput() {
+    var input = document.getElementById('checkoutCouponInput');
+    var feedback = document.getElementById('checkoutCouponFeedback');
+    var code = input ? input.value.trim() : '';
+
+    if (couponDiscountRate(code) > 0) {
+      setAppliedCoupon(code.toUpperCase());
+      if (feedback) {
+        feedback.textContent = 'Coupon applied: ' + code.toUpperCase() + ' (10% off)';
+        feedback.style.color = '#1e9b61';
+      }
+      showToast('Coupon applied: ' + code.toUpperCase());
+    } else {
+      setAppliedCoupon(null);
+      if (feedback) {
+        feedback.textContent = code ? 'Invalid coupon code.' : 'Enter a coupon code to apply.';
+        feedback.style.color = '#d64545';
+      }
+      if (code) showToast('Invalid coupon code', true);
+    }
+    renderSummary();
+  }
+
+  function renderSummary() {
+    var items = document.getElementById('checkoutItems');
+    var totals = getOrderTotals();
 
     items.innerHTML = cart.length ? cart.map(function(item) {
       var img = item.image || 'assets/products/default.svg';
@@ -50,10 +79,32 @@ document.addEventListener('DOMContentLoaded', function() {
         '<strong>' + money(item.price * item.quantity) + '</strong></div>';
     }).join('') : '<p class="muted">Your cart is empty.</p>';
 
-    document.getElementById('checkoutSubtotal').textContent = money(subtotal);
-    document.getElementById('checkoutShipping').textContent = money(shipping);
-    document.getElementById('checkoutTax').textContent = money(tax);
-    document.getElementById('checkoutTotal').textContent = money(total);
+    document.getElementById('checkoutSubtotal').textContent = money(totals.subtotal);
+    document.getElementById('checkoutShipping').textContent = money(totals.shipping);
+    document.getElementById('checkoutTax').textContent = money(totals.tax);
+    var discountRow = document.getElementById('checkoutDiscountRow');
+    var discountEl = document.getElementById('checkoutDiscount');
+    if (discountRow && discountEl) {
+      if (totals.discount > 0) {
+        discountRow.style.display = 'flex';
+        discountEl.textContent = '−' + money(totals.discount);
+      } else {
+        discountRow.style.display = 'none';
+      }
+    }
+    document.getElementById('checkoutTotal').textContent = money(totals.total);
+  }
+
+  var savedCoupon = getAppliedCoupon();
+  var couponInput = document.getElementById('checkoutCouponInput');
+  if (savedCoupon && couponInput) couponInput.value = savedCoupon;
+
+  var applyBtn = document.getElementById('checkoutApplyCouponBtn');
+  if (applyBtn) applyBtn.addEventListener('click', applyCouponFromInput);
+  if (couponInput) {
+    couponInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); applyCouponFromInput(); }
+    });
   }
 
   renderSummary();
@@ -155,10 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    var subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-    var shipping = subtotal >= 3000 ? 0 : 150;
-    var tax = subtotal * 0.12;
-    var total = subtotal + shipping + tax;
+    var totals = getOrderTotals();
+    var subtotal = totals.subtotal;
+    var shipping = totals.shipping;
+    var tax = totals.tax;
+    var discount = totals.discount;
+    var total = totals.total;
 
     var needsQuote = cart.some(function(item) { return item.price >= 50000; });
 
@@ -176,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function() {
       };
     }
 
+    var fullAddress = [address, city].filter(Boolean).join(', ') + (postal ? ' ' + postal : '');
+
     var order = {
       number: orderNumber,
       orderNumber: orderNumber,
@@ -183,7 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
       customerName: firstName + ' ' + lastName,
       email: email,
       customerObj: { name: firstName + ' ' + lastName, email: email, phone: phone },
-      shipping: { address: address, city: city, postal: postal, method: 'Standard' },
+      address: fullAddress,
+      shippingDetails: { address: address, city: city, postal: postal, method: 'Standard' },
       billing: billingInfo,
       payment: paymentMethod,
       items: cart.map(function(item) {
@@ -192,6 +248,8 @@ document.addEventListener('DOMContentLoaded', function() {
       subtotal: subtotal,
       shipping: shipping,
       tax: tax,
+      discount: discount,
+      coupon: discount > 0 ? getAppliedCoupon() : '',
       total: total,
       status: needsQuote ? 'Pending Quotation' : (paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Pending Payment'),
       date: new Date().toISOString().split('T')[0],

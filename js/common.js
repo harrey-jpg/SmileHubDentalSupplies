@@ -1,6 +1,21 @@
 const CART_KEY = 'smilehub_simple_cart';
 const WISH_KEY = 'smilehub_simple_wishlist';
 const THEME_KEY = 'smilehub_theme';
+const COUPON_KEY = 'smilehub_coupon';
+
+function getAppliedCoupon() {
+  return window.SmileHubStorage ? window.SmileHubStorage.get(COUPON_KEY, null) : null;
+}
+
+function setAppliedCoupon(code) {
+  if (window.SmileHubStorage) window.SmileHubStorage.set(COUPON_KEY, code);
+}
+
+function couponDiscountRate(code) {
+  if (!code) return 0;
+  if (String(code).trim().toUpperCase() === 'SMILE10') return 0.10;
+  return 0;
+}
 
 function getStoredList(key) {
   const list = window.SmileHubStorage

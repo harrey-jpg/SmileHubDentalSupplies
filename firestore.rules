@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Signed-in helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff', 'superadmin'];
+    }
+
+    // Public catalog
+    match /products/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+
+    // Product version metadata used for storefront cache invalidation
+    match /products_meta/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+
+    // Orders: any signed-in user may create/read/update (demo scope)
+    match /orders/{id} {
+      allow read, write: if signedIn();
+    }
+
+    // CMS content: public read, signed-in write
+    match /cms/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+
+    // User profiles: users manage their own; admins may read all
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Account registry used by the admin dashboard
+    match /accounts/{email} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
+
+    // Pre-registration claims used during sign-up
+    match /user_registrations/{email} {
+      allow read, write: if signedIn();
+    }
+
+    // Admin audit trail: append + read for signed-in users
+    match /audit_logs/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+  }
+}
