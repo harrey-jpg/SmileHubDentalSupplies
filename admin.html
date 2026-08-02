@@ -36,11 +36,15 @@
           <a href="homepage.html">Return to Store</a>
         </nav>
       </aside>
+      <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
       <main class="admin-main">
         <div class="admin-top">
-          <div>
-            <div class="eyebrow">Administration</div>
-            <h1>Dashboard</h1>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button class="admin-menu-toggle" id="adminMenuToggle" type="button" aria-label="Open menu">☰</button>
+            <div>
+              <div class="eyebrow">Administration</div>
+              <h1>Dashboard</h1>
+            </div>
           </div>
           <div style="display:flex; align-items:center; gap:12px;">
             <button class="theme-button">◐</button>
@@ -698,5 +702,30 @@
     <script src="js/firestore-data.js"></script>
     <script src="js/common.js"></script>
     <script src="js/admin.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var toggle = document.getElementById('adminMenuToggle');
+      var sidebar = document.querySelector('.admin-sidebar');
+      var backdrop = document.getElementById('adminSidebarBackdrop');
+      if (!toggle || !sidebar || !backdrop) return;
+
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+      }
+
+      toggle.addEventListener('click', function() {
+        sidebar.classList.toggle('open');
+        backdrop.classList.toggle('show');
+      });
+      backdrop.addEventListener('click', closeSidebar);
+      sidebar.querySelectorAll('.admin-menu a').forEach(function(link) {
+        link.addEventListener('click', closeSidebar);
+      });
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 960) closeSidebar();
+      });
+    });
+    </script>
   </body>
 </html>
