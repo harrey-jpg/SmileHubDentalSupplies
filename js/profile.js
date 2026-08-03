@@ -260,22 +260,46 @@
 
   function changePassword(event) {
     event.preventDefault();
-    var currentPassword = value('currentPassword');
     var newPassword = value('newPassword');
     var confirmPassword = value('confirmPassword');
     if (newPassword.length < 6) return showProfileMessage('The new password must contain at least 6 characters.', true);
     if (newPassword !== confirmPassword) return showProfileMessage('The new passwords do not match.', true);
     var user = firebase.auth().currentUser;
-    if (!user || !user.email) return showProfileMessage('Password changes are available for email/password accounts.', true);
-    var credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
-    user.reauthenticateWithCredential(credential).then(function () {
+    if (!user || !user.email) return showProfileMessage('Password changes are available for signed-in email accounts.', true);
+    var hasPassword = (user.providerData || []).some(function (p) {
+      return p.providerId === 'password';
+    });
+    var reauth = hasPassword
+      ? user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email, value('currentPassword')))
+      : Promise.resolve();
+    reauth.then(function () {
       return user.updatePassword(newPassword);
     }).then(function () {
       event.target.reset();
       showProfileMessage('Password changed successfully.');
     }).catch(function (error) {
-      showProfileMessage(error.code === 'auth/wrong-password' ? 'The current password is incorrect.' : 'Could not change password: ' + error.message, true);
+      if (error.code === 'auth/wrong-password') {
+        showProfileMessage('The current password is incorrect.', true);
+      } else if (error.code === 'auth/requires-recent-login') {
+        showProfileMessage('Your session is too old. Sign out and sign in again, then retry.', true);
+      } else {
+        showProfileMessage('Could not change password: ' + error.message, true);
+      }
     });
+  }
+
+  function updatePasswordFieldVisibility() {
+    var user = firebase.auth().currentUser;
+    var hasPassword = user && (user.providerData || []).some(function (p) {
+      return p.providerId === 'password';
+    });
+    var group = el('currentPasswordGroup');
+    if (group) group.classList.toggle('hidden', !hasPassword);
+    var currentPassword = el('currentPassword');
+    if (currentPassword) {
+      if (hasPassword) currentPassword.setAttribute('required', 'required');
+      else currentPassword.removeAttribute('required');
+    }
   }
 
 
@@ -401,5 +425,7 @@
     if (el('profileUseCurrentLocation')) el('profileUseCurrentLocation').addEventListener('click', useProfileCurrentLocation);
     if (el('passwordForm')) el('passwordForm').addEventListener('submit', changePassword);
     loadProfile();
+    updatePasswordFieldVisibility();
+    firebase.auth().onAuthStateChanged(updatePasswordFieldVisibility);
   });
 })();
