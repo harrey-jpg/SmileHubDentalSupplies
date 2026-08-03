@@ -24,6 +24,15 @@ function loadProfile() {
 
   var profileName = document.getElementById('profileName');
   if (profileName) profileName.textContent = account.name || 'Customer';
+
+  var user = firebase.auth().currentUser;
+  var hasPassword = user && (user.providerData || []).some(function(p) {
+    return p.providerId === 'password';
+  });
+  var currentPasswordGroup = document.getElementById('currentPasswordGroup');
+  if (currentPasswordGroup && !hasPassword) {
+    currentPasswordGroup.classList.add('hidden');
+  }
 }
 
 function saveProfileInformation(event) {
@@ -85,7 +94,6 @@ function saveAddress(event) {
 function changePassword(event) {
   event.preventDefault();
 
-  var currentPassword = document.getElementById('currentPassword').value;
   var newPassword = document.getElementById('newPassword').value;
   var confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -102,8 +110,15 @@ function changePassword(event) {
   var user = firebase.auth().currentUser;
   if (!user) return;
 
-  var credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
-  user.reauthenticateWithCredential(credential).then(function() {
+  var hasPassword = (user.providerData || []).some(function(p) {
+    return p.providerId === 'password';
+  });
+
+  var reauth = hasPassword
+    ? user.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(user.email, document.getElementById('currentPassword').value))
+    : Promise.resolve();
+
+  reauth.then(function() {
     return user.updatePassword(newPassword);
   }).then(function() {
     event.target.reset();
@@ -111,6 +126,8 @@ function changePassword(event) {
   }).catch(function(error) {
     if (error.code === 'auth/wrong-password') {
       showProfileMessage('The current password is incorrect.', true);
+    } else if (error.code === 'auth/requires-recent-login') {
+      showProfileMessage('Your session is too old. Sign out and sign in again, then retry.', true);
     } else {
       showProfileMessage('Error: ' + error.message, true);
     }
