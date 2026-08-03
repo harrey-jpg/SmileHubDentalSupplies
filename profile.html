@@ -1,298 +1,394 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
-    <title>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>
       Customer Profile | SmileHub Dental Supplies
     </title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js" defer></script>
-  </head>
-  <body class="">
-    <div class="topbar">
-      <div class="container">
-        <span>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=63">
+<link rel="stylesheet" href="css/final-polish.css?v=6.5.1">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
           Free shipping on orders over ₱3,000
         </span>
-        <span>
+<span>
           Metro Manila delivery • Mon–Sat
         </span>
-      </div>
-    </div>
-    <header class="header">
-      <div class="container header-main">
-        <a class="logo" href="homepage.html">
-          <img src="assets/logo.svg" alt="SmileHub logo">
-          <span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
             SmileHub
-            <br>
+            <br/>
             Dental Supplies
           </span>
-        </a>
-        <form class="search-bar" action="products.html">
-          <input name="q" type="search" placeholder="Search dental products...">
-          <button type="submit">
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
             Search
           </button>
-        </form>
-        <div class="header-actions">
-          <button class="theme-button" type="button" title="Dark mode">
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">
             ◐
           </button>
-          <a class="icon-link" href="wishlist.html">
+<a class="icon-link" href="wishlist.html">
             ♡
             <span class="text-label">Wishlist</span>
-            <span class="cart-count wishlist-count">0</span>
-          </a>
-          <a class="icon-link" href="cart.html">
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
             🛒
             <span class="text-label">Cart</span>
-            <span class="cart-count">0</span>
-          </a>
-          <a class="icon-link" href="login.html">
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
             👤
             <span class="text-label">Login</span>
-          </a>
-          <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
-        </div>
-      </div>
-      <nav class="nav">
-        <div class="container">
-          <ul class="nav-list">
-            <li>
-              <a class="" href="homepage.html">
+</a>
+<button class="menu-button" type="button">
+            Menu
+          </button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
                 Home
               </a>
-            </li>
-            <li>
-              <a class="" href="products.html">
+</li>
+<li>
+<a class="" href="products.html">
                 Products
               </a>
-            </li>
-            <li>
-              <a class="" href="about.html">
+</li>
+<li>
+<a class="" href="about.html">
                 About
               </a>
-            </li>
-            <li>
-              <a class="" href="faq.html">
+</li>
+<li>
+<a class="" href="faq.html">
                 FAQ
               </a>
-            </li>
-            <li>
-              <a class="" href="contact.html">
+</li>
+<li>
+<a class="" href="contact.html">
                 Contact
               </a>
-            </li>
-            <li>
-              <a class="" href="developers.html">
+</li>
+<li>
+<a class="" href="developers.html">
                 Developers
               </a>
-            </li>
-
-          </ul>
-        </div>
-      </nav>
-    </header>
-    <section class="page-title">
-      <div class="container">
-        <div class="breadcrumbs">
-          <a href="homepage.html">
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">
             Home
           </a>
           / Customer Profile
         </div>
-        <h1>
+<h1>
           Customer Profile
         </h1>
-        <p class="muted">
+<p class="muted">
           Edit your account information, delivery address, and password.
         </p>
-      </div>
-    </section>
-    <main class="section-sm">
-      <div class="container profile-layout">
-        <aside class="card profile-menu">
-          <a class="active" href="profile.html">
+</div>
+</section>
+<main class="section-sm">
+<div class="container profile-layout">
+<aside class="card profile-menu">
+<a class="active" href="profile.html">
             Profile Information
           </a>
-          <a href="orders.html">
+<a href="orders.html">
             Order History
           </a>
-          <a href="wishlist.html">
+<a href="wishlist.html">
             Saved Products
           </a>
-          <a href="#addresses">
+<a href="#addresses">
             Manage Addresses
           </a>
-          <a href="#password">
+<a href="#password">
             Change Password
           </a>
-          <a id="logoutButton" class="logout-link" href="#">
+<a class="logout-link" href="#" id="logoutButton">
             Logout
           </a>
-        </aside>
-        <section>
-          <div class="card profile-summary">
-            <span class="profile-avatar">👤</span>
-            <div>
-              <small class="muted">Signed in as</small>
-              <h2 id="profileName">Customer</h2>
-            </div>
-          </div>
+</aside>
+<section>
+<div class="card profile-summary profile-hero-card">
+<div class="profile-photo-wrap">
+  <img class="profile-photo" id="profilePhoto" alt="Profile photo" src="assets/profile-placeholder.svg">
+  <label class="profile-photo-edit" for="profileImageInput" title="Change profile photo" aria-label="Change profile photo">✎</label>
+  <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+</div>
+<div class="profile-summary-copy">
+<small class="muted">Signed in as</small>
+<h2 id="profileName">Customer</h2>
+<p class="muted" id="profileEmailSummary"></p>
+<div class="profile-photo-actions">
+<button class="btn btn-light btn-sm" id="chooseProfilePhoto" type="button">Change photo</button>
+<button class="btn btn-light btn-sm hidden" id="removeProfilePhoto" type="button">Remove</button>
+</div>
+<small class="muted">JPG, PNG, or WebP. The image is resized before saving.</small>
+</div>
+</div>
+<div class="auth-message hidden" id="profileMessage"></div>
+<form class="card form-card" id="profileForm">
+<div class="form-heading-row"><div><h2>Personal Information</h2><p class="muted">Update your account details below.</p></div><span class="edit-indicator">Editable</span></div>
+<div class="form-grid">
+<div class="form-group">
+<label for="profileFirstName">First Name</label>
+<input id="profileFirstName" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="profileLastName">Last Name</label>
+<input id="profileLastName" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="profileEmail">Email</label>
+<input id="profileEmail" readonly required="" type="email"/><small class="muted">Your sign-in email is managed by Firebase Authentication.</small>
+</div>
+<div class="form-group">
+<label for="profileBirthday">Birthday <span class="muted">(optional)</span></label>
+<input id="profileBirthday" type="date"/>
+</div>
+<div class="form-group">
+<label for="profilePhone">Phone</label>
+<input id="profilePhone" inputmode="numeric" maxlength="13" placeholder="09XX XXX XXXX" type="tel" aria-describedby="phoneHelp phoneStatus"/>
+<small id="phoneHelp" class="muted">Use an active Philippine mobile number. It must be verified before checkout.</small>
+<div id="profilePhoneStatus" class="phone-status unverified">● Not verified</div>
+</div>
+</div>
+<div class="profile-form-actions"><button class="btn btn-primary" id="saveProfileButton" type="submit">Save changes</button><span class="save-state" id="profileSaveState" aria-live="polite"></span></div>
+</form>
 
-          <div id="profileMessage" class="auth-message hidden"></div>
+<section class="card form-card email-verification-card" id="emailVerificationCard" aria-labelledby="emailVerificationTitle">
+  <h2 id="emailVerificationTitle">Email Verification</h2>
+  <div class="verification-status-row">
+    <span class="verification-badge is-pending" id="emailVerificationBadge">Checking status…</span>
+    <span class="muted" id="emailVerificationHelp">Email/password accounts should verify their email. Google accounts are already provider-verified.</span>
+  </div>
+  <button class="btn btn-primary" id="resendEmailVerificationBtn" type="button" hidden>Resend verification email</button>
+  <p class="muted" id="emailVerificationMessage" role="status" aria-live="polite"></p>
+</section>
 
-          <form class="card form-card" id="profileForm">
-            <h2>Personal Information</h2>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="profileFirstName">First Name</label>
-                <input id="profileFirstName" type="text" required>
-              </div>
-              <div class="form-group">
-                <label for="profileLastName">Last Name</label>
-                <input id="profileLastName" type="text" required>
-              </div>
-              <div class="form-group">
-                <label for="profileEmail">Email</label>
-                <input id="profileEmail" type="email" required>
-              </div>
-              <div class="form-group">
-                <label for="profilePhone">Phone</label>
-                <input id="profilePhone" type="tel" placeholder="09XX XXX XXXX">
-              </div>
-            </div>
-            <button class="btn btn-primary" type="submit">Save Information</button>
-          </form>
+<section class="card form-card phone-verification-card" aria-labelledby="verifyPhoneTitle">
+<h2 id="verifyPhoneTitle">Phone Verification</h2>
+<div class="verification-status-row">
+  <span id="verificationPhoneStatus" class="verification-badge is-pending">Not verified</span>
+  <span class="muted">We will send a 6-digit verification code to the mobile number saved above.</span>
+</div>
+<div class="phone-verification-actions">
+  <button class="btn btn-primary" id="sendOtpButton" type="button">Send OTP</button>
+  <button class="btn btn-light" id="changePhoneButton" type="button">Edit phone number</button>
+</div>
+<p class="muted verification-inline-message" id="profileOtpStatus" role="status" aria-live="polite"></p>
+<div id="recaptcha-container" class="recaptcha-host" aria-hidden="true"></div>
+</section>
+<form class="card form-card admin-section" id="addressForm">
+<h2 id="addresses">Default Delivery Address</h2>
+<div class="form-group">
+<label for="profileAddress">Street Address</label>
+<textarea id="profileAddress" required placeholder="House number and street"></textarea>
+</div>
+<div class="form-grid">
+<div class="form-group"><label for="profileBarangay">Barangay</label><input id="profileBarangay" required></div>
+<div class="form-group"><label for="profileCity">City / Municipality</label><input id="profileCity" required></div>
+<div class="form-group"><label for="profileProvince">Province</label><input id="profileProvince" required></div>
+<div class="form-group"><label for="profilePostal">Postal Code</label><input id="profilePostal" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required></div>
+</div>
+<div class="form-group"><label for="profileDeliveryNotes">Delivery Instructions <span class="muted">(optional)</span></label><textarea id="profileDeliveryNotes" placeholder="Landmark, gate instructions, preferred delivery time"></textarea></div>
+<div class="profile-location-tools">
+  <button class="btn btn-light" id="profileUseCurrentLocation" type="button">📍 Use current location</button>
+  <a class="btn btn-light" id="profileOpenMaps" href="https://www.google.com/maps" target="_blank" rel="noopener">Open in Google Maps</a>
+</div>
+<div class="address-map-box profile-address-map" id="profileAddressMapBox">
+  <iframe id="profileAddressMapFrame" title="Default delivery location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=120.85%2C14.45%2C121.15%2C14.75&amp;layer=mapnik"></iframe>
+  <p class="muted" id="profileAddressMapStatus">Use current location to automatically fill available address details. Review the fields before saving.</p>
+</div>
+<label style="display:flex;gap:9px;align-items:flex-start;margin:12px 0"><input id="profileDefaultAddress" type="checkbox" checked> <span>Use this as my default checkout address</span></label>
+<button class="btn btn-primary" type="submit">Save Delivery Address</button>
+</form>
 
-          <form class="card form-card admin-section" id="addressForm">
-            <h2 id="addresses">Default Delivery Address</h2>
-            <div class="form-group">
-              <label for="profileAddress">Complete Address</label>
-              <textarea id="profileAddress" placeholder="House number, street, barangay, city, province"></textarea>
-            </div>
-            <button class="btn btn-primary" type="submit">Update Address</button>
-          </form>
 
-          <form class="card form-card admin-section" id="passwordForm">
-            <h2 id="password">Change Password</h2>
-            <div class="form-group" id="currentPasswordGroup">
-              <label for="currentPassword">Current Password</label>
-              <input id="currentPassword" type="password" autocomplete="current-password" required>
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="newPassword">New Password</label>
-                <input id="newPassword" type="password" minlength="6" autocomplete="new-password" required>
-              </div>
-              <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input id="confirmPassword" type="password" minlength="6" autocomplete="new-password" required>
-              </div>
-            </div>
-            <button class="btn btn-primary" type="submit">Change Password</button>
-          </form>
-        </section>
-      </div>
-    </main>
-    <section class="newsletter">
-      <div class="container newsletter-box">
-        <div>
-          <h2>
+<details class="card form-card admin-section password-settings" id="passwordSettings">
+<summary><strong>Change Password</strong><span>Optional</span></summary>
+<p class="muted">Only use this when you want to replace your current password. It is never required for checkout.</p>
+<form id="passwordForm">
+<h2 id="password" class="sr-only">Change Password</h2>
+<div class="form-group">
+<label for="currentPassword">Current Password</label>
+<input autocomplete="current-password" id="currentPassword" required="" type="password"/>
+</div>
+<div class="form-grid">
+<div class="form-group">
+<label for="newPassword">New Password</label>
+<input autocomplete="new-password" id="newPassword" minlength="6" required="" type="password"/>
+</div>
+<div class="form-group">
+<label for="confirmPassword">Confirm Password</label>
+<input autocomplete="new-password" id="confirmPassword" minlength="6" required="" type="password"/>
+</div>
+</div>
+<button class="btn btn-primary" type="submit">Change Password</button>
+</form>
+</details>
+</section>
+</div>
+</main>
+<div class="otp-modal" id="profileOtpModal" hidden aria-hidden="true">
+  <div class="otp-modal__backdrop" data-otp-close></div>
+  <section class="otp-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="profileOtpModalTitle">
+    <button class="otp-modal__close" type="button" aria-label="Close verification dialog" data-otp-close>×</button>
+    <div class="otp-modal__icon">📱</div>
+    <h2 id="profileOtpModalTitle">Verify your phone number</h2>
+    <p class="muted">Enter the 6-digit code sent to <strong id="profileOtpMaskedNumber">your number</strong>.</p>
+    <div class="otp-digit-group" id="profileOtpDigits" aria-label="6-digit verification code">
+      <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1">
+      <input inputmode="numeric" maxlength="1" aria-label="Digit 2">
+      <input inputmode="numeric" maxlength="1" aria-label="Digit 3">
+      <input inputmode="numeric" maxlength="1" aria-label="Digit 4">
+      <input inputmode="numeric" maxlength="1" aria-label="Digit 5">
+      <input inputmode="numeric" maxlength="1" aria-label="Digit 6">
+    </div>
+    <input id="otpInput" type="hidden">
+    <p id="profileOtpModalStatus" class="otp-modal__status" role="status" aria-live="polite"></p>
+    <button class="btn btn-primary otp-modal__verify" id="verifyOtpButton" type="button">Verify OTP</button>
+    <div class="otp-modal__footer">
+      <button class="link-button" id="resendOtpButton" type="button" disabled>Resend in 60s</button>
+      <button class="link-button" type="button" data-otp-close>Change number</button>
+    </div>
+    <p class="muted otp-test-note" id="profileOtpTestNote" hidden>Test number: use the verification code configured in Firebase.</p>
+  </section>
+</div>
+
+<section class="newsletter">
+<div class="container newsletter-box">
+<div>
+<h2>
             Dental deals in your inbox
           </h2>
-          <p>
+<p>
             Receive product updates, clinic essentials, and student-friendly offers.
           </p>
-        </div>
-        <form class="newsletter-form">
-          <input type="email" placeholder="Your email address" required>
-          <button>
+</div>
+<form class="newsletter-form">
+<input placeholder="Your email address" required="" type="email"/>
+<button>
             Subscribe
           </button>
-        </form>
-      </div>
-    </section>
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div>
-            <h3>
+</form>
+</div>
+</section>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
               SmileHub Dental Supplies
             </h3>
-            <p>
+<p>
               Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
             </p>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Shop
             </h4>
-            <a href="products.html">
+<a href="products.html">
               All Products
             </a>
-            <a href="wishlist.html">
+<a href="wishlist.html">
               Wishlist
             </a>
-            <a href="cart.html">
+<a href="cart.html">
               Shopping Cart
             </a>
-            <a href="orders.html">
+<a href="orders.html">
               Orders
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Company
             </h4>
-            <a href="about.html">
+<a href="about.html">
               About SmileHub
             </a>
-            <a href="developers.html">
+<a href="developers.html">
               Developer Profiles
             </a>
-            <a href="contact.html">
+<a href="contact.html">
               Contact Us
             </a>
-            <a href="faq.html">
+<a href="faq.html">
               FAQs
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Policies
             </h4>
-            <a href="privacy.html">
+<a href="privacy.html">
               Privacy Policy
             </a>
-            <a href="terms.html">
+<a href="terms.html">
               Terms and Conditions
             </a>
-            <a href="profile.html">
+<a href="profile.html">
               Customer Profile
             </a>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <span>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
             © 2026 SmileHub Dental Supplies
           </span>
-          <span>
+<span>
             Frontend academic project • Philippines
           </span>
-        </div>
-      </div>
-    </footer>
-    <script src="js/common.js"></script>
-    <script src="js/firestore-data.js"></script>
-    <script src="js/chatbot.js"></script>
-    <script src="js/profile.js"></script>
-  </body>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/phone-input.js?v=6.2.0"></script>
+<script src="js/account-verification.js?v=6.4.0"></script>
+<script src="js/profile.js?v=63"></script>
+<script src="js/email-verification.js?v=6.4.0"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=6.2.0"></script>
+<script src="js/final-polish.js?v=6.5.0"></script>
+</body>
 </html>

@@ -104,6 +104,22 @@ document.addEventListener('DOMContentLoaded', function() {
       cartButton.dataset.quantity = document.getElementById('detailQuantity').value;
       addToCart(cartButton);
     });
+    var buyButton = document.getElementById('detailBuyNow');
+    var stickyBuyButton = document.getElementById('stickyBuyNowButton');
+    var stickyBuyName = document.getElementById('stickyBuyNowName');
+
+    function prepareBuyButton(button) {
+      if (!button) return;
+      Object.assign(button.dataset, { id: id, name: product.name, price: product.price, image: product.image });
+      button.addEventListener('click', function() {
+        button.dataset.quantity = document.getElementById('detailQuantity').value;
+        buyNow(button);
+      });
+    }
+
+    prepareBuyButton(buyButton);
+    prepareBuyButton(stickyBuyButton);
+    if (stickyBuyName) stickyBuyName.textContent = product.name;
 
     var wishButton = document.getElementById('detailWishlist');
     Object.assign(wishButton.dataset, { id: id, name: product.name, price: product.price, image: product.image });

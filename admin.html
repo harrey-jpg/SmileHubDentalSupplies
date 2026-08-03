@@ -1,731 +1,680 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
-    <title>Admin Dashboard | SmileHub Dental Supplies</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=2" defer></script>
-  </head>
-  <body class="admin-body">
-    <div class="admin-layout">
-      <aside class="admin-sidebar">
-        <a class="logo" href="homepage.html">
-          <img src="assets/logo.svg" alt="">
-          <span>SmileHub Admin</span>
-        </a>
-        <span class="admin-sidebar-label">Main Menu</span>
-        <nav class="admin-menu">
-          <a class="active" href="#dashboard" data-role="all">Dashboard</a>
-          <a href="#products" data-role="admin,superadmin">Products</a>
-          <a href="#inventory" data-role="all">Inventory</a>
-          <a href="#orders" data-role="all">Orders</a>
-          <a href="#customers" data-role="admin,superadmin">Customers</a>
-          <a href="#reports" data-role="admin,superadmin">Reports</a>
-          <a href="#cms" data-role="admin,superadmin">CMS</a>
-          <a href="#notifications" data-role="admin,superadmin">Notifications</a>
-          <a href="#audit" data-role="admin,superadmin">Audit Trail</a>
-        </nav>
-        <span class="admin-sidebar-label">Links</span>
-        <nav class="admin-menu">
-          <a href="homepage.html">Return to Store</a>
-        </nav>
-      </aside>
-      <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
-      <main class="admin-main">
-        <div class="admin-top">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <button class="admin-menu-toggle" id="adminMenuToggle" type="button" aria-label="Open menu">☰</button>
-            <div>
-              <div class="eyebrow">Administration</div>
-              <h1>Dashboard</h1>
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <button class="theme-button">◐</button>
-            <span class="admin-user-badge">
-              <span class="admin-avatar" id="adminAvatar">A</span>
-              <span>
-                <span class="admin-username" id="adminUsername">Admin User</span>
-                <span style="display:block;font-size:0.7rem;opacity:0.6;font-weight:500;" id="adminRoleBadge">admin</span>
-              </span>
-            </span>
-            <button class="btn btn-light" id="logoutButton" type="button">Logout</button>
-          </div>
-        </div>
-
-        <!-- ===== DASHBOARD SECTION ===== -->
-        <section id="dashboard" data-role="all">
-          <div class="kpi-grid">
-            <article class="card kpi-card clickable" data-target="#orders">
-              <span class="muted">Today's Sales</span>
-              <strong id="kpiTodaySales">₱0</strong>
-              <small id="kpiTodayOrders">0 orders today</small>
-            </article>
-            <article class="card kpi-card clickable" data-target="#products">
-              <span class="muted">Total Revenue</span>
-              <strong id="kpiTotalRevenue">₱0</strong>
-              <small id="kpiRevenuePeriod">This month</small>
-            </article>
-            <article class="card kpi-card clickable" data-target="#customers">
-              <span class="muted">Total Products</span>
-              <strong id="kpiTotalProducts">0</strong>
-              <small id="kpiActiveProducts">0 active</small>
-            </article>
-            <article class="card kpi-card clickable" data-target="#inventory">
-              <span class="muted">Low Stock</span>
-              <strong id="kpiLowStock">0</strong>
-              <small id="kpiLowStockDetail">Needs attention</small>
-            </article>
-          </div>
-
-          <div class="grid grid-2 admin-section">
-            <article class="card form-card">
-              <h2>Monthly Sales</h2>
-              <div class="chart-placeholder" id="salesChart">
-                <div class="bar" style="height:35%" data-month="Jan"></div>
-                <div class="bar" style="height:48%" data-month="Feb"></div>
-                <div class="bar" style="height:42%" data-month="Mar"></div>
-                <div class="bar" style="height:62%" data-month="Apr"></div>
-                <div class="bar" style="height:75%" data-month="May"></div>
-                <div class="bar" style="height:88%" data-month="Jun"></div>
-              </div>
-              <div class="chart-labels" style="display:flex;gap:14px;margin-top:6px;padding:0 24px;">
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jan</span>
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Feb</span>
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Mar</span>
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Apr</span>
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">May</span>
-                <span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jun</span>
-              </div>
-            </article>
-            <article class="card form-card">
-              <h2>Quick Actions</h2>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <button class="btn btn-primary" onclick="window.navigateTo('#orders')" style="padding:16px;font-size:0.9rem;">View Orders</button>
-                <button class="btn btn-secondary" onclick="window.navigateTo('#inventory')" style="padding:16px;font-size:0.9rem;">Manage Stock</button>
-                <button class="btn btn-light" onclick="window.navigateTo('#products')" style="padding:16px;font-size:0.9rem;" data-role-btn="admin,superadmin">Add Product</button>
-                <button class="btn btn-light" onclick="window.location.href='homepage.html'" style="padding:16px;font-size:0.9rem;">View Store</button>
-              </div>
-            </article>
-          </div>
-
-          <div class="grid grid-2 admin-section">
-            <article class="card form-card">
-              <h2>Recent Orders</h2>
-              <div class="table-wrap" style="box-shadow:none;border:none;border-radius:0;">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Order</th>
-                      <th>Customer</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="dashRecentOrders">
-                    <tr><td colspan="4" class="text-center muted" style="padding:30px;">No orders yet</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>
-            <article class="card form-card">
-              <h2>Inventory Alerts</h2>
-              <div id="dashInventoryAlerts">
-                <p class="muted" style="text-align:center;padding:20px;">All items well-stocked</p>
-              </div>
-            </article>
-          </div>
-
-          <div class="grid grid-2 admin-section">
-            <article class="card form-card">
-              <h2>Stock Status</h2>
-              <div style="position:relative;height:220px;">
-                <canvas id="chartStockStatus"></canvas>
-              </div>
-            </article>
-            <article class="card form-card">
-              <h2>Inventory by Category</h2>
-              <div style="position:relative;height:220px;">
-                <canvas id="chartCategoryValue"></canvas>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <!-- ===== PRODUCTS SECTION ===== -->
-        <section class="admin-section" id="products" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Product Management</h2>
-            <button class="btn btn-primary" id="showProductForm">+ Add Product</button>
-          </div>
-
-          <div id="productModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
-            <div class="card" style="max-width:640px;width:90%;max-height:85vh;overflow-y:auto;padding:0;background:var(--white);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-              <div id="productModalHeader" style="display:flex;justify-content:space-between;align-items:center;padding:20px 28px;border-bottom:1px solid var(--border);background:var(--sky);border-radius:14px 14px 0 0;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <span style="font-size:1.4rem;">📦</span>
-                  <h3 id="productModalTitle" style="margin:0;font-size:1.2rem;">Add Product</h3>
-                </div>
-                <button class="btn btn-light" type="button" onclick="document.getElementById('productModal').style.display='none'" style="padding:6px 14px;font-size:0.85rem;">✕ Close</button>
-              </div>
-              <div style="padding:24px 28px 28px;">
-                <form class="form-card" id="productFormBox" style="padding:0;margin:0;">
-                  <div id="adminProductForm">
-                    <input type="hidden" name="productId" value="">
-                    <div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:14px;">
-                      <div class="form-group" style="grid-column:span 2;">
-                        <label>Product Name *</label>
-                        <input name="name" placeholder="e.g., ProClean Toothbrush" required>
-                      </div>
-                      <div class="form-group">
-                        <label>Brand</label>
-                        <input name="brand" placeholder="e.g., SmilePro">
-                      </div>
-                      <div class="form-group">
-                        <label>SKU</label>
-                        <input name="sku" placeholder="Auto">
-                      </div>
-                      <div class="form-group">
-                        <label>Category *</label>
-                        <select name="category" id="productCategory">
-                          <option value="Oral Care">Oral Care</option>
-                          <option value="Instruments">Instruments</option>
-                          <option value="PPE">PPE</option>
-                          <option value="Restorative">Restorative</option>
-                          <option value="Disposables">Disposables</option>
-                          <option value="Impression">Impression</option>
-                          <option value="Orthodontics">Orthodontics</option>
-                          <option value="Rotary">Rotary</option>
-                          <option value="Equipment">Equipment</option>
-                          <option value="Cosmetic">Cosmetic</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>Price (₱) *</label>
-                        <input name="price" type="number" step="0.01" placeholder="0.00" required>
-                      </div>
-                      <div class="form-group">
-                        <label>Stock Qty</label>
-                        <input name="stock" type="number" value="0" min="0" placeholder="0">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label>Description</label>
-                      <textarea name="description" placeholder="Product description..." rows="2"></textarea>
-                    </div>
-                    <div class="form-group">
-                      <label>Specifications</label>
-                      <input name="specs" placeholder="e.g., 4 toothbrushes, Soft nylon bristles, Ergonomic handle (separate with commas)">
-                      <small class="muted">Separate multiple specs with commas</small>
-                    </div>
-                    <div class="form-group">
-                      <label>Product Image</label>
-                      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
-                        <div id="imagePreview" style="width:72px;height:72px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--sky);transition:border-color 0.2s;">
-                          <img id="previewImg" src="assets/products/oral-care.svg" alt="Preview" style="max-width:56px;max-height:56px;object-fit:contain;">
-                        </div>
-                        <div style="flex:1;min-width:180px;">
-                          <select name="image" id="productImageSelect" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);margin-bottom:8px;">
-                            <option value="assets/products/oral-care.svg">Oral Care</option>
-                            <option value="assets/products/instrument.svg">Instruments</option>
-                            <option value="assets/products/ppe.svg">PPE</option>
-                            <option value="assets/products/restorative.svg">Restorative</option>
-                            <option value="assets/products/disposable.svg">Disposables</option>
-                            <option value="assets/products/impression.svg">Impression</option>
-                            <option value="assets/products/orthodontic.svg">Orthodontics</option>
-                            <option value="assets/products/equipment.svg">Equipment</option>
-                          </select>
-                          <input name="customImage" id="customImageInput" placeholder="Or paste image URL..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
-                        </div>
-                      </div>
-                    </div>
-                    <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
-                      <button class="btn btn-primary" type="submit" id="productFormSubmit" style="padding:10px 28px;">Save Product</button>
-                      <button class="btn btn-light" type="button" onclick="document.getElementById('productModal').style.display='none'" style="padding:10px 24px;">Cancel</button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <input id="adminSearch" placeholder="🔍 Search product table...">
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>SKU</th>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="adminProductsBody">
-                <!-- Dynamic content -->
-              </tbody>
-            </table>
-          </div>
-          <div style="margin-top:12px; padding:12px 16px; background:var(--sky); border-radius:8px; font-size:0.9rem; color:var(--muted);">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>Admin Dashboard | SmileHub Dental Supplies</title>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js?v=2"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.5.1">
+</head>
+<body class="admin-body">
+<div class="admin-layout">
+<aside class="admin-sidebar">
+<a class="logo" href="homepage.html">
+<img alt="" src="assets/logo.svg"/>
+<span>SmileHub Admin</span>
+</a>
+<span class="admin-sidebar-label">Main Menu</span>
+<nav class="admin-menu">
+<a class="active" data-role="all" href="#dashboard">Dashboard</a>
+<a data-role="admin,superadmin" href="#products">Products</a>
+<a data-role="all" href="#inventory">Inventory</a>
+<a data-role="all" href="#orders">Orders</a>
+<a data-role="admin,superadmin" href="#customers">Customers</a>
+<a data-role="admin,superadmin" href="#reports">Reports</a>
+<a data-role="admin,superadmin" href="#cms">CMS</a>
+<a data-role="admin,superadmin" href="#notifications">Notifications</a>
+<a data-role="admin,superadmin" href="#audit">Audit Trail</a>
+</nav>
+<span class="admin-sidebar-label">Links</span>
+<nav class="admin-menu">
+<a href="homepage.html">Return to Store</a>
+</nav>
+</aside>
+<main class="admin-main">
+<div class="admin-top">
+<div>
+<div class="eyebrow">Administration</div>
+<h1>Dashboard</h1>
+</div>
+<div style="display:flex; align-items:center; gap:12px;">
+<button class="theme-button">◐</button>
+<span class="admin-user-badge">
+<span class="admin-avatar" id="adminAvatar">A</span>
+<span>
+<span class="admin-username" id="adminUsername">Admin User</span>
+<span id="adminRoleBadge" style="display:block;font-size:0.7rem;opacity:0.6;font-weight:500;">admin</span>
+</span>
+</span>
+<button class="btn btn-light" id="logoutButton" type="button">Logout</button>
+</div>
+</div>
+<!-- ===== DASHBOARD SECTION ===== -->
+<section data-role="all" id="dashboard">
+<div class="kpi-grid">
+<article class="card kpi-card clickable" data-target="#orders">
+<span class="muted">Today's Sales</span>
+<strong id="kpiTodaySales">₱0</strong>
+<small id="kpiTodayOrders">0 orders today</small>
+</article>
+<article class="card kpi-card clickable" data-target="#products">
+<span class="muted">Total Revenue</span>
+<strong id="kpiTotalRevenue">₱0</strong>
+<small id="kpiRevenuePeriod">This month</small>
+</article>
+<article class="card kpi-card clickable" data-target="#customers">
+<span class="muted">Total Products</span>
+<strong id="kpiTotalProducts">0</strong>
+<small id="kpiActiveProducts">0 active</small>
+</article>
+<article class="card kpi-card clickable" data-target="#inventory">
+<span class="muted">Low Stock</span>
+<strong id="kpiLowStock">0</strong>
+<small id="kpiLowStockDetail">Needs attention</small>
+</article>
+</div>
+<div class="grid grid-2 admin-section">
+<article class="card form-card">
+<h2>Monthly Sales</h2>
+<div class="chart-placeholder" id="salesChart">
+<div class="bar" data-month="Jan" style="height:35%"></div>
+<div class="bar" data-month="Feb" style="height:48%"></div>
+<div class="bar" data-month="Mar" style="height:42%"></div>
+<div class="bar" data-month="Apr" style="height:62%"></div>
+<div class="bar" data-month="May" style="height:75%"></div>
+<div class="bar" data-month="Jun" style="height:88%"></div>
+</div>
+<div class="chart-labels" style="display:flex;gap:14px;margin-top:6px;padding:0 24px;">
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jan</span>
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Feb</span>
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Mar</span>
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Apr</span>
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">May</span>
+<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jun</span>
+</div>
+</article>
+<article class="card form-card">
+<h2>Quick Actions</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<button class="btn btn-primary" onclick="window.navigateTo('#orders')" style="padding:16px;font-size:0.9rem;">View Orders</button>
+<button class="btn btn-secondary" onclick="window.navigateTo('#inventory')" style="padding:16px;font-size:0.9rem;">Manage Stock</button>
+<button class="btn btn-light" data-role-btn="admin,superadmin" onclick="window.navigateTo('#products')" style="padding:16px;font-size:0.9rem;">Add Product</button>
+<button class="btn btn-light" onclick="window.location.href='homepage.html'" style="padding:16px;font-size:0.9rem;">View Store</button>
+</div>
+</article>
+</div>
+<div class="grid grid-2 admin-section">
+<article class="card form-card">
+<h2>Recent Orders</h2>
+<div class="table-wrap" style="box-shadow:none;border:none;border-radius:0;">
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Customer</th>
+<th>Total</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="dashRecentOrders">
+<tr><td class="text-center muted" colspan="4" style="padding:30px;">No orders yet</td></tr>
+</tbody>
+</table>
+</div>
+</article>
+<article class="card form-card">
+<h2>Inventory Alerts</h2>
+<div id="dashInventoryAlerts">
+<p class="muted" style="text-align:center;padding:20px;">All items well-stocked</p>
+</div>
+</article>
+</div>
+<div class="grid grid-2 admin-section">
+<article class="card form-card">
+<h2>Stock Status</h2>
+<div style="position:relative;height:220px;">
+<canvas id="chartStockStatus"></canvas>
+</div>
+</article>
+<article class="card form-card">
+<h2>Inventory by Category</h2>
+<div style="position:relative;height:220px;">
+<canvas id="chartCategoryValue"></canvas>
+</div>
+</article>
+</div>
+</section>
+<!-- ===== PRODUCTS SECTION ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="products" style="display:none;">
+<div class="admin-top">
+<h2>Product Management</h2>
+<button class="btn btn-primary" id="showProductForm">+ Add Product</button>
+</div>
+<div id="productModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+<div class="card" style="max-width:640px;width:90%;max-height:85vh;overflow-y:auto;padding:0;background:var(--white);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+<div id="productModalHeader" style="display:flex;justify-content:space-between;align-items:center;padding:20px 28px;border-bottom:1px solid var(--border);background:var(--sky);border-radius:14px 14px 0 0;">
+<div style="display:flex;align-items:center;gap:10px;">
+<span style="font-size:1.4rem;">📦</span>
+<h3 id="productModalTitle" style="margin:0;font-size:1.2rem;">Add Product</h3>
+</div>
+<button class="btn btn-light" onclick="document.getElementById('productModal').style.display='none'" style="padding:6px 14px;font-size:0.85rem;" type="button">✕ Close</button>
+</div>
+<div style="padding:24px 28px 28px;">
+<form class="form-card" id="productFormBox" style="padding:0;margin:0;">
+<div id="adminProductForm">
+<input name="productId" type="hidden" value=""/>
+<div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:14px;">
+<div class="form-group" style="grid-column:span 2;">
+<label>Product Name *</label>
+<input name="name" placeholder="e.g., ProClean Toothbrush" required=""/>
+</div>
+<div class="form-group">
+<label>Brand</label>
+<input name="brand" placeholder="e.g., SmilePro"/>
+</div>
+<div class="form-group">
+<label>SKU</label>
+<input name="sku" placeholder="Auto"/>
+</div>
+<div class="form-group">
+<label>Category *</label>
+<select id="productCategory" name="category">
+<option value="Oral Care">Oral Care</option>
+<option value="Instruments">Instruments</option>
+<option value="PPE">PPE</option>
+<option value="Restorative">Restorative</option>
+<option value="Disposables">Disposables</option>
+<option value="Impression">Impression</option>
+<option value="Orthodontics">Orthodontics</option>
+<option value="Rotary">Rotary</option>
+<option value="Equipment">Equipment</option>
+<option value="Cosmetic">Cosmetic</option>
+</select>
+</div>
+<div class="form-group">
+<label>Price (₱) *</label>
+<input name="price" placeholder="0.00" required="" step="0.01" type="number"/>
+</div>
+<div class="form-group">
+<label>Stock Qty</label>
+<input min="0" name="stock" placeholder="0" type="number" value="0"/>
+</div>
+</div>
+<div class="form-group">
+<label>Description</label>
+<textarea name="description" placeholder="Product description..." rows="2"></textarea>
+</div>
+<div class="form-group">
+<label>Specifications</label>
+<input name="specs" placeholder="e.g., 4 toothbrushes, Soft nylon bristles, Ergonomic handle (separate with commas)"/>
+<small class="muted">Separate multiple specs with commas</small>
+</div>
+<div class="form-group">
+<label>Product Image</label>
+<div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+<div id="imagePreview" style="width:72px;height:72px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--sky);transition:border-color 0.2s;">
+<img alt="Preview" id="previewImg" src="assets/products/oral-care.svg" style="max-width:56px;max-height:56px;object-fit:contain;"/>
+</div>
+<div style="flex:1;min-width:180px;">
+<select id="productImageSelect" name="image" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);margin-bottom:8px;">
+<option value="assets/products/oral-care.svg">Oral Care</option>
+<option value="assets/products/instrument.svg">Instruments</option>
+<option value="assets/products/ppe.svg">PPE</option>
+<option value="assets/products/restorative.svg">Restorative</option>
+<option value="assets/products/disposable.svg">Disposables</option>
+<option value="assets/products/impression.svg">Impression</option>
+<option value="assets/products/orthodontic.svg">Orthodontics</option>
+<option value="assets/products/equipment.svg">Equipment</option>
+</select>
+<input id="customImageInput" name="customImage" placeholder="Or paste image URL..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;"/>
+</div>
+</div>
+</div>
+<div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
+<button class="btn btn-primary" id="productFormSubmit" style="padding:10px 28px;" type="submit">Save Product</button>
+<button class="btn btn-light" onclick="document.getElementById('productModal').style.display='none'" style="padding:10px 24px;" type="button">Cancel</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+</div>
+<div class="form-group">
+<input id="adminSearch" placeholder="🔍 Search product table..."/>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>SKU</th>
+<th>Product</th>
+<th>Category</th>
+<th>Price</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="adminProductsBody">
+<!-- Dynamic content -->
+</tbody>
+</table>
+</div>
+<div style="margin-top:12px; padding:12px 16px; background:var(--sky); border-radius:8px; font-size:0.9rem; color:var(--muted);">
             ⚠️ <strong>Stock Management:</strong> To update product quantities, go to the <strong>Inventory</strong> section.
           </div>
-        </section>
-
-        <!-- ===== INVENTORY SECTION ===== -->
-        <section class="admin-section" id="inventory" style="display:none;" data-role="all">
-          <div class="admin-top">
-            <h2>📊 Inventory Management</h2>
-            <button class="btn btn-secondary" onclick="window.showLowStock && window.showLowStock()">Show Low Stock</button>
-          </div>
-
-          <div class="grid grid-4" style="margin-bottom:20px;">
-            <article class="card kpi-card">
-              <span class="muted">Total Items in Stock</span>
-              <strong id="totalStockCount">0</strong>
-              <small>Across all products</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Low Stock Items</span>
-              <strong id="lowStockCount">0</strong>
-              <small>Need restocking soon</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Out of Stock</span>
-              <strong id="outOfStockCount">0</strong>
-              <small>Currently unavailable</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Total Value</span>
-              <strong id="inventoryValue">₱0</strong>
-              <small>Estimated inventory value</small>
-            </article>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Product</th>
-                  <th>SKU</th>
-                  <th>Current Stock</th>
-                  <th>Min Stock</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="inventoryBody">
-                <!-- Dynamic content -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Bulk Stock Update -->
-          <div class="card form-card admin-section">
-            <h3>📦 Bulk Stock Update</h3>
-            <form id="bulkStockForm">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Category Filter</label>
-                  <select id="bulkCategoryFilter">
-                    <option value="all">All Categories</option>
-                    <option value="Oral Care">Oral Care</option>
-                    <option value="Instruments">Instruments</option>
-                    <option value="PPE">PPE</option>
-                    <option value="Restorative">Restorative</option>
-                    <option value="Disposables">Disposables</option>
-                    <option value="Impression">Impression</option>
-                    <option value="Orthodontics">Orthodontics</option>
-                    <option value="Rotary">Rotary</option>
-                    <option value="Cosmetic">Cosmetic</option>
-                    <option value="Equipment">Equipment</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Adjustment Type</label>
-                  <select id="bulkAdjustmentType">
-                    <option value="set">Set to</option>
-                    <option value="add">Add</option>
-                    <option value="subtract">Subtract</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Quantity</label>
-                  <input id="bulkQuantity" type="number" value="10">
-                </div>
-              </div>
-              <button class="btn btn-primary" type="submit">Apply Bulk Update</button>
-            </form>
-          </div>
-        </section>
-
-        <!-- ===== ORDERS SECTION ===== -->
-        <section class="admin-section" id="orders" style="display:none;" data-role="all">
-          <div class="admin-top">
-            <h2>📋 Order Management</h2>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <select id="orderStatusFilter" onchange="filterOrders()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);">
-                <option value="all">All Orders</option>
-                <option value="Pending">⏳ Pending</option>
-                <option value="Processing">📦 Processing</option>
-                <option value="Shipped">🚚 Shipped</option>
-                <option value="Delivered">✅ Delivered</option>
-                <option value="Cancelled">❌ Cancelled</option>
-              </select>
-              <button class="btn btn-secondary" onclick="refreshOrders()">🔄 Refresh</button>
-            </div>
-          </div>
-
-          <!-- Order Stats -->
-          <div class="grid grid-4" style="margin-bottom:20px;">
-            <article class="card kpi-card">
-              <span class="muted">Total Orders</span>
-              <strong id="totalOrders">0</strong>
-              <small>All time</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Pending</span>
-              <strong id="pendingOrders">0</strong>
-              <small>Need attention</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Processing</span>
-              <strong id="processingOrders">0</strong>
-              <small>Being prepared</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Delivered Today</span>
-              <strong id="deliveredToday">0</strong>
-              <small>Completed</small>
-            </article>
-          </div>
-
-          <!-- Orders Table -->
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order #</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Total</th>
-                  <th>Items</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="ordersBody">
-                <!-- Dynamic content -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Order Details Modal -->
-          <div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-            <div class="card" style="max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:30px; background:var(--white);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 id="orderModalTitle">Order #SH-2026001</h2>
-                <button class="btn btn-light" onclick="closeOrderModal()">✕ Close</button>
-              </div>
-              <div id="orderModalContent">
-                <!-- Dynamic content -->
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== CUSTOMERS / ACCOUNTS SECTION ===== -->
-        <section class="admin-section" id="customers" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Account Management</h2>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <input id="accountSearch" placeholder="Search name or email..." style="padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);width:200px;">
-              <select id="accountRoleFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
-                <option value="all">All Roles</option>
-                <option value="customer">Customer</option>
-                <option value="staff">Staff</option>
-                <option value="admin">Admin</option>
-                <option value="superadmin">Super Admin</option>
-              </select>
-              <button class="btn btn-primary" id="showCreateAccountForm">+ Create Account</button>
-            </div>
-          </div>
-
-          <form class="card form-card admin-form" id="createAccountForm" style="margin-bottom:20px;">
-            <h3 style="margin-top:0;">Create New Account</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
-              <div class="form-group">
-                <label>First Name *</label>
-                <input id="createAccFirstName" required>
-              </div>
-              <div class="form-group">
-                <label>Last Name *</label>
-                <input id="createAccLastName" required>
-              </div>
-              <div class="form-group">
-                <label>Role *</label>
-                <select id="createAccRole">
-                  <option value="customer">Customer</option>
-                  <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Super Admin</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Email *</label>
-                <input id="createAccEmail" type="email" required>
-              </div>
-              <div class="form-group">
-                <label>Password *</label>
-                <input id="createAccPassword" type="password" minlength="6" required>
-              </div>
-              <div style="display:flex;align-items:end;gap:8px;grid-column:1/-1;">
-                <button class="btn btn-primary" type="submit" style="flex:1;">Create</button>
-                <button class="btn btn-light" type="button" id="cancelCreateAccount">Cancel</button>
-              </div>
-            </div>
-          </form>
-
-          <div class="grid grid-4" style="margin-bottom:20px;">
-            <article class="card kpi-card">
-              <span class="muted">Total Accounts</span>
-              <strong id="accTotal">0</strong>
-              <small>All registered users</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Customers</span>
-              <strong id="accCustomers">0</strong>
-              <small>Registered customers</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Staff</span>
-              <strong id="accStaff">0</strong>
-              <small>Staff members</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Admins</span>
-              <strong id="accAdmins">0</strong>
-              <small>Admin & Super Admin</small>
-            </article>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="accountsBody">
-                <tr><td colspan="5" class="text-center muted" style="padding:40px;">Loading accounts...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ===== CMS SECTION ===== -->
-        <section class="admin-section" id="cms" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Content Management</h2>
-            <button class="btn btn-primary" id="saveCmsBtn">Save Changes</button>
-          </div>
-
-          <div class="grid grid-2" style="margin-bottom:20px;">
-            <article class="card form-card">
-              <h3>Hero Banner</h3>
-              <div class="form-group">
-                <label>Headline</label>
-                <input id="cmsHeroHeadline" value="Your Trusted Dental Supply Partner">
-              </div>
-              <div class="form-group">
-                <label>Subtitle</label>
-                <textarea id="cmsHeroSubtitle" rows="2">Quality dental products for clinics, dentists, and students across the Philippines.</textarea>
-              </div>
-              <div class="form-group">
-                <label>CTA Button Text</label>
-                <input id="cmsHeroCta" value="Shop Now">
-              </div>
-            </article>
-            <article class="card form-card">
-              <h3>Promo Banner</h3>
-              <div class="form-group">
-                <label>Promo Text</label>
-                <input id="cmsPromoText" value="Free shipping on orders over ₱3,000">
-              </div>
-              <div class="form-group">
-                <label>Button Label</label>
-                <input id="cmsPromoBtn" value="View Deals">
-              </div>
-              <div class="form-group">
-                <label>Store Tagline</label>
-                <input id="cmsStoreTagline" value="SmileHub Dental Supplies">
-              </div>
-            </article>
-          </div>
-
-          <article class="card form-card" style="margin-bottom:20px;">
-            <h3>FAQ Management</h3>
-            <div id="cmsFaqList">
-              <!-- FAQ items rendered here -->
-            </div>
-            <button class="btn btn-light" id="addFaqBtn" style="margin-top:12px;">+ Add FAQ</button>
-          </article>
-
-          <div style="display:flex; gap:10px;">
-            <button class="btn btn-primary" id="saveCmsBtn2">Save Changes</button>
-            <span class="muted" style="align-self:center;">Changes are saved to localStorage and applied on page reload.</span>
-          </div>
-        </section>
-
-        <!-- ===== NOTIFICATIONS SECTION ===== -->
-        <section class="admin-section" id="notifications" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Notification Templates</h2>
-            <button class="btn btn-primary" id="saveNotifBtn">Save Templates</button>
-          </div>
-          <p class="muted" style="margin-top:-16px;margin-bottom:20px;">Customize messages sent to customers on key events.</p>
-          <div id="notifTemplates"></div>
-        </section>
-
-        <!-- ===== REPORTS SECTION ===== -->
-        <section class="admin-section" id="reports" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Reports</h2>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <select id="reportPeriod" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-              </select>
-              <button class="btn btn-secondary" id="printReportBtn">Print Report</button>
-            </div>
-          </div>
-
-          <div class="grid grid-4" style="margin-bottom:20px;">
-            <article class="card kpi-card">
-              <span class="muted">Total Orders</span>
-              <strong id="reportTotalOrders">0</strong>
-              <small>All time</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Revenue</span>
-              <strong id="reportRevenue">₱0</strong>
-              <small>Total sales</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Avg Order Value</span>
-              <strong id="reportAvgOrder">₱0</strong>
-              <small>Per order</small>
-            </article>
-            <article class="card kpi-card">
-              <span class="muted">Items Sold</span>
-              <strong id="reportItemsSold">0</strong>
-              <small>Total units</small>
-            </article>
-          </div>
-
-          <div class="card form-card" style="margin-bottom:20px;">
-            <h3>Sales by Product</h3>
-            <div class="table-wrap" style="box-shadow:none;border:none;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Orders</th>
-                    <th>Units Sold</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
-                <tbody id="reportProductBody">
-                  <tr><td colspan="4" class="text-center muted" style="padding:30px;">No sales data yet</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="grid grid-2">
-            <div class="card form-card">
-              <h3>Orders by Status</h3>
-              <div style="position:relative;height:180px;">
-                <canvas id="reportStatusChart"></canvas>
-              </div>
-            </div>
-            <div class="card form-card">
-              <h3>Payment Summary</h3>
-              <div id="reportPaymentSummary" style="padding:10px 0;"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== AUDIT TRAIL ===== -->
-        <section class="admin-section" id="audit" style="display:none;" data-role="admin,superadmin">
-          <div class="admin-top">
-            <h2>Audit Trail</h2>
-            <div style="display:flex;gap:10px;">
-              <button class="btn btn-light" id="clearAuditBtn">Clear Log</button>
-            </div>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Admin</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="auditBody">
-                <tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/firestore-data.js"></script>
-    <script src="js/common.js"></script>
-    <script src="js/admin.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var toggle = document.getElementById('adminMenuToggle');
-      var sidebar = document.querySelector('.admin-sidebar');
-      var backdrop = document.getElementById('adminSidebarBackdrop');
-      if (!toggle || !sidebar || !backdrop) return;
-
-      function closeSidebar() {
-        sidebar.classList.remove('open');
-        backdrop.classList.remove('show');
-      }
-
-      toggle.addEventListener('click', function() {
-        sidebar.classList.toggle('open');
-        backdrop.classList.toggle('show');
-      });
-      backdrop.addEventListener('click', closeSidebar);
-      sidebar.querySelectorAll('.admin-menu a').forEach(function(link) {
-        link.addEventListener('click', closeSidebar);
-      });
-      window.addEventListener('resize', function() {
-        if (window.innerWidth > 960) closeSidebar();
-      });
-    });
-    </script>
-  </body>
+</section>
+<!-- ===== INVENTORY SECTION ===== -->
+<section class="admin-section" data-role="all" id="inventory" style="display:none;">
+<div class="admin-top">
+<h2>📊 Inventory Management</h2>
+<button class="btn btn-secondary" onclick="window.showLowStock &amp;&amp; window.showLowStock()">Show Low Stock</button>
+</div>
+<div class="grid grid-4" style="margin-bottom:20px;">
+<article class="card kpi-card">
+<span class="muted">Total Items in Stock</span>
+<strong id="totalStockCount">0</strong>
+<small>Across all products</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Low Stock Items</span>
+<strong id="lowStockCount">0</strong>
+<small>Need restocking soon</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Out of Stock</span>
+<strong id="outOfStockCount">0</strong>
+<small>Currently unavailable</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Total Value</span>
+<strong id="inventoryValue">₱0</strong>
+<small>Estimated inventory value</small>
+</article>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>Product</th>
+<th>SKU</th>
+<th>Current Stock</th>
+<th>Min Stock</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="inventoryBody">
+<!-- Dynamic content -->
+</tbody>
+</table>
+</div>
+<!-- Bulk Stock Update -->
+<div class="card form-card admin-section">
+<h3>📦 Bulk Stock Update</h3>
+<form id="bulkStockForm">
+<div class="form-grid">
+<div class="form-group">
+<label>Category Filter</label>
+<select id="bulkCategoryFilter">
+<option value="all">All Categories</option>
+<option value="Oral Care">Oral Care</option>
+<option value="Instruments">Instruments</option>
+<option value="PPE">PPE</option>
+<option value="Restorative">Restorative</option>
+<option value="Disposables">Disposables</option>
+<option value="Impression">Impression</option>
+<option value="Orthodontics">Orthodontics</option>
+<option value="Rotary">Rotary</option>
+<option value="Cosmetic">Cosmetic</option>
+<option value="Equipment">Equipment</option>
+</select>
+</div>
+<div class="form-group">
+<label>Adjustment Type</label>
+<select id="bulkAdjustmentType">
+<option value="set">Set to</option>
+<option value="add">Add</option>
+<option value="subtract">Subtract</option>
+</select>
+</div>
+<div class="form-group">
+<label>Quantity</label>
+<input id="bulkQuantity" type="number" value="10"/>
+</div>
+</div>
+<button class="btn btn-primary" type="submit">Apply Bulk Update</button>
+</form>
+</div>
+</section>
+<!-- ===== ORDERS SECTION ===== -->
+<section class="admin-section" data-role="all" id="orders" style="display:none;">
+<div class="admin-top">
+<h2>📋 Order Management</h2>
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+<select id="orderStatusFilter" onchange="filterOrders()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);">
+<option value="all">All Orders</option>
+<option value="Pending">⏳ Pending</option>
+<option value="Processing">📦 Processing</option>
+<option value="Shipped">🚚 Shipped</option>
+<option value="Delivered">✅ Delivered</option>
+<option value="Cancelled">❌ Cancelled</option>
+</select>
+<button class="btn btn-secondary" onclick="refreshOrders()">🔄 Refresh</button>
+</div>
+</div>
+<!-- Order Stats -->
+<div class="grid grid-4" style="margin-bottom:20px;">
+<article class="card kpi-card">
+<span class="muted">Total Orders</span>
+<strong id="totalOrders">0</strong>
+<small>All time</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Pending</span>
+<strong id="pendingOrders">0</strong>
+<small>Need attention</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Processing</span>
+<strong id="processingOrders">0</strong>
+<small>Being prepared</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Delivered Today</span>
+<strong id="deliveredToday">0</strong>
+<small>Completed</small>
+</article>
+</div>
+<!-- Orders Table -->
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Order #</th>
+<th>Customer</th>
+<th>Date</th>
+<th>Total</th>
+<th>Items</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="ordersBody">
+<!-- Dynamic content -->
+</tbody>
+</table>
+</div>
+<!-- Order Details Modal -->
+<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+<div class="card" style="max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:30px; background:var(--white);">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+<h2 id="orderModalTitle">Order #SH-2026001</h2>
+<button class="btn btn-light" onclick="closeOrderModal()">✕ Close</button>
+</div>
+<div id="orderModalContent">
+<!-- Dynamic content -->
+</div>
+</div>
+</div>
+</section>
+<!-- ===== CUSTOMERS / ACCOUNTS SECTION ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="customers" style="display:none;">
+<div class="admin-top">
+<h2>Account Management</h2>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+<input id="accountSearch" placeholder="Search name or email..." style="padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);width:200px;"/>
+<select id="accountRoleFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="all">All Roles</option>
+<option value="customer">Customer</option>
+<option value="staff">Staff</option>
+<option value="admin">Admin</option>
+<option value="superadmin">Super Admin</option>
+</select>
+<button class="btn btn-primary" id="showCreateAccountForm">+ Create Account</button>
+</div>
+</div>
+<form class="card form-card admin-form" id="createAccountForm" style="margin-bottom:20px;">
+<h3 style="margin-top:0;">Create New Account</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+<div class="form-group">
+<label>First Name *</label>
+<input id="createAccFirstName" required=""/>
+</div>
+<div class="form-group">
+<label>Last Name *</label>
+<input id="createAccLastName" required=""/>
+</div>
+<div class="form-group">
+<label>Role *</label>
+<select id="createAccRole">
+<option value="customer">Customer</option>
+<option value="staff">Staff</option>
+<option value="admin">Admin</option>
+<option value="superadmin">Super Admin</option>
+</select>
+</div>
+<div class="form-group">
+<label>Email *</label>
+<input id="createAccEmail" required="" type="email"/>
+</div>
+<div class="form-group">
+<label>Password *</label>
+<input id="createAccPassword" minlength="6" required="" type="password"/>
+</div>
+<div style="display:flex;align-items:end;gap:8px;grid-column:1/-1;">
+<button class="btn btn-primary" style="flex:1;" type="submit">Create</button>
+<button class="btn btn-light" id="cancelCreateAccount" type="button">Cancel</button>
+</div>
+</div>
+</form>
+<div class="grid grid-4" style="margin-bottom:20px;">
+<article class="card kpi-card">
+<span class="muted">Total Accounts</span>
+<strong id="accTotal">0</strong>
+<small>All registered users</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Customers</span>
+<strong id="accCustomers">0</strong>
+<small>Registered customers</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Staff</span>
+<strong id="accStaff">0</strong>
+<small>Staff members</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Admins</span>
+<strong id="accAdmins">0</strong>
+<small>Admin &amp; Super Admin</small>
+</article>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Role</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="accountsBody">
+<tr><td class="text-center muted" colspan="5" style="padding:40px;">Loading accounts...</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- ===== CMS SECTION ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="cms" style="display:none;">
+<div class="admin-top">
+<h2>Content Management</h2>
+<button class="btn btn-primary" id="saveCmsBtn">Save Changes</button>
+</div>
+<div class="grid grid-2" style="margin-bottom:20px;">
+<article class="card form-card">
+<h3>Hero Banner</h3>
+<div class="form-group">
+<label>Headline</label>
+<input id="cmsHeroHeadline" value="Your Trusted Dental Supply Partner"/>
+</div>
+<div class="form-group">
+<label>Subtitle</label>
+<textarea id="cmsHeroSubtitle" rows="2">Quality dental products for clinics, dentists, and students across the Philippines.</textarea>
+</div>
+<div class="form-group">
+<label>CTA Button Text</label>
+<input id="cmsHeroCta" value="Shop Now"/>
+</div>
+</article>
+<article class="card form-card">
+<h3>Promo Banner</h3>
+<div class="form-group">
+<label>Promo Text</label>
+<input id="cmsPromoText" value="Free shipping on orders over ₱3,000"/>
+</div>
+<div class="form-group">
+<label>Button Label</label>
+<input id="cmsPromoBtn" value="View Deals"/>
+</div>
+<div class="form-group">
+<label>Store Tagline</label>
+<input id="cmsStoreTagline" value="SmileHub Dental Supplies"/>
+</div>
+</article>
+</div>
+<article class="card form-card" style="margin-bottom:20px;">
+<h3>FAQ Management</h3>
+<div id="cmsFaqList">
+<!-- FAQ items rendered here -->
+</div>
+<button class="btn btn-light" id="addFaqBtn" style="margin-top:12px;">+ Add FAQ</button>
+</article>
+<div style="display:flex; gap:10px;">
+<button class="btn btn-primary" id="saveCmsBtn2">Save Changes</button>
+<span class="muted" style="align-self:center;">Changes are saved to localStorage and applied on page reload.</span>
+</div>
+</section>
+<!-- ===== NOTIFICATIONS SECTION ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="notifications" style="display:none;">
+<div class="admin-top">
+<h2>Notification Templates</h2>
+<button class="btn btn-primary" id="saveNotifBtn">Save Templates</button>
+</div>
+<p class="muted" style="margin-top:-16px;margin-bottom:20px;">Customize messages sent to customers on key events.</p>
+<div id="notifTemplates"></div>
+</section>
+<!-- ===== REPORTS SECTION ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="reports" style="display:none;">
+<div class="admin-top">
+<h2>Reports</h2>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<select id="reportPeriod" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="all">All Time</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+<button class="btn btn-secondary" id="printReportBtn">Print Report</button>
+</div>
+</div>
+<div class="grid grid-4" style="margin-bottom:20px;">
+<article class="card kpi-card">
+<span class="muted">Total Orders</span>
+<strong id="reportTotalOrders">0</strong>
+<small>All time</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Revenue</span>
+<strong id="reportRevenue">₱0</strong>
+<small>Total sales</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Avg Order Value</span>
+<strong id="reportAvgOrder">₱0</strong>
+<small>Per order</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Items Sold</span>
+<strong id="reportItemsSold">0</strong>
+<small>Total units</small>
+</article>
+</div>
+<div class="card form-card" style="margin-bottom:20px;">
+<h3>Sales by Product</h3>
+<div class="table-wrap" style="box-shadow:none;border:none;">
+<table>
+<thead>
+<tr>
+<th>Product</th>
+<th>Orders</th>
+<th>Units Sold</th>
+<th>Revenue</th>
+</tr>
+</thead>
+<tbody id="reportProductBody">
+<tr><td class="text-center muted" colspan="4" style="padding:30px;">No sales data yet</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="grid grid-2">
+<div class="card form-card">
+<h3>Orders by Status</h3>
+<div style="position:relative;height:180px;">
+<canvas id="reportStatusChart"></canvas>
+</div>
+</div>
+<div class="card form-card">
+<h3>Payment Summary</h3>
+<div id="reportPaymentSummary" style="padding:10px 0;"></div>
+</div>
+</div>
+</section>
+<!-- ===== AUDIT TRAIL ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="audit" style="display:none;">
+<div class="admin-top">
+<h2>Audit Trail</h2>
+<div style="display:flex;gap:10px;">
+<button class="btn btn-light" id="clearAuditBtn">Clear Log</button>
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Admin</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="auditBody">
+<tr><td class="text-center muted" colspan="3" style="padding:40px;">No audit entries yet.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+<script src="js/final-polish.js?v=6.5.0"></script>
+</body>
 </html>

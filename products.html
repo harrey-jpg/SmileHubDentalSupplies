@@ -1,199 +1,213 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
-    <title>Products | SmileHub Dental Supplies</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js" defer></script>
-  </head>
-  <body class="">
-    <div class="topbar">
-      <div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
-    </div>
-    <header class="header">
-      <div class="container header-main">
-        <a class="logo" href="homepage.html">
-          <img src="assets/logo.svg" alt="SmileHub logo">
-          <span>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>Products | SmileHub Dental Supplies</title>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.2.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.5.1">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
             SmileHub
-            <br>
+            <br/>
             Dental Supplies
           </span>
-        </a>
-        <form class="search-bar" action="products.html">
-          <input name="q" type="search" placeholder="Search dental products...">
-          <button type="submit">Search</button>
-        </form>
-        <div class="header-actions">
-  <button class="theme-button" type="button" title="Dark mode">◐</button>
-  <a class="icon-link" href="wishlist.html">
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">Search</button>
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">◐</button>
+<a class="icon-link" href="wishlist.html">
     ♡
     <span class="text-label">Wishlist</span>
-    <span class="cart-count wishlist-count">0</span>
-  </a>
-  <a class="icon-link" href="cart.html">
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
     🛒
     <span class="text-label">Cart</span>
-    <span class="cart-count">0</span>
-  </a>
-  <a class="icon-link" href="login.html">
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
     👤
     <span class="text-label">Login</span>
-  </a>
-  <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
+</a>
+<button class="menu-button" type="button">Menu</button>
 </div>
-      </div>
-      <nav class="nav">
-        <div class="container">
-          <ul class="nav-list">
-            <li>
-              <a class="" href="homepage.html">Home</a>
-            </li>
-            <li>
-              <a class="active" href="products.html">Products</a>
-            </li>
-            <li>
-              <a class="" href="about.html">About</a>
-            </li>
-            <li>
-              <a class="" href="faq.html">FAQ</a>
-            </li>
-            <li>
-              <a class="" href="contact.html">Contact</a>
-            </li>
-            <li>
-              <a class="" href="developers.html">Developers</a>
-            </li>
-
-          </ul>
-        </div>
-      </nav>
-    </header>
-    <section class="page-title">
-      <div class="container">
-        <div class="breadcrumbs">
-          <a href="homepage.html">Home</a>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">Home</a>
+</li>
+<li>
+<a class="active" href="products.html">Products</a>
+</li>
+<li>
+<a class="" href="about.html">About</a>
+</li>
+<li>
+<a class="" href="faq.html">FAQ</a>
+</li>
+<li>
+<a class="" href="contact.html">Contact</a>
+</li>
+<li>
+<a class="" href="developers.html">Developers</a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">Home</a>
           / Product Catalog
         </div>
-        <h1>Product Catalog</h1>
-        <p class="muted">Search, filter, and sort 32 realistic dental products.</p>
-      </div>
-    </section>
-    <main class="section-sm">
-      <div class="container catalog-layout">
-        <aside class="filters">
-          <h3>Product Filters</h3>
-          <div class="filter-group">
-            <label for="catalogSearch">Search</label>
-            <input id="catalogSearch" type="search" placeholder="Product or brand">
-          </div>
-          <div class="filter-group">
-            <label for="categoryFilter">Category</label>
-            <select id="categoryFilter">
-              <option value="all">All Categories</option>
-              <option value="Cosmetic">Cosmetic</option>
-              <option value="Disposables">Disposables</option>
-              <option value="Equipment">Equipment</option>
-              <option value="Impression">Impression</option>
-              <option value="Instruments">Instruments</option>
-              <option value="Oral Care">Oral Care</option>
-              <option value="Orthodontics">Orthodontics</option>
-              <option value="PPE">PPE</option>
-              <option value="Restorative">Restorative</option>
-              <option value="Rotary">Rotary</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="brandFilter">Brand</label>
-            <select id="brandFilter">
-              <option value="all">All Brands</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Price Range</label>
-            <div style="display:flex;gap:6px;align-items:center">
-              <input id="priceMin" type="number" placeholder="Min" min="0" style="width:48%;padding:8px 6px;border:1px solid var(--border);border-radius:6px">
-              <span>–</span>
-              <input id="priceMax" type="number" placeholder="Max" min="0" style="width:48%;padding:8px 6px;border:1px solid var(--border);border-radius:6px">
-            </div>
-          </div>
-          <div class="filter-group">
-            <label>Availability</label>
-            <div class="check-list">
-              <label><input type="checkbox" id="inStockOnly" checked> In stock only</label>
-            </div>
-          </div>
-          <a class="btn btn-light btn-block" href="products.html">Clear Filters</a>
-        </aside>
-        <section>
-          <div class="catalog-top">
-            <strong id="productCount">32 products found</strong>
-            <select id="sortProducts">
-              <option value="default">Sort: Recommended</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="name">Name: A to Z</option>
-            </select>
-          </div>
-          <div class="grid grid-3" id="productGrid"></div>
-        </section>
-      </div>
-    </main>
-    <section class="newsletter">
-      <div class="container newsletter-box">
-        <div>
-          <h2>Dental deals in your inbox</h2>
-          <p>Receive product updates, clinic essentials, and student-friendly offers.</p>
-        </div>
-        <form class="newsletter-form">
-          <input type="email" placeholder="Your email address" required>
-          <button>Subscribe</button>
-        </form>
-      </div>
-    </section>
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div>
-            <h3>SmileHub Dental Supplies</h3>
-            <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
-          </div>
-          <div>
-            <h4>Shop</h4>
-            <a href="products.html">All Products</a>
-            <a href="wishlist.html">Wishlist</a>
-            <a href="cart.html">Shopping Cart</a>
-            <a href="orders.html">Orders</a>
-          </div>
-          <div>
-            <h4>Company</h4>
-            <a href="about.html">About SmileHub</a>
-            <a href="developers.html">Developer Profiles</a>
-            <a href="contact.html">Contact Us</a>
-            <a href="faq.html">FAQs</a>
-          </div>
-          <div>
-            <h4>Policies</h4>
-            <a href="privacy.html">Privacy Policy</a>
-            <a href="terms.html">Terms and Conditions</a>
-            <a href="profile.html">Customer Profile</a>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <span>© 2026 SmileHub Dental Supplies</span>
-          <span>Frontend academic project • Philippines</span>
-        </div>
-      </div>
-    </footer>
-    <script src="js/common.js"></script>
-    <script src="js/firestore-data.js"></script>
-    <script src="js/chatbot.js"></script>
-    <script src="js/catalog.js"></script>
-  </body>
+<h1>Product Catalog</h1>
+<p class="muted">Search, filter, and sort 32 realistic dental products.</p>
+</div>
+</section>
+<main class="section-sm">
+<div class="container catalog-layout">
+<aside class="filters">
+<h3>Product Filters</h3>
+<div class="filter-group">
+<label for="catalogSearch">Search</label>
+<input id="catalogSearch" placeholder="Product or brand" type="search"/>
+</div>
+<div class="filter-group">
+<label for="categoryFilter">Category</label>
+<select id="categoryFilter">
+<option value="all">All Categories</option>
+<option value="Cosmetic">Cosmetic</option>
+<option value="Disposables">Disposables</option>
+<option value="Equipment">Equipment</option>
+<option value="Impression">Impression</option>
+<option value="Instruments">Instruments</option>
+<option value="Oral Care">Oral Care</option>
+<option value="Orthodontics">Orthodontics</option>
+<option value="PPE">PPE</option>
+<option value="Restorative">Restorative</option>
+<option value="Rotary">Rotary</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="brandFilter">Brand</label>
+<select id="brandFilter">
+<option value="all">All Brands</option>
+</select>
+</div>
+<div class="filter-group">
+<label>Price Range</label>
+<div style="display:flex;gap:6px;align-items:center">
+<input id="priceMin" min="0" placeholder="Min" style="width:48%;padding:8px 6px;border:1px solid var(--border);border-radius:6px" type="number"/>
+<span>–</span>
+<input id="priceMax" min="0" placeholder="Max" style="width:48%;padding:8px 6px;border:1px solid var(--border);border-radius:6px" type="number"/>
+</div>
+</div>
+<div class="filter-group">
+<label>Availability</label>
+<div class="check-list">
+<label><input checked="" id="inStockOnly" type="checkbox"/> In stock only</label>
+</div>
+</div>
+<a class="btn btn-light btn-block" href="products.html">Clear Filters</a>
+</aside>
+<section>
+<div class="catalog-top">
+<strong id="productCount">32 products found</strong>
+<select id="sortProducts">
+<option value="default">Sort: Recommended</option>
+<option value="price-low">Price: Low to High</option>
+<option value="price-high">Price: High to Low</option>
+<option value="name">Name: A to Z</option>
+</select>
+</div>
+<div class="grid grid-3" id="productGrid"></div>
+</section>
+</div>
+</main>
+<section class="newsletter">
+<div class="container newsletter-box">
+<div>
+<h2>Dental deals in your inbox</h2>
+<p>Receive product updates, clinic essentials, and student-friendly offers.</p>
+</div>
+<form class="newsletter-form">
+<input placeholder="Your email address" required="" type="email"/>
+<button>Subscribe</button>
+</form>
+</div>
+</section>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>SmileHub Dental Supplies</h3>
+<p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
+</div>
+<div>
+<h4>Shop</h4>
+<a href="products.html">All Products</a>
+<a href="wishlist.html">Wishlist</a>
+<a href="cart.html">Shopping Cart</a>
+<a href="orders.html">Orders</a>
+</div>
+<div>
+<h4>Company</h4>
+<a href="about.html">About SmileHub</a>
+<a href="developers.html">Developer Profiles</a>
+<a href="contact.html">Contact Us</a>
+<a href="faq.html">FAQs</a>
+</div>
+<div>
+<h4>Policies</h4>
+<a href="privacy.html">Privacy Policy</a>
+<a href="terms.html">Terms and Conditions</a>
+<a href="profile.html">Customer Profile</a>
+</div>
+</div>
+<div class="footer-bottom">
+<span>© 2026 SmileHub Dental Supplies</span>
+<span>Frontend academic project • Philippines</span>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/catalog.js?v=5.0.0"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var menuBtn = document.querySelector('.menu-button');
+      var navList = document.querySelector('.nav-list');
+      if (menuBtn && navList) menuBtn.addEventListener('click', function() { navList.classList.toggle('open'); });
+    });
+    </script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+<script src="js/final-polish.js?v=6.5.0"></script>
+</body>
 </html>

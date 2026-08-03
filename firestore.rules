@@ -1,60 +1,82 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Signed-in helpers
-    function signedIn() {
-      return request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function own(uid) { return signedIn() && request.auth.uid == uid; }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
-
     function isAdmin() {
-      return signedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff', 'superadmin'];
+      return signedIn() && userDoc().data.role in ['admin', 'staff', 'superadmin'];
+    }
+    function validProfile(uid) {
+      return own(uid)
+        && request.resource.data.email == request.auth.token.email
+        && (!('phoneVerified' in request.resource.data) || request.resource.data.phoneVerified is bool);
     }
 
-    // Public catalog
     match /products/{id} {
       allow read: if true;
-      allow write: if signedIn();
+      allow create, update, delete: if isAdmin();
     }
-
-    // Product version metadata used for storefront cache invalidation
     match /products_meta/{id} {
       allow read: if true;
-      allow write: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /users/{uid} {
+      allow create, update: if validProfile(uid);
+      allow read: if own(uid) || isAdmin();
+      allow delete: if own(uid) || isAdmin();
     }
 
-    // Orders: any signed-in user may create/read/update (demo scope)
+    match /carts/{uid} {
+      allow read, create, update, delete: if own(uid);
+    }
+    match /wishlists/{uid} {
+      allow read, create, update, delete: if own(uid);
+    }
+    match /notifications/{id} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    match /returns/{id} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
     match /orders/{id} {
-      allow read, write: if signedIn();
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','returnRequest','updatedAt']));
+      allow delete: if isAdmin();
     }
-
-    // CMS content: public read, signed-in write
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
     match /cms/{id} {
       allow read: if true;
-      allow write: if signedIn();
+      allow write: if isAdmin();
     }
-
-    // User profiles: users manage their own; admins may read all
-    match /users/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if signedIn() && request.auth.uid == uid;
-    }
-
-    // Account registry used by the admin dashboard
     match /accounts/{email} {
-      allow read: if signedIn();
-      allow write: if signedIn();
+      allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
+      allow write: if isAdmin();
     }
-
-    // Pre-registration claims used during sign-up
     match /user_registrations/{email} {
-      allow read, write: if signedIn();
+      allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
+      allow create: if signedIn() && request.auth.token.email == email;
+      allow update, delete: if isAdmin();
     }
-
-    // Admin audit trail: append + read for signed-in users
     match /audit_logs/{id} {
-      allow read: if signedIn();
+      allow read: if isAdmin();
       allow create: if signedIn();
       allow update, delete: if false;
     }

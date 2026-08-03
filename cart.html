@@ -1,315 +1,327 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
-    <title>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>
       Shopping Cart | SmileHub Dental Supplies
     </title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js" defer></script>
-  </head>
-  <body class="">
-    <div class="topbar">
-      <div class="container">
-        <span>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.5.1">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
           Free shipping on orders over ₱3,000
         </span>
-        <span>
+<span>
           Metro Manila delivery • Mon–Sat
         </span>
-      </div>
-    </div>
-    <header class="header">
-      <div class="container header-main">
-        <a class="logo" href="homepage.html">
-          <img src="assets/logo.svg" alt="SmileHub logo">
-          <span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
             SmileHub
-            <br>
+            <br/>
             Dental Supplies
           </span>
-        </a>
-        <form class="search-bar" action="products.html">
-          <input name="q" type="search" placeholder="Search dental products...">
-          <button type="submit">
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
             Search
           </button>
-        </form>
-        <div class="header-actions">
-  <button class="theme-button" type="button" title="Dark mode">◐</button>
-  <a class="icon-link" href="wishlist.html">
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">◐</button>
+<a class="icon-link" href="wishlist.html">
     ♡
     <span class="text-label">Wishlist</span>
-    <span class="cart-count wishlist-count">0</span>
-  </a>
-  <a class="icon-link" href="cart.html">
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
     🛒
     <span class="text-label">Cart</span>
-    <span class="cart-count">0</span>
-  </a>
-  <a class="icon-link" href="login.html">
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
     👤
     <span class="text-label">Login</span>
-  </a>
-  <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
+</a>
+<button class="menu-button" type="button">Menu</button>
 </div>
-      </div>
-      <nav class="nav">
-        <div class="container">
-          <ul class="nav-list">
-            <li>
-              <a class="" href="homepage.html">
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
                 Home
               </a>
-            </li>
-            <li>
-              <a class="" href="products.html">
+</li>
+<li>
+<a class="" href="products.html">
                 Products
               </a>
-            </li>
-            <li>
-              <a class="" href="about.html">
+</li>
+<li>
+<a class="" href="about.html">
                 About
               </a>
-            </li>
-            <li>
-              <a class="" href="faq.html">
+</li>
+<li>
+<a class="" href="faq.html">
                 FAQ
               </a>
-            </li>
-            <li>
-              <a class="" href="contact.html">
+</li>
+<li>
+<a class="" href="contact.html">
                 Contact
               </a>
-            </li>
-            <li>
-              <a class="" href="developers.html">
+</li>
+<li>
+<a class="" href="developers.html">
                 Developers
               </a>
-            </li>
-
-          </ul>
-        </div>
-      </nav>
-    </header>
-    <section class="page-title">
-      <div class="container">
-        <div class="breadcrumbs">
-          <a href="homepage.html">
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">
             Home
           </a>
           / Shopping Cart
         </div>
-        <h1>
+<h1>
           Shopping Cart
         </h1>
-        <p class="muted">
+<p class="muted">
           Update quantities, remove items, and review your total.
         </p>
-      </div>
-    </section>
-    <main class="section-sm">
-      <div class="container cart-layout">
-        <section>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>
+</div>
+</section>
+<main class="section-sm">
+<div class="container cart-layout">
+<section>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>
                     Product
                   </th>
-                  <th>
+<th>
                     Price
                   </th>
-                  <th>
+<th>
                     Quantity
                   </th>
-                  <th>
+<th>
                     Total
                   </th>
-                  <th>
+<th>
                     Action
                   </th>
-                </tr>
-              </thead>
-              <tbody id="cartBody">
-              </tbody>
-            </table>
-            <div class="empty-state hidden" id="emptyCart">
-              <h3>
+</tr>
+</thead>
+<tbody id="cartBody">
+</tbody>
+</table>
+<div class="empty-state hidden" id="emptyCart">
+<h3>
                 Your cart is empty
               </h3>
-              <p>
+<p>
                 Add a product from the catalog to begin.
               </p>
-              <a class="btn btn-primary" href="products.html">
+<a class="btn btn-primary" href="products.html">
                 Shop Products
               </a>
-            </div>
-          </div>
-        </section>
-        <aside class="card summary-card">
-          <h2>
+</div>
+</div>
+</section>
+<aside class="card summary-card">
+<h2>
             Order Summary
           </h2>
-          <div class="summary-row">
-            <span>
+<div class="summary-row">
+<span>
               Subtotal
             </span>
-            <strong id="cartSubtotal">
+<strong id="cartSubtotal">
               ₱0.00
             </strong>
-          </div>
-          <div class="summary-row">
-            <span>
+</div>
+<div class="summary-row">
+<span>
               Shipping
             </span>
-            <strong id="cartShipping">
+<strong id="cartShipping">
               ₱0.00
             </strong>
-          </div>
-          <div class="summary-row" id="cartDiscountRow" style="display:none;">
-            <span>
+</div>
+<div class="summary-row" id="cartDiscountRow" style="display:none;">
+<span>
               Coupon (SMILE10)
             </span>
-            <strong id="cartDiscount">
+<strong id="cartDiscount">
               −₱0.00
             </strong>
-          </div>
-          <div class="summary-row">
-            <span>
+</div>
+<div class="summary-row">
+<span>
               VAT (12%)
             </span>
-            <strong id="cartTax">
+<strong id="cartTax">
               ₱0.00
             </strong>
-          </div>
-          <div class="summary-row summary-total">
-            <span>
+</div>
+<div class="summary-row summary-total">
+<span>
               Grand Total
             </span>
-            <strong id="cartTotal">
+<strong id="cartTotal">
               ₱0.00
             </strong>
-          </div>
-          <div class="form-group">
-            <label>
+</div>
+<div class="form-group">
+<label>
               Coupon Code
             </label>
-            <div style="display:flex;gap:8px;">
-              <input id="couponInput" placeholder="Try SMILE10">
-              <button class="btn btn-light" id="applyCouponBtn" type="button" style="white-space:nowrap;">Apply</button>
-            </div>
-            <div class="muted" id="couponFeedback" style="font-size:0.85rem;margin-top:6px;"></div>
-          </div>
-          <a class="btn btn-primary btn-block" href="checkout.html">
+<div style="display:flex;gap:8px;">
+<input id="couponInput" placeholder="Try SMILE10"/>
+<button class="btn btn-light" id="applyCouponBtn" style="white-space:nowrap;" type="button">Apply</button>
+</div>
+<div class="muted" id="couponFeedback" style="font-size:0.85rem;margin-top:6px;"></div>
+</div>
+<a class="btn btn-primary btn-block" href="checkout.html">
             Proceed to Checkout
           </a>
-          <a class="btn btn-light btn-block" href="products.html" style="margin-top:8px">
+<a class="btn btn-light btn-block" href="products.html" style="margin-top:8px">
             Continue Shopping
           </a>
-        </aside>
-      </div>
-    </main>
-    <section class="newsletter">
-      <div class="container newsletter-box">
-        <div>
-          <h2>
+</aside>
+</div>
+</main><section aria-label="Shopping assurances" class="container">
+<div class="trust-strip">
+<div class="trust-item"><strong>Secure checkout</strong><small>Protected account experience</small></div>
+<div class="trust-item"><strong>Fast delivery</strong><small>Metro Manila, Monday–Saturday</small></div>
+<div class="trust-item"><strong>Quality supplies</strong><small>Products for clinics and students</small></div>
+<div class="trust-item"><strong>Customer support</strong><small>Help before and after ordering</small></div>
+</div></section>
+<section class="newsletter">
+<div class="container newsletter-box">
+<div>
+<h2>
             Dental deals in your inbox
           </h2>
-          <p>
+<p>
             Receive product updates, clinic essentials, and student-friendly offers.
           </p>
-        </div>
-        <form class="newsletter-form">
-          <input type="email" placeholder="Your email address" required>
-          <button>
+</div>
+<form class="newsletter-form">
+<input placeholder="Your email address" required="" type="email"/>
+<button>
             Subscribe
           </button>
-        </form>
-      </div>
-    </section>
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div>
-            <h3>
+</form>
+</div>
+</section>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
               SmileHub Dental Supplies
             </h3>
-            <p>
+<p>
               Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
             </p>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Shop
             </h4>
-            <a href="products.html">
+<a href="products.html">
               All Products
             </a>
-            <a href="wishlist.html">
+<a href="wishlist.html">
               Wishlist
             </a>
-            <a href="cart.html">
+<a href="cart.html">
               Shopping Cart
             </a>
-            <a href="orders.html">
+<a href="orders.html">
               Orders
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Company
             </h4>
-            <a href="about.html">
+<a href="about.html">
               About SmileHub
             </a>
-            <a href="developers.html">
+<a href="developers.html">
               Developer Profiles
             </a>
-            <a href="contact.html">
+<a href="contact.html">
               Contact Us
             </a>
-            <a href="faq.html">
+<a href="faq.html">
               FAQs
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Policies
             </h4>
-            <a href="privacy.html">
+<a href="privacy.html">
               Privacy Policy
             </a>
-            <a href="terms.html">
+<a href="terms.html">
               Terms and Conditions
             </a>
-            <a href="profile.html">
+<a href="profile.html">
               Customer Profile
             </a>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <span>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
             © 2026 SmileHub Dental Supplies
           </span>
-          <span>
+<span>
             Frontend academic project • Philippines
           </span>
-        </div>
-      </div>
-    </footer>
-    <script src="js/common.js">
-    </script>
-    <script src="js/firestore-data.js"></script>
-    <script src="js/chatbot.js"></script>
-    <script src="js/cart.js">
-    </script>
-  </body>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0">
+</script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/cart.js">
+</script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+<script src="js/final-polish.js?v=6.5.0"></script>
+</body>
 </html>

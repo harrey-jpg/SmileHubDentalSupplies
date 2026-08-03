@@ -28,7 +28,6 @@ function applyCouponFromInput() {
       feedback.textContent = 'Coupon applied: ' + code.toUpperCase() + ' (10% off)';
       feedback.style.color = '#1e9b61';
     }
-    showToast('Coupon applied: ' + code.toUpperCase());
   } else {
     setAppliedCoupon(null);
     if (feedback) {
@@ -106,3 +105,6 @@ function updateSummary(cart) {
   }
   document.getElementById('cartTotal').textContent = money(total);
 }
+document.addEventListener('smilehub:data-synced', function () {
+  if (typeof renderCart === 'function') renderCart();
+});

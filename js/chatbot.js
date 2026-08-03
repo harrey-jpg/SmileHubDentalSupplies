@@ -1,44 +1,60 @@
-// chatbot.js - Supports OpenAI (ChatGPT) or DeepSeek API
-// Set one of the API keys below to enable. OpenAI takes priority if both are set.
-// For OpenAI: get key at https://platform.openai.com/api-keys
-// For DeepSeek: get key at https://platform.deepseek.com/api_keys
-
-const OPENAI_API_KEY = ''; // Your OpenAI API key (sk-...)
-const DEEPSEEK_API_KEY = ''; // Your DeepSeek API key (optional, fallback)
-const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+// SmileBot uses the secure Firebase Function endpoint at /api/ai/chat.
+// No AI provider key is stored in browser JavaScript.
+// Until the backend provider is configured, the built-in SmileHub knowledge base is used.
 
 // If no API keys are set, SmileBot answers from a built-in knowledge base.
 function getLocalAnswer(text) {
-  var q = String(text || '').toLowerCase();
+  var raw = String(text || '').trim();
+  var q = raw.toLowerCase();
+  var lastUser = chatHistory.slice().reverse().find(function (entry) { return entry.role === 'user' && entry.text !== raw; });
+  var context = lastUser ? String(lastUser.text || '').toLowerCase() : '';
 
+  if (/^(hi+|h+i+|helo+|hello+|hey+|yo+|good\s*(morning|afternoon|evening))[\s!.?]*$/.test(q)) {
+    return "Hi! I can help you shop, compare products, understand checkout, track an order, or fix an account issue. What are you trying to do today?";
+  }
+  if (/(don'?t know|idk|not sure|where.*start|help me choose|first time)/.test(q)) {
+    return "No problem. Start with one of these: 1) tell me what dental item you need, 2) tell me your budget, 3) ask me to compare products, or 4) ask for checkout/account help. For example: “I need affordable gloves for a clinic.”";
+  }
+  if (/(thank|thanks|ty)/.test(q)) {
+    return "You’re welcome. Tell me what you want to do next and I’ll guide you step by step.";
+  }
+  if (/(who are you|are you ai|real ai|smart)/.test(q)) {
+    return "I’m SmileBot. Right now I use SmileHub’s built-in product and support knowledge when the secure AI backend is unavailable. Once the Firebase AI function is connected to an AI provider, I can handle broader, more natural conversations.";
+  }
   if (/(shipping|deliver|ship|delivery)/.test(q) && /(fee|cost|price|much|free|charge)/.test(q)) {
-    return 'Shipping is free on orders over ₱3,000. Metro Manila orders otherwise cost ₱150 and arrive within 1-3 business days. Provincial orders may take 3-7 business days.';
+    return 'Shipping is free on orders over ₱3,000. Metro Manila orders otherwise cost ₱150 and usually arrive within 1–3 business days; provincial deliveries may take 3–7 business days.';
   }
   if (/(order|track|status)/.test(q)) {
-    return 'Log in and open the Orders page to see your order status: Pending, Processing, Shipped, or Delivered. Each order has a printable invoice.';
+    return 'Open Account → Orders to view current and past orders. Statuses include Pending, Processing, Shipped, Out for Delivery, Delivered, and Cancelled.';
+  }
+  if (/(checkout|can'?t checkout|place order|redirect|change password)/.test(q)) {
+    return 'At checkout, complete the shipping fields and verify your phone directly on the checkout page. You should no longer be redirected to Change Password. If OTP fails, check the inline message for quota, domain, or code errors.';
   }
   if (/(payment|pay|gcash|card|cash on delivery|billing)/.test(q)) {
-    return 'We accept GCash, Credit Card, and Cash on Delivery within Metro Manila. GCash and card payments are simulated in this demo checkout.';
+    return 'SmileHub currently shows GCash, card, and Cash on Delivery choices. Until a payment provider is connected, GCash and card remain sandbox/demo flows.';
   }
-  if (/(product|item|catalog|stock|buy|available|brand)/.test(q)) {
-    return 'Browse our catalog on the Products page. We carry oral care, instruments, PPE, restorative materials, disposables, impression materials, orthodontics, and equipment.';
+  if (/(compare|difference|which is better)/.test(q)) {
+    return 'Open Products, choose up to four items with Compare, then open the comparison page. Tell me the product names and your budget and I can also help explain the differences.';
+  }
+  if (/(product|item|catalog|stock|buy|available|brand|recommend)/.test(q)) {
+    return 'Tell me the item type, intended use, and budget. Example: “Recommend disposable gloves under ₱500 for a small clinic.” You can also browse Products and filter by category, price, stock, or rating.';
   }
   if (/(return|refund|exchange|policy)/.test(q)) {
-    return 'Unopened items can be returned within 7 days of delivery. Contact support through the Contact page to start a return.';
+    return 'Open Account → Returns to submit a request. Keep the order number and reason ready. Unopened eligible items can be requested for return within the stated return period.';
   }
-  if (/(account|login|sign in|register|password|profile)/.test(q)) {
-    return 'Create an account on the Register page and sign in on the Login page. Use the Profile page to update your details or change your password.';
+  if (/(account|login|sign in|register|password|profile|otp|phone)/.test(q)) {
+    return 'Use Profile to edit personal details, upload a photo, save a delivery address, and manage notifications. Phone OTP can now be completed directly at checkout.';
   }
   if (/(coupon|discount|promo|voucher|code)/.test(q)) {
-    return 'Use coupon code SMILE10 at checkout to get 10% off your order. Apply it on the cart or checkout page.';
+    return 'Try SMILE10 in the cart or checkout coupon field for the current demo discount.';
   }
   if (/(contact|support|email|phone|call|help)/.test(q)) {
-    return 'Reach us through the Contact page, or check the FAQ page for quick answers about shipping, returns, and payments.';
+    return 'Use Contact for a support request, FAQ for common questions, or tell me the exact problem here and I’ll guide you through the relevant SmileHub page.';
   }
-  if (/(hello|hi|hey|good (morning|afternoon|evening))/.test(q)) {
-    return "Hello! I'm SmileBot. Ask me about products, orders, shipping, payments, or coupons.";
+  if (context && /(product|recommend|budget)/.test(context) && /^\d+([,.]\d+)?$/.test(q)) {
+    return 'Got it—your budget is around ₱' + q + '. Tell me what kind of product you need so I can narrow the catalog.';
   }
-  return "I'm only able to help with SmileHub-related questions. Please ask me about our products, orders, shipping, or account!";
+  return 'I may not have enough detail yet. Are you asking about shopping, a product, checkout, an order, your account, shipping, or returns? Tell me what happened and what you expected.';
 }
 
 let chatVisible = false;
@@ -78,7 +94,7 @@ function initChatbot() {
 
   if (chatHistory.length === 0) {
     setTimeout(function() {
-      addBotMessage("Hi there! 😁 I'm SmileBot. Ask me about products, orders, shipping, or anything about SmileHub!");
+      addBotMessage("Hi! I’m SmileBot. I can help you choose products, compare items, solve checkout problems, and navigate your account. What would you like to do?");
     }, 500);
   }
 }
@@ -95,7 +111,7 @@ function toggleChat() {
     renderMessages();
     document.getElementById('chatbotInput').focus();
     if (!document.querySelector('.chatbot-message.bot') && chatHistory.length === 0) {
-      addBotMessage("Hi there! 😁 I'm SmileBot. Ask me about products, orders, shipping, or anything about SmileHub!");
+      addBotMessage("Hi! I’m SmileBot. I can help you choose products, compare items, solve checkout problems, and navigate your account. What would you like to do?");
     }
   }
 }
@@ -103,82 +119,77 @@ function toggleChat() {
 // --- SEND MESSAGE ---
 async function sendMessage() {
   const input = document.getElementById('chatbotInput');
+  const sendButton = document.getElementById('chatbotSend');
   const text = input.value.trim();
   if (!text) return;
 
   input.value = '';
+  input.disabled = true;
+  sendButton.disabled = true;
   addUserMessage(text);
-
   const typingDiv = showTyping();
 
   try {
-    // Build conversation context
-    const messages = [
-      { role: "system", content: "You are SmileBot, an assistant ONLY for SmileHub Dental Supplies. ONLY answer questions about: dental products, orders, shipping, the website, or account help. For ANY other topic, politely say: 'I'm only able to help with SmileHub-related questions. Please ask me about our products, orders, or account!' Keep responses friendly, informative, and concise." }
-    ];
+    var user = (window.firebase && firebase.auth) ? firebase.auth().currentUser : null;
+    var token = user ? await user.getIdToken() : '';
 
-    const recentHistory = chatHistory.slice(-10);
-    for (const msg of recentHistory) {
-      messages.push({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.text
-      });
+    var cart = [];
+    try {
+      if (window.SmileHubStorage) {
+        cart = window.SmileHubStorage.get('smilehub_cart', []) || [];
+      } else {
+        cart = JSON.parse(localStorage.getItem('smilehub_cart') || '[]');
+      }
+    } catch (_error) {
+      cart = [];
     }
 
-    messages.push({ role: "user", content: text });
-
-    var useOpenAI = OPENAI_API_KEY.length > 0;
-    var useDeepSeek = !useOpenAI && DEEPSEEK_API_KEY.length > 0;
-
-    if (!useOpenAI && !useDeepSeek) {
-      setTimeout(function() {
-        typingDiv.remove();
-        addBotMessage(getLocalAnswer(text));
-      }, 600);
-      return;
+    var currentProduct = null;
+    try {
+      if (typeof getCurrentProduct === 'function') currentProduct = getCurrentProduct();
+    } catch (_error) {
+      currentProduct = null;
     }
 
-    var apiUrl = useOpenAI ? 'https://api.openai.com/v1/chat/completions' : DEEPSEEK_API_URL;
-    var apiKey = useOpenAI ? OPENAI_API_KEY : DEEPSEEK_API_KEY;
-    var model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-chat';
-
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey
-    };
-
-    const response = await fetch(apiUrl, {
+    var response = await fetch('/api/ai/chat', {
       method: 'POST',
-      headers: headers,
+      headers: Object.assign(
+        { 'Content-Type': 'application/json' },
+        token ? { 'Authorization': 'Bearer ' + token } : {}
+      ),
       body: JSON.stringify({
-        model: model,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 500
+        message: text,
+        history: chatHistory.slice(-12),
+        page: window.location.pathname,
+        cart: Array.isArray(cart) ? cart.slice(0, 20) : [],
+        currentProduct: currentProduct
       })
     });
 
+    var data = {};
+    try {
+      data = await response.json();
+    } catch (_error) {
+      data = {};
+    }
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(data.error || ('AI request failed with status ' + response.status));
     }
 
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
-    
-    typingDiv.remove();
-    addBotMessage(reply);
+    var reply = data && (data.reply || data.message);
+    if (!reply) throw new Error('AI response was empty.');
 
+    typingDiv.remove();
+    addBotMessage(String(reply));
   } catch (error) {
-    console.error("API error:", error);
+    console.warn('SmileBot AI unavailable; using built-in help.', error);
     typingDiv.remove();
-    
-    let errorMessage = "I'm sorry, I'm having trouble connecting right now. ";
-    if (error.message && error.message.includes('429')) {
-      errorMessage = "I'm sorry, I've reached the daily limit for today. Try again tomorrow! 🥺";
-    } else {
-      errorMessage += "Please try again in a moment. 🙏";
-    }
-    addBotMessage(errorMessage);
+    addBotMessage(getLocalAnswer(text));
+  } finally {
+    input.disabled = false;
+    sendButton.disabled = false;
+    input.focus();
   }
 }
 

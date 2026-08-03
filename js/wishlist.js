@@ -55,10 +55,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
       
-      showToast(productName + ' removed from wishlist');
-      
       // Re-render wishlist page
       location.reload();
     });
   });
+});
+document.addEventListener('smilehub:data-synced', function (event) {
+  var key = 'smilehub_wishlist_synced_reload_' + (event.detail && event.detail.uid ? event.detail.uid : 'user');
+  if (sessionStorage.getItem(key) !== '1') {
+    sessionStorage.setItem(key, '1');
+    location.reload();
+  }
 });

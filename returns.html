@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>Returns & Refunds | SmileHub Dental Supplies</title>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
+          Free shipping on orders over ₱3,000
+        </span>
+<span>
+          Metro Manila delivery • Mon–Sat
+        </span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
+            SmileHub
+            <br/>
+            Dental Supplies
+          </span>
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
+            Search
+          </button>
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">
+            ◐
+          </button>
+<a class="icon-link" href="wishlist.html">
+            ♡
+            <span class="text-label">Wishlist</span>
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
+            🛒
+            <span class="text-label">Cart</span>
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
+            👤
+            <span class="text-label">Login</span>
+</a>
+<button class="menu-button" type="button">
+            Menu
+          </button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
+                Home
+              </a>
+</li>
+<li>
+<a class="" href="products.html">
+                Products
+              </a>
+</li>
+<li>
+<a class="" href="about.html">
+                About
+              </a>
+</li>
+<li>
+<a class="" href="faq.html">
+                FAQ
+              </a>
+</li>
+<li>
+<a class="" href="contact.html">
+                Contact
+              </a>
+</li>
+<li>
+<a class="" href="developers.html">
+                Developers
+              </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">
+            Home
+          </a>
+          / Customer Profile
+        </div>
+<h1>
+          Customer Profile
+        </h1>
+<p class="muted">
+          Edit your account information, delivery address, and password.
+        </p>
+</div>
+</section>
+<section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Returns & Refunds</div><h1>Returns & Refunds</h1><p class="muted">Create and track frontend return requests.</p></div></section><main class="section-sm"><div class="container account-page-grid">
+<section class="card form-card"><div class="eyebrow">Customer support</div><h2>Request a return</h2><form id="returnForm"><div class="form-grid"><div class="form-group"><label for="returnOrder">Order number</label><input id="returnOrder" required placeholder="SH-2026001"></div><div class="form-group"><label for="returnReason">Reason</label><select id="returnReason" required><option value="">Choose a reason</option><option>Damaged item</option><option>Wrong item</option><option>No longer needed</option><option>Other</option></select></div></div><div class="form-group"><label for="returnDetails">Details</label><textarea id="returnDetails" required placeholder="Describe the issue and item condition"></textarea></div><label class="payment-option"><input id="returnAgree" type="checkbox" required><span>I confirm the item follows the displayed return conditions.</span></label><button class="btn btn-primary">Submit request</button></form></section>
+<aside class="card form-card"><h3>Return conditions</h3><ul class="spec-list"><li>Use the original order number.</li><li>Keep packaging and accessories where possible.</li><li>Opened sterile or hygiene-sensitive items may not qualify.</li><li>This frontend stores requests only on this device.</li></ul><a class="btn btn-light btn-block" href="orders.html">View orders</a></aside>
+</div><div class="container"><h2>Your requests</h2><div id="returnList" class="grid grid-3"></div></div></main><footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
+              SmileHub Dental Supplies
+            </h3>
+<p>
+              Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
+            </p>
+</div>
+<div>
+<h4>
+              Shop
+            </h4>
+<a href="products.html">
+              All Products
+            </a>
+<a href="wishlist.html">
+              Wishlist
+            </a>
+<a href="cart.html">
+              Shopping Cart
+            </a>
+<a href="orders.html">
+              Orders
+            </a>
+</div>
+<div>
+<h4>
+              Company
+            </h4>
+<a href="about.html">
+              About SmileHub
+            </a>
+<a href="developers.html">
+              Developer Profiles
+            </a>
+<a href="contact.html">
+              Contact Us
+            </a>
+<a href="faq.html">
+              FAQs
+            </a>
+</div>
+<div>
+<h4>
+              Policies
+            </h4>
+<a href="privacy.html">
+              Privacy Policy
+            </a>
+<a href="terms.html">
+              Terms and Conditions
+            </a>
+<a href="profile.html">
+              Customer Profile
+            </a>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
+            © 2026 SmileHub Dental Supplies
+          </span>
+<span>
+            Frontend academic project • Philippines
+          </span>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
+document.addEventListener('DOMContentLoaded',function(){
+ var key='smilehub_returns',items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+ var list=document.getElementById('returnList');function render(){list.innerHTML=items.length?items.map(function(x){return '<article class="card form-card"><span class="status processing">Under review</span><h3>'+x.order+'</h3><p>'+x.reason+'</p><small class="muted">'+new Date(x.date).toLocaleDateString()+'</small></article>';}).join(''):'<div class="card empty-state"><p>No return requests yet.</p></div>';}render();
+ document.getElementById('returnForm').onsubmit=function(e){e.preventDefault();items.unshift({id:Date.now(),order:document.getElementById('returnOrder').value,reason:document.getElementById('returnReason').value,details:document.getElementById('returnDetails').value,date:new Date().toISOString()});localStorage.setItem(key,JSON.stringify(items));e.target.reset();render();alert('Return request saved on this device.');};
+});
+</script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+</body></html>

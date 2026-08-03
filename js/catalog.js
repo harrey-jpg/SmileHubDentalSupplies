@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="price-row"><span class="price">' + money(p.price || 0) + '</span> <span class="' + statusClass + '">' + statusText + '</span></div>' +
           '<div class="product-actions">' +
             '<button class="btn btn-primary add-cart catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '">Add to Cart</button>' +
+            '<button class="btn btn-buy-now buy-now catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '"><span aria-hidden="true">⚡</span> Buy Now</button>' +
             '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
           '</div>' +
         '</div>';
@@ -110,6 +111,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
         if (typeof addToCart === 'function') addToCart(this);
+      });
+    });
+    document.querySelectorAll('.buy-now.catalog-btn').forEach(function(button) {
+      var newButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newButton, button);
+      newButton.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation(); buyNow(this);
       });
     });
     document.querySelectorAll('.add-wishlist.catalog-btn').forEach(function(button) {

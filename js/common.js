@@ -29,6 +29,9 @@ function saveStoredList(key, list) {
   if (window.SmileHubStorage) {
     window.SmileHubStorage.set(key, list);
   }
+  if (window.SmileHubFirebaseSync && !window.SmileHubFirebaseSync.isApplyingRemote()) {
+    window.SmileHubFirebaseSync.saveList(key, list);
+  }
 }
 
 function money(value) {
@@ -37,18 +40,55 @@ function money(value) {
   });
 }
 
-function showToast(message) {
-  const oldToast = document.querySelector('.toast');
-  if (oldToast) oldToast.remove();
+let smileHubLastToast = { message: '', at: 0 };
 
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = message;
-  document.body.appendChild(toast);
+function getNotificationPreferences() {
+  var defaults = { importantOnly: true, cart: false, wishlist: false, routine: false };
+  try {
+    var saved = window.SmileHubStorage
+      ? window.SmileHubStorage.get('smilehub_notification_preferences', defaults)
+      : defaults;
+    return Object.assign({}, defaults, saved || {});
+  } catch (_) {
+    return defaults;
+  }
+}
 
-  setTimeout(function () {
-    toast.remove();
-  }, 2200);
+function isImportantToast(message, isError, options) {
+  if (isError) return true;
+  if (options && options.important) return true;
+  var text = String(message || '').toLowerCase();
+  return /(order placed|payment successful|verified|verification email|password changed|logged out|login successful|profile information saved|delivery address saved|could not|failed|error)/.test(text);
+}
+
+function showToast(message, isError, options) {
+  options = options || {};
+  var text = String(message || '').trim();
+  if (!text) return;
+
+  var important = Boolean(isError || options.important);
+  var allowed = important || /(verified|verification|signed in|logged in|logged out|order (placed|submitted|confirmed)|profile saved|address saved|password reset)/i.test(text);
+  if (!allowed) return;
+
+  var now = Date.now();
+  if (smileHubLastToast.message === text && now - smileHubLastToast.at < 4000) return;
+  smileHubLastToast = { message: text, at: now };
+
+  var toast = document.getElementById('siteToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'siteToast';
+    toast.className = 'site-toast';
+    toast.setAttribute('role', isError ? 'alert' : 'status');
+    document.body.appendChild(toast);
+  }
+  toast.textContent = text;
+  toast.classList.toggle('error', Boolean(isError));
+  toast.classList.add('show');
+  clearTimeout(window.__smileHubToastTimer);
+  window.__smileHubToastTimer = setTimeout(function () {
+    toast.classList.remove('show');
+  }, isError ? 4500 : 2200);
 }
 
 function customerIsLoggedIn() {
@@ -134,8 +174,37 @@ function addToCart(button) {
 
   saveStoredList(CART_KEY, cart);
   updateCartCount();
-  showToast(product.name + ' added to cart');
+  if (button) {
+    var original = button.textContent;
+    button.textContent = '✓ Added';
+    button.disabled = true;
+    setTimeout(function () { button.textContent = original; button.disabled = false; }, 900);
+  }
 }
+
+
+const BUY_NOW_KEY = 'smilehub_buy_now';
+
+function buyNow(button) {
+  if (!customerIsLoggedIn()) {
+    askUserToLogin(location.pathname.split('/').pop() + location.search);
+    return;
+  }
+  const item = {
+    id: Number(button.dataset.id),
+    name: button.dataset.name || 'Product',
+    price: Number(button.dataset.price || 0),
+    image: button.dataset.image || 'assets/products/default.svg',
+    quantity: Math.max(1, Number(button.dataset.quantity || 1))
+  };
+  if (!item.id || !item.price) {
+    showToast('This product is not ready for checkout.', true);
+    return;
+  }
+  SmileHubStorage.set(BUY_NOW_KEY, [item]);
+  location.href = 'checkout.html?mode=buy-now';
+}
+window.buyNow = buyNow;
 
 // Toggle wishlist (add or remove)
 function toggleWishlist(button) {
@@ -166,7 +235,7 @@ function toggleWishlist(button) {
     updateWishlistCount();
     button.textContent = '♡'; // Empty heart
     button.classList.remove('wished');
-    showToast(product.name + ' removed from wishlist');
+
   } else {
     // Add to wishlist
     wishlist.push(product);
@@ -174,7 +243,7 @@ function toggleWishlist(button) {
     updateWishlistCount();
     button.textContent = '♥'; // Filled heart
     button.classList.add('wished');
-    showToast(product.name + ' added to wishlist');
+
   }
 }
 
@@ -272,3 +341,14 @@ function togglePassword(btn) {
     btn.textContent = '👁';
   }
 }
+document.addEventListener('DOMContentLoaded', function () {
+  document.documentElement.setAttribute('data-smilehub-build', '5.0');
+  var footer = document.querySelector('.footer-bottom, footer .container');
+  if (footer && !document.getElementById('buildMarker')) {
+    var marker = document.createElement('small');
+    marker.id = 'buildMarker';
+    marker.className = 'muted';
+    marker.textContent = 'SmileHub build 5.0';
+    footer.appendChild(marker);
+  }
+});

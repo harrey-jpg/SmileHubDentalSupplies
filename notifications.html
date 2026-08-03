@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>Notifications | SmileHub Dental Supplies</title>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
+          Free shipping on orders over ₱3,000
+        </span>
+<span>
+          Metro Manila delivery • Mon–Sat
+        </span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
+            SmileHub
+            <br/>
+            Dental Supplies
+          </span>
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
+            Search
+          </button>
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">
+            ◐
+          </button>
+<a class="icon-link" href="wishlist.html">
+            ♡
+            <span class="text-label">Wishlist</span>
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
+            🛒
+            <span class="text-label">Cart</span>
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
+            👤
+            <span class="text-label">Login</span>
+</a>
+<button class="menu-button" type="button">
+            Menu
+          </button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
+                Home
+              </a>
+</li>
+<li>
+<a class="" href="products.html">
+                Products
+              </a>
+</li>
+<li>
+<a class="" href="about.html">
+                About
+              </a>
+</li>
+<li>
+<a class="" href="faq.html">
+                FAQ
+              </a>
+</li>
+<li>
+<a class="" href="contact.html">
+                Contact
+              </a>
+</li>
+<li>
+<a class="" href="developers.html">
+                Developers
+              </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">
+            Home
+          </a>
+          / Customer Profile
+        </div>
+<h1>
+          Customer Profile
+        </h1>
+<p class="muted">
+          Edit your account information, delivery address, and password.
+        </p>
+</div>
+</section>
+<section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Notifications</div><h1>Notifications</h1><p class="muted">Manage alerts and review recent activity.</p></div></section><main class="section-sm"><div class="container account-page-grid">
+<aside class="card form-card"><h3>Notification preferences</h3><label class="payment-option"><input id="notifyOrders" type="checkbox" checked><span><strong>Order updates</strong><br><small class="muted">Status and delivery progress</small></span></label><label class="payment-option"><input id="notifyStock" type="checkbox"><span><strong>Restock alerts</strong><br><small class="muted">Saved-product availability</small></span></label><label class="payment-option"><input id="notifyDeals" type="checkbox"><span><strong>Offers</strong><br><small class="muted">Relevant promotions</small></span></label></aside>
+<section><div class="section-heading-row"><h2>Notification center</h2><button class="btn btn-light" id="markAllRead">Mark all read</button></div><div id="notificationList" class="notification-list"></div></section>
+</div></main><footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
+              SmileHub Dental Supplies
+            </h3>
+<p>
+              Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
+            </p>
+</div>
+<div>
+<h4>
+              Shop
+            </h4>
+<a href="products.html">
+              All Products
+            </a>
+<a href="wishlist.html">
+              Wishlist
+            </a>
+<a href="cart.html">
+              Shopping Cart
+            </a>
+<a href="orders.html">
+              Orders
+            </a>
+</div>
+<div>
+<h4>
+              Company
+            </h4>
+<a href="about.html">
+              About SmileHub
+            </a>
+<a href="developers.html">
+              Developer Profiles
+            </a>
+<a href="contact.html">
+              Contact Us
+            </a>
+<a href="faq.html">
+              FAQs
+            </a>
+</div>
+<div>
+<h4>
+              Policies
+            </h4>
+<a href="privacy.html">
+              Privacy Policy
+            </a>
+<a href="terms.html">
+              Terms and Conditions
+            </a>
+<a href="profile.html">
+              Customer Profile
+            </a>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
+            © 2026 SmileHub Dental Supplies
+          </span>
+<span>
+            Frontend academic project • Philippines
+          </span>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
+document.addEventListener('DOMContentLoaded',function(){
+ var key='smilehub_notifications',items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+ if(!items.length){items=[{id:1,title:'Welcome to SmileHub',message:'Your notification center is ready.',date:new Date().toISOString(),read:false},{id:2,title:'Cart reminder',message:'Products saved in your cart will remain on this device.',date:new Date().toISOString(),read:false}];localStorage.setItem(key,JSON.stringify(items));}
+ var list=document.getElementById('notificationList');
+ function render(){list.innerHTML=items.length?items.map(function(n){return '<article class="card notification-item '+(n.read?'':'unread')+'" data-id="'+n.id+'"><div><strong>'+n.title+'</strong><p>'+n.message+'</p><small class="muted">'+new Date(n.date).toLocaleString()+'</small></div><button class="link-button read-one">'+(n.read?'Read':'Mark read')+'</button></article>';}).join(''):'<div class="card empty-state"><h3>You are all caught up</h3></div>';}
+ render();list.onclick=function(e){if(e.target.classList.contains('read-one')){var id=e.target.closest('[data-id]').dataset.id;items.forEach(function(n){if(String(n.id)===id)n.read=true;});localStorage.setItem(key,JSON.stringify(items));render();}};
+ document.getElementById('markAllRead').onclick=function(){items.forEach(function(n){n.read=true});localStorage.setItem(key,JSON.stringify(items));render();};
+ ['notifyOrders','notifyStock','notifyDeals'].forEach(function(id){var e=document.getElementById(id);var k='pref_'+id;e.checked=localStorage.getItem(k)!=='false';e.onchange=function(){localStorage.setItem(k,e.checked);};});
+});
+</script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+</body></html>

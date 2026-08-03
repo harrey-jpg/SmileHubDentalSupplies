@@ -1,268 +1,301 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines.">
-    <title>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>
       Register | SmileHub Dental Supplies
     </title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
-    <script src="js/auth.js?v=2" defer></script>
-  </head>
-  <body class="">
-    <div class="topbar">
-      <div class="container">
-        <span>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js?v=2"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
           Free shipping on orders over ₱3,000
         </span>
-        <span>
+<span>
           Metro Manila delivery • Mon–Sat
         </span>
-      </div>
-    </div>
-    <header class="header">
-      <div class="container header-main">
-        <a class="logo" href="homepage.html">
-          <img src="assets/logo.svg" alt="SmileHub logo">
-          <span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
             SmileHub
-            <br>
+            <br/>
             Dental Supplies
           </span>
-        </a>
-        <form class="search-bar" action="products.html">
-          <input name="q" type="search" placeholder="Search dental products...">
-          <button type="submit">
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
             Search
           </button>
-        </form>
-        <div class="header-actions">
-          <button class="theme-button" type="button" title="Dark mode">
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">
             ◐
           </button>
-          <a class="icon-link" href="wishlist.html">
+<a class="icon-link" href="wishlist.html">
             ♡
             <span class="text-label">
               Wishlist
             </span>
-          </a>
-          <a class="icon-link" href="cart.html">
+</a>
+<a class="icon-link" href="cart.html">
             🛒
             <span class="text-label">
               Cart
             </span>
-            <span class="cart-count">
+<span class="cart-count">
               0
             </span>
-          </a>
-          <a class="icon-link" href="login.html">
+</a>
+<a class="icon-link" href="login.html">
             👤
             <span class="text-label">
               Login
             </span>
-          </a>
-          <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
-        </div>
-      </div>
-      <nav class="nav">
-        <div class="container">
-          <ul class="nav-list">
-            <li>
-              <a class="" href="homepage.html">
+</a>
+<button class="menu-button" type="button">
+            Menu
+          </button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
                 Home
               </a>
-            </li>
-            <li>
-              <a class="" href="products.html">
+</li>
+<li>
+<a class="" href="products.html">
                 Products
               </a>
-            </li>
-            <li>
-              <a class="" href="about.html">
+</li>
+<li>
+<a class="" href="about.html">
                 About
               </a>
-            </li>
-            <li>
-              <a class="" href="faq.html">
+</li>
+<li>
+<a class="" href="faq.html">
                 FAQ
               </a>
-            </li>
-            <li>
-              <a class="" href="contact.html">
+</li>
+<li>
+<a class="" href="contact.html">
                 Contact
               </a>
-            </li>
-            <li>
-              <a class="" href="developers.html">
+</li>
+<li>
+<a class="" href="developers.html">
                 Developers
               </a>
-            </li>
-
-          </ul>
-        </div>
-      </nav>
-    </header>
-    <main class="auth-wrap">
-      <form class="card auth-card" id="registerForm">
-        <h1>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<main class="auth-wrap auth-experience"><section aria-label="SmileHub account benefits" class="auth-visual">
+<div>
+<span class="auth-kicker">Join the SmileHub community</span>
+<h2>Build a smarter dental supply workflow.</h2>
+<p>Create your account to save favorites, manage orders, and get a faster experience made for clinics, dentists, and students.</p>
+<div class="auth-benefits">
+<div class="auth-benefit"><span>⚡</span><span><strong>Quick ordering</strong><small>Move from product to checkout faster</small></span></div>
+<div class="auth-benefit"><span>★</span><span><strong>Curated essentials</strong><small>Discover supplies for your needs</small></span></div>
+<div class="auth-benefit"><span>🔒</span><span><strong>Secure sign-up</strong><small>Email or your existing Google account</small></span></div>
+</div>
+</div>
+<small>Your account stays connected to the original Firebase authentication flow.</small>
+</section><section class="auth-panel">
+<form class="card auth-card" id="registerForm">
+<h1>
           Create an Account
         </h1>
-        <div id="authMessage" class="auth-message hidden"></div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>
+<div class="auth-message hidden" id="authMessage"></div>
+<div class="form-grid">
+<div class="form-group">
+<label for="registerFirstName">
               First Name
             </label>
-            <input id="registerFirstName" name="firstName" required>
-          </div>
-          <div class="form-group">
-            <label>
+<input id="registerFirstName" name="firstName" required=""/>
+</div>
+<div class="form-group">
+<label for="registerLastName">
               Last Name
             </label>
-            <input id="registerLastName" name="lastName" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>
+<input id="registerLastName" name="lastName" required=""/>
+</div>
+</div>
+<div class="form-group">
+<label for="registerEmail">
             Email
           </label>
-          <input id="registerEmail" name="email" type="email" required>
-        </div>
-        <div class="form-group">
-          <label>
+<input id="registerEmail" name="email" required="" type="email"/>
+</div>
+<div class="form-group">
+<label for="registerAccountType">
             Account Type
           </label>
-          <select id="registerAccountType">
-            <option value="customer">
+<select id="registerAccountType">
+<option value="customer">
               Customer
             </option>
-            <option value="customer">
+<option value="customer">
               Dentist
             </option>
-            <option value="customer">
+<option value="customer">
               Dental Clinic
             </option>
-            <option value="customer">
+<option value="customer">
               Dental Student
             </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>
+</select>
+</div>
+<div class="form-group">
+<label for="registerPassword">
             Password
           </label>
-          <div class="password-wrap">
-            <input id="registerPassword" name="password" type="password" minlength="6" required>
-            <button type="button" class="password-toggle" onclick="togglePassword(this)">👁</button>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-block" type="submit">
+<div class="password-wrap">
+<input autocomplete="new-password" id="registerPassword" minlength="8" name="password" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button">👁</button>
+</div>
+<div aria-live="polite" class="password-strength">
+<div class="password-strength-track"><div class="password-strength-bar" id="passwordStrengthBar"></div></div>
+<small id="passwordStrengthText">Use 8+ characters with a number and symbol.</small>
+</div></div><div class="form-group">
+<label for="registerConfirmPassword">Confirm Password</label>
+<div class="password-wrap">
+<input autocomplete="new-password" id="registerConfirmPassword" minlength="8" name="confirmPassword" required="" type="password"/>
+<button aria-label="Show or hide confirmed password" class="password-toggle" onclick="togglePassword(this)" type="button">👁</button>
+</div></div>
+<label class="check-row" for="registerTerms">
+<input id="registerTerms" required="" type="checkbox"/>
+<span>I agree to the <a href="terms.html">Terms and Conditions</a> and <a href="privacy.html">Privacy Policy</a>.</span>
+</label><button class="btn btn-primary btn-block" type="submit">
           Register
-        </button>
-        <p class="text-center">
+        </button><div class="auth-divider">or continue with</div>
+<button class="btn btn-block google-btn" id="googleSignInBtn" type="button">
+<svg aria-hidden="true" height="18" viewbox="0 0 48 48" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"></path><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"></path><path d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z" fill="#FBBC05"></path><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z" fill="#34A853"></path></svg>
+Sign up with Google
+</button>
+<p class="text-center">
           Already registered?
           <a href="login.html">
             Login
           </a>
-        </p>
-      </form>
-    </main>
-    <section class="newsletter">
-      <div class="container newsletter-box">
-        <div>
-          <h2>
+</p>
+</form>
+</section></main>
+<section class="newsletter">
+<div class="container newsletter-box">
+<div>
+<h2>
             Dental deals in your inbox
           </h2>
-          <p>
+<p>
             Receive product updates, clinic essentials, and student-friendly offers.
           </p>
-        </div>
-        <form class="newsletter-form">
-          <input type="email" placeholder="Your email address" required>
-          <button>
+</div>
+<form class="newsletter-form">
+<input placeholder="Your email address" required="" type="email"/>
+<button>
             Subscribe
           </button>
-        </form>
-      </div>
-    </section>
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div>
-            <h3>
+</form>
+</div>
+</section>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
               SmileHub Dental Supplies
             </h3>
-            <p>
+<p>
               Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
             </p>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Shop
             </h4>
-            <a href="products.html">
+<a href="products.html">
               All Products
             </a>
-            <a href="wishlist.html">
+<a href="wishlist.html">
               Wishlist
             </a>
-            <a href="cart.html">
+<a href="cart.html">
               Shopping Cart
             </a>
-            <a href="orders.html">
+<a href="orders.html">
               Orders
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Company
             </h4>
-            <a href="about.html">
+<a href="about.html">
               About SmileHub
             </a>
-            <a href="developers.html">
+<a href="developers.html">
               Developer Profiles
             </a>
-            <a href="contact.html">
+<a href="contact.html">
               Contact Us
             </a>
-            <a href="faq.html">
+<a href="faq.html">
               FAQs
             </a>
-          </div>
-          <div>
-            <h4>
+</div>
+<div>
+<h4>
               Policies
             </h4>
-            <a href="privacy.html">
+<a href="privacy.html">
               Privacy Policy
             </a>
-            <a href="terms.html">
+<a href="terms.html">
               Terms and Conditions
             </a>
-            <a href="profile.html">
+<a href="profile.html">
               Customer Profile
             </a>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <span>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
             © 2026 SmileHub Dental Supplies
           </span>
-          <span>
+<span>
             Frontend academic project • Philippines
           </span>
-        </div>
-      </div>
-    </footer>
-    <script src="js/common.js">
-    </script>
-    <script src="js/firestore-data.js"></script>
-    <script src="js/chatbot.js"></script>
-  </body>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0">
+</script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+</body>
 </html>

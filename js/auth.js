@@ -225,102 +225,165 @@ function afterAuthReady() {
 }
 
 function handleGoogleLogin() {
+  var button = document.getElementById('googleSignInBtn');
+  var originalLabel = button ? button.innerHTML : '';
+
+  function setGoogleButtonBusy(isBusy) {
+    if (!button) return;
+    button.disabled = isBusy;
+    button.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    if (isBusy) {
+      button.innerHTML = '<span class="button-spinner" aria-hidden="true"></span> Connecting to Google...';
+    } else {
+      button.innerHTML = originalLabel;
+    }
+  }
+
+  function cacheFirebaseGoogleUser(user, role, profile) {
+    var displayName = (profile && profile.displayName) || user.displayName || user.email || 'SmileHub Customer';
+    var nameParts = displayName.trim().split(/\s+/);
+    var firstName = (profile && profile.firstName) || nameParts[0] || '';
+    var lastName = (profile && profile.lastName) || nameParts.slice(1).join(' ') || '';
+
+    cacheUser({
+      uid: user.uid,
+      name: displayName,
+      email: user.email || '',
+      role: role || (profile && profile.role) || 'customer',
+      phone: (profile && profile.phone) || '',
+      address: (profile && profile.address) || '',
+      firstName: firstName,
+      lastName: lastName,
+      password: ''
+    });
+
+    return {
+      displayName: displayName,
+      firstName: firstName,
+      lastName: lastName
+    };
+  }
+
+  function syncGoogleProfile(user) {
+    var fallback = cacheFirebaseGoogleUser(user, 'customer', null);
+
+    // Authentication must not fail just because optional Firestore profile
+    // reads or writes are unavailable. Profile syncing is best-effort only.
+    return Promise.all([
+      fetchUserProfile(user.uid),
+      firebase.firestore().collection('accounts').doc(user.email).get().catch(function() { return null; })
+    ]).then(function(results) {
+      var profile = results[0];
+      var accountDoc = results[1];
+      var existingRole = accountDoc && accountDoc.exists
+        ? (accountDoc.data().role || 'customer')
+        : 'customer';
+
+      if (profile) {
+        cacheFirebaseGoogleUser(user, profile.role || existingRole, profile);
+        return;
+      }
+
+      cacheFirebaseGoogleUser(user, existingRole, null);
+
+      var userProfile = {
+        firstName: fallback.firstName,
+        lastName: fallback.lastName,
+        displayName: fallback.displayName,
+        email: user.email || '',
+        role: existingRole,
+        phone: '',
+        address: ''
+      };
+
+      var accountProfile = {
+        firstName: fallback.firstName,
+        lastName: fallback.lastName,
+        name: fallback.displayName,
+        email: user.email || '',
+        phone: '',
+        address: '',
+        role: existingRole,
+        status: 'active'
+      };
+
+      return Promise.all([
+        firebase.firestore().collection('users').doc(user.uid).set(userProfile, { merge: true }).catch(function() {}),
+        user.email
+          ? firebase.firestore().collection('accounts').doc(user.email).set(accountProfile, { merge: true }).catch(function() {})
+          : Promise.resolve()
+      ]);
+    }).catch(function() {
+      // The Firebase Auth session is valid even when Firestore is offline or
+      // blocked by rules, so keep the user signed in.
+    });
+  }
+
+  function completeGoogleSignIn(result) {
+    var user = result && result.user ? result.user : firebase.auth().currentUser;
+    if (!user) throw { code: 'auth/no-user', message: 'Google did not return a user account.' };
+
+    cacheFirebaseGoogleUser(user, 'customer', null);
+    showAuthMessage('Google sign-in successful. Redirecting...');
+
+    return syncGoogleProfile(user).then(function() {
+      redirectAfterLogin();
+    });
+  }
+
+  function showGoogleError(error) {
+    setGoogleButtonBusy(false);
+    if (!error) {
+      showAuthMessage('Google sign-in failed. Please try again.', true);
+      return;
+    }
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      showAuthMessage('Google sign-in was cancelled.', true);
+      return;
+    }
+
+    var messages = {
+      'auth/account-exists-with-different-credential': 'An account already exists with this email using another sign-in method.',
+      'auth/unauthorized-domain': 'Google sign-in is not authorized for this website domain. Add this domain in Firebase Authentication settings.',
+      'auth/operation-not-allowed': 'Google sign-in is not enabled in Firebase Authentication.',
+      'auth/network-request-failed': 'Network error. Check your connection and try again.',
+      'auth/popup-blocked': 'Your browser blocked the Google window. Allow pop-ups and try again.',
+      'auth/web-storage-unsupported': 'Your browser is blocking storage required for Google sign-in.',
+      'auth/internal-error': 'Google sign-in encountered a temporary Firebase error. Please try again.'
+    };
+
+    showAuthMessage(messages[error.code] || ('Google sign-in failed' + (error.message ? ': ' + error.message : '.')), true);
+    console.error('SmileHub Google sign-in error:', error);
+  }
+
+  if (location.protocol === 'file:') {
+    showAuthMessage('Google sign-in requires the website to run through http:// or https://, not by opening the HTML file directly.', true);
+    return;
+  }
+
+  setGoogleButtonBusy(true);
+  showAuthMessage('Opening Google sign-in...');
+
   var provider = new firebase.auth.GoogleAuthProvider();
   provider.addScope('profile');
   provider.addScope('email');
-  firebase.auth().signInWithPopup(provider).then(function(result) {
-    var user = result.user;
-    var uid = user.uid;
-    var email = user.email;
-    var displayName = user.displayName || email;
-    var nameParts = displayName.split(' ');
-    var firstName = nameParts[0] || '';
-    var lastName = nameParts.slice(1).join(' ') || '';
+  provider.setCustomParameters({ prompt: 'select_account' });
 
-    showAuthMessage('Signing in with Google...');
-
-    return firebase.firestore().collection('accounts').doc(email).get().then(function(accountDoc) {
-      var existingRole = accountDoc.exists ? accountDoc.data().role || 'customer' : null;
-
-      return fetchUserProfile(uid).then(function(profile) {
-        if (profile) {
-          cacheUser({
-            uid: uid,
-            name: profile.displayName || displayName,
-            email: email,
-            role: profile.role || existingRole || 'customer',
-            phone: profile.phone || '',
-            address: profile.address || '',
-            firstName: profile.firstName || firstName,
-            lastName: profile.lastName || lastName,
-            password: ''
-          });
-          redirectAfterLogin();
-          return;
-        }
-
-        var role = existingRole || 'customer';
-        return firebase.firestore().collection('users').doc(uid).set({
-          firstName: firstName,
-          lastName: lastName,
-          displayName: displayName,
-          email: email,
-          role: role,
-          phone: '',
-          address: ''
-        }).then(function() {
-          return firebase.firestore().collection('accounts').doc(email).set({
-            firstName: firstName,
-            lastName: lastName,
-            name: displayName,
-            email: email,
-            phone: '',
-            address: '',
-            role: role,
-            status: 'active'
-          });
-        }).then(function() {
-          cacheUser({
-            uid: uid,
-            name: displayName,
-            email: email,
-            role: role,
-            phone: '',
-            address: '',
-            firstName: firstName,
-            lastName: lastName,
-            password: ''
-          });
-          redirectAfterLogin();
-        });
-      });
+  firebase.auth().signInWithPopup(provider)
+    .then(completeGoogleSignIn)
+    .catch(function(error) {
+      if (error && (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment')) {
+        showAuthMessage('Redirecting to Google sign-in...');
+        return firebase.auth().signInWithRedirect(provider);
+      }
+      showGoogleError(error);
     });
-  }).catch(function(error) {
-    if (error.code === 'auth/popup-closed-by-user') return;
-    var message = 'Google sign-in failed.';
-    if (error.code === 'auth/account-exists-with-different-credential') {
-      message = 'An account already exists with this email. Try logging in with email and password.';
-    }
-    showAuthMessage(message, true);
-  });
 }
-
 function redirectAfterLogin() {
-  var fbUser = firebase.auth().currentUser;
-  if (!fbUser) { location.href = 'homepage.html'; return; }
-  var cached = getCachedUser();
-  var role = cached ? cached.role : 'customer';
-  if (['admin', 'staff', 'superadmin'].includes(role)) {
-    location.href = 'admin.html';
-    return;
-  }
-  var returnPage = SmileHubStorage.get(RETURN_KEY, 'homepage.html');
+  // Always return users to the public landing page after authentication.
+  // Admin users can open the dashboard from the account/navigation controls.
   SmileHubStorage.remove(RETURN_KEY);
-  if (String(returnPage).startsWith('admin.html')) {
-    location.href = 'homepage.html';
-  } else {
-    location.href = returnPage || 'homepage.html';
-  }
+  location.href = 'homepage.html';
 }
 
 function handleLogin(event) {
@@ -361,10 +424,32 @@ function handleRegister(event) {
   if (!email) { showAuthMessage('Email is required.', true); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showAuthMessage('Enter a valid email address.', true); return; }
   if (!password) { showAuthMessage('Password is required.', true); return; }
-  if (password.length < 6) { showAuthMessage('Password must be at least 6 characters.', true); return; }
+  if (password.length < 8) { showAuthMessage('Password must be at least 8 characters.', true); return; }
+
+  var confirmPassword = document.getElementById('registerConfirmPassword');
+  if (confirmPassword && confirmPassword.value !== password) {
+    showAuthMessage('Passwords do not match.', true);
+    confirmPassword.focus();
+    return;
+  }
+
+  var terms = document.getElementById('registerTerms');
+  if (terms && !terms.checked) {
+    showAuthMessage('Please accept the Terms and Privacy Policy.', true);
+    terms.focus();
+    return;
+  }
 
   firebase.auth().createUserWithEmailAndPassword(email, password).then(function() {
-    var uid = firebase.auth().currentUser.uid;
+    var createdUser = firebase.auth().currentUser;
+    var uid = createdUser.uid;
+    // Best-effort email verification. Account creation must still succeed if
+    // email delivery is temporarily unavailable.
+    createdUser.sendEmailVerification({
+      url: location.origin + '/profile.html'
+    }).catch(function(error) {
+      console.warn('Could not send verification email automatically:', error);
+    });
     showAuthMessage('Account created! Setting up profile...');
 
     return firebase.firestore().collection('user_registrations').doc(email).get().then(function(doc) {
@@ -418,7 +503,7 @@ function handleRegister(event) {
         });
         showAuthMessage('Welcome, ' + firstName + '! Redirecting...');
         setTimeout(function() {
-          location.href = role === 'customer' ? 'products.html' : 'admin.html';
+          location.href = 'homepage.html';
         }, 1200);
       });
     });
@@ -436,8 +521,10 @@ function handleRegister(event) {
 function logoutUser() {
   cacheUser(null);
   SmileHubStorage.remove(RETURN_KEY);
-  SmileHubStorage.remove('smilehub_simple_cart');
-  SmileHubStorage.remove('smilehub_simple_wishlist');
+  // Keep the Firebase cart and wishlist so they return on the next sign-in.
+  // Remove only this browser's cached copies.
+  try { localStorage.removeItem('smilehub_simple_cart'); sessionStorage.removeItem('smilehub_simple_cart'); } catch (e) {}
+  try { localStorage.removeItem('smilehub_simple_wishlist'); sessionStorage.removeItem('smilehub_simple_wishlist'); } catch (e) {}
   firebase.auth().signOut().catch(function() {}).then(function() {
     location.href = 'homepage.html';
   });

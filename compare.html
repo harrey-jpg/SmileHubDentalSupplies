@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
+<title>Product Comparison | SmileHub Dental Supplies</title>
+<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer="" src="js/auth.js"></script>
+  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+</head>
+<body class="">
+<div class="topbar">
+<div class="container">
+<span>
+          Free shipping on orders over ₱3,000
+        </span>
+<span>
+          Metro Manila delivery • Mon–Sat
+        </span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html">
+<img alt="SmileHub logo" src="assets/logo.svg"/>
+<span>
+            SmileHub
+            <br/>
+            Dental Supplies
+          </span>
+</a>
+<form action="products.html" class="search-bar">
+<input name="q" placeholder="Search dental products..." type="search"/>
+<button type="submit">
+            Search
+          </button>
+</form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">
+            ◐
+          </button>
+<a class="icon-link" href="wishlist.html">
+            ♡
+            <span class="text-label">Wishlist</span>
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html">
+            🛒
+            <span class="text-label">Cart</span>
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html">
+            👤
+            <span class="text-label">Login</span>
+</a>
+<button class="menu-button" type="button">
+            Menu
+          </button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li>
+<a class="" href="homepage.html">
+                Home
+              </a>
+</li>
+<li>
+<a class="" href="products.html">
+                Products
+              </a>
+</li>
+<li>
+<a class="" href="about.html">
+                About
+              </a>
+</li>
+<li>
+<a class="" href="faq.html">
+                FAQ
+              </a>
+</li>
+<li>
+<a class="" href="contact.html">
+                Contact
+              </a>
+</li>
+<li>
+<a class="" href="developers.html">
+                Developers
+              </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<section class="page-title">
+<div class="container">
+<div class="breadcrumbs">
+<a href="homepage.html">
+            Home
+          </a>
+          / Customer Profile
+        </div>
+<h1>
+          Customer Profile
+        </h1>
+<p class="muted">
+          Edit your account information, delivery address, and password.
+        </p>
+</div>
+</section>
+<section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Product Comparison</div><h1>Product Comparison</h1><p class="muted">Make a more confident purchasing decision.</p></div></section><main class="section-sm"><div class="container">
+<div class="section-heading-row"><div><h2>Side-by-side comparison</h2><p class="muted">Compare up to four saved products.</p></div><a class="btn btn-light" href="products.html">Add products</a></div>
+<div id="comparisonTable" class="table-wrap"></div>
+<div class="card empty-state hidden" id="compareEmpty"><h2>No products selected</h2><p>Choose products from the catalog to compare price, category, brand, stock and specifications.</p><a class="btn btn-primary" href="products.html">Browse products</a></div>
+</div></main><footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>
+              SmileHub Dental Supplies
+            </h3>
+<p>
+              Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
+            </p>
+</div>
+<div>
+<h4>
+              Shop
+            </h4>
+<a href="products.html">
+              All Products
+            </a>
+<a href="wishlist.html">
+              Wishlist
+            </a>
+<a href="cart.html">
+              Shopping Cart
+            </a>
+<a href="orders.html">
+              Orders
+            </a>
+</div>
+<div>
+<h4>
+              Company
+            </h4>
+<a href="about.html">
+              About SmileHub
+            </a>
+<a href="developers.html">
+              Developer Profiles
+            </a>
+<a href="contact.html">
+              Contact Us
+            </a>
+<a href="faq.html">
+              FAQs
+            </a>
+</div>
+<div>
+<h4>
+              Policies
+            </h4>
+<a href="privacy.html">
+              Privacy Policy
+            </a>
+<a href="terms.html">
+              Terms and Conditions
+            </a>
+<a href="profile.html">
+              Customer Profile
+            </a>
+</div>
+</div>
+<div class="footer-bottom">
+<span>
+            © 2026 SmileHub Dental Supplies
+          </span>
+<span>
+            Frontend academic project • Philippines
+          </span>
+</div>
+</div>
+</footer>
+<script src="js/common.js?v=5.0.0"></script>
+  <script src="js/firebase-sync.js"></script>
+<script src="js/firestore-data.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
+document.addEventListener('DOMContentLoaded',function(){
+ var items=[];try{items=JSON.parse(localStorage.getItem('smilehub_compare')||'[]')}catch(e){}
+ var wrap=document.getElementById('comparisonTable'),empty=document.getElementById('compareEmpty');
+ if(!items.length){wrap.classList.add('hidden');empty.classList.remove('hidden');return;}
+ var rows=[['Price',function(x){return '₱'+Number(x.price||0).toLocaleString('en-PH',{minimumFractionDigits:2})}],['Brand',function(x){return x.brand||'—'}],['Category',function(x){return x.category||'General'}],['Availability',function(){return 'Check product page'}]];
+ wrap.innerHTML='<table class="comparison-table"><thead><tr><th>Feature</th>'+items.map(function(x){return '<th><strong>'+x.name+'</strong><br><a class="btn btn-primary" href="product.html?id='+x.id+'">View product</a></th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr><th>'+r[0]+'</th>'+items.map(function(x){return '<td>'+r[1](x)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+});
+</script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=5.0.0"></script>
+</body></html>
