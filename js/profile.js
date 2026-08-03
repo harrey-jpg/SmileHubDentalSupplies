@@ -23,6 +23,14 @@ function updatePasswordFieldVisibility() {
   if (currentPasswordGroup) {
     currentPasswordGroup.classList.toggle('hidden', !hasPassword);
   }
+  var currentPassword = document.getElementById('currentPassword');
+  if (currentPassword) {
+    if (hasPassword) {
+      currentPassword.setAttribute('required', 'required');
+    } else {
+      currentPassword.removeAttribute('required');
+    }
+  }
 }
 
 function loadProfile() {
