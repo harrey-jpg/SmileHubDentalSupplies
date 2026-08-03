@@ -6,11 +6,24 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!profileForm || !window.SmileHubAuth) return;
 
   loadProfile();
+  updatePasswordFieldVisibility();
+  firebase.auth().onAuthStateChanged(updatePasswordFieldVisibility);
 
   profileForm.addEventListener('submit', saveProfileInformation);
   addressForm.addEventListener('submit', saveAddress);
   passwordForm.addEventListener('submit', changePassword);
 });
+
+function updatePasswordFieldVisibility() {
+  var user = firebase.auth().currentUser;
+  var hasPassword = user && (user.providerData || []).some(function(p) {
+    return p.providerId === 'password';
+  });
+  var currentPasswordGroup = document.getElementById('currentPasswordGroup');
+  if (currentPasswordGroup) {
+    currentPasswordGroup.classList.toggle('hidden', !hasPassword);
+  }
+}
 
 function loadProfile() {
   var account = window.SmileHubAuth.getCurrentAccount();
@@ -24,15 +37,6 @@ function loadProfile() {
 
   var profileName = document.getElementById('profileName');
   if (profileName) profileName.textContent = account.name || 'Customer';
-
-  var user = firebase.auth().currentUser;
-  var hasPassword = user && (user.providerData || []).some(function(p) {
-    return p.providerId === 'password';
-  });
-  var currentPasswordGroup = document.getElementById('currentPasswordGroup');
-  if (currentPasswordGroup && !hasPassword) {
-    currentPasswordGroup.classList.add('hidden');
-  }
 }
 
 function saveProfileInformation(event) {
