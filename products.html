@@ -46,7 +46,7 @@
     👤
     <span class="text-label">Login</span>
   </a>
-  <button class="menu-button" type="button">Menu</button>
+  <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
 </div>
       </div>
       <nav class="nav">
@@ -195,12 +195,5 @@
     <script src="js/firestore-data.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/catalog.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var menuBtn = document.querySelector('.menu-button');
-      var navList = document.querySelector('.nav-list');
-      if (menuBtn && navList) menuBtn.addEventListener('click', function() { navList.classList.toggle('open'); });
-    });
-    </script>
   </body>
 </html>

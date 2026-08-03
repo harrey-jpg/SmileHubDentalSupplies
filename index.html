@@ -46,7 +46,7 @@
             👤
             <span class="text-label">Login</span>
           </a>
-          <button class="menu-button" type="button">Menu</button>
+          <button class="menu-button" type="button" aria-label="Toggle menu">☰</button>
         </div>
       </div>
       <nav class="nav">
@@ -322,10 +322,6 @@
       });
       }
       renderHomeProducts();
-
-      var menuBtn = document.querySelector('.menu-button');
-      var navList = document.querySelector('.nav-list');
-      if (menuBtn && navList) menuBtn.addEventListener('click', function() { navList.classList.toggle('open'); });
     });
     </script>
   </body>
