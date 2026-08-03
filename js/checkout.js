@@ -395,10 +395,17 @@ document.addEventListener('DOMContentLoaded', function() {
       if (buyNowMode) {
         window.SmileHubStorage.remove(BUY_NOW_KEY);
       } else {
-        saveStoredList(CART_KEY, []);
+        // Clear locally first, then mark the Firebase cart as explicitly cleared.
+        // The persistent clear marker prevents stale remote items from returning
+        // while the Firestore write is still in flight.
+        if (window.SmileHubStorage) window.SmileHubStorage.set(CART_KEY, []);
         cart = [];
-        if (window.SmileHubFirebaseSync && window.SmileHubFirebaseSync.saveList) {
-          window.SmileHubFirebaseSync.saveList(CART_KEY, []);
+        if (window.SmileHubFirebaseSync && window.SmileHubFirebaseSync.clearList) {
+          window.SmileHubFirebaseSync.clearList(CART_KEY).catch(function(error) {
+            console.warn('Cart was cleared locally but Firestore clear failed:', error);
+          });
+        } else {
+          saveStoredList(CART_KEY, []);
         }
       }
       updateCartCount();
