@@ -1649,6 +1649,9 @@ document.addEventListener('DOMContentLoaded', function() {
       window.SmileHubAuth.getAccounts().then(function(a) {
         accounts = a;
         renderAccounts();
+      }).catch(function(error) {
+        console.warn('Could not load accounts (check users/{uid} role doc / Firestore rules):', error);
+        renderAccounts();
       });
     } else {
       renderAccounts();
