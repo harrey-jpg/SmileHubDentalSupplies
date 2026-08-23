@@ -141,15 +141,6 @@
     const update=()=>bar.classList.toggle("show",!navigator.onLine);addEventListener("online",update);addEventListener("offline",update);update();
   }
 
-  function adminExtras(){
-    if(!document.body.classList.contains("admin-body")) return;
-    const main=$(".admin-main, main"); if(!main||$(".sh-admin-kpi-grid")) return;
-    const grid=document.createElement("div");grid.className="sh-admin-kpi-grid";
-    const cart=cartData().items, wishlist=safeJSON(localStorage.getItem("smilehub_simple_wishlist"),[]);
-    grid.innerHTML=`<div class="sh-admin-kpi"><small>Frontend health</small><strong>Ready</strong><span>All enhancement modules loaded</span></div><div class="sh-admin-kpi"><small>Saved cart items</small><strong>${cart.length}</strong><span>Local demo state</span></div><div class="sh-admin-kpi"><small>Wishlist items</small><strong>${wishlist.length}</strong><span>Local demo state</span></div><div class="sh-admin-kpi"><small>UI modules</small><strong>12</strong><span>Premium frontend tools</span></div>`;
-    main.insertBefore(grid,main.firstChild);
-  }
-
   function backTop(){
     const b=document.createElement("button");b.className="sh-backtop";b.textContent="↑";b.setAttribute("aria-label","Back to top");document.body.appendChild(b);
     addEventListener("scroll",()=>b.classList.toggle("show",scrollY>500),{passive:true});b.addEventListener("click",()=>scrollTo({top:0,behavior:"smooth"}));
@@ -165,7 +156,7 @@
   }
 
   function init(){
-    addAccessibility();mobileNav();breadcrumbs();miniCart();commandPalette();homepageSections();authPolish();networkStatus();adminExtras();backTop();preserveFeatureFeedback();
+    addAccessibility();mobileNav();breadcrumbs();miniCart();commandPalette();homepageSections();authPolish();networkStatus();backTop();preserveFeatureFeedback();
     document.documentElement.classList.add("sh-premium-ready");
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
