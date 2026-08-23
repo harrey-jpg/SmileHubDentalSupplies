@@ -1753,6 +1753,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   }
 
+    // Bridge so global onclick handlers (defined below, outside this
+    // closure) can reach internal functions and data.
+    window.SmileHubAdmin = {
+      getProducts: function() { return products; },
+      filterOrders: function(filter) { renderOrders(filter); },
+      refreshOrders: function(filter) {
+        fetchOrders(function() {
+          renderOrders(filter);
+          if (window.showToast) showToast('🔄 Orders refreshed', false, false);
+        });
+      }
+    };
+
   init();
 });
 
@@ -1773,25 +1786,30 @@ window.navigateTo = function(sectionId) {
 };
 
 window.showLowStock = function() {
-  const products = loadProducts();
-  const items = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; });
+  const bridge = window.SmileHubAdmin;
+  if (!bridge) return;
+  const items = bridge.getProducts().filter(function(p) { return p.stock > 0 && p.stock <= 10; });
   if (items.length === 0) { showToast('✅ No low stock items', false, true); return; }
   document.querySelectorAll('#inventoryBody tr').forEach(function(row) {
-    const name = row.querySelector('td:nth-child(2)')?.textContent || '';
+    const name = row.dataset.product || '';
     const isLow = items.some(function(p) { return p.name === name; });
     row.style.background = isLow ? '#fff3cd' : '';
+    row.style.borderRadius = isLow ? '6px' : '';
   });
-  showToast('📊 ' + items.length + ' low stock items', false, false);
+  showToast('📊 ' + items.length + ' low stock item(s) highlighted', false, false);
 };
 
 window.filterOrders = function() {
   const filter = document.getElementById('orderStatusFilter')?.value || 'all';
-  renderOrders(filter);
+  if (window.SmileHubAdmin) window.SmileHubAdmin.filterOrders(filter);
 };
 
 window.refreshOrders = function() {
   const filter = document.getElementById('orderStatusFilter')?.value || 'all';
-  renderOrders(filter);
+  if (window.SmileHubAdmin && window.SmileHubAdmin.refreshOrders) {
+    window.SmileHubAdmin.refreshOrders(filter);
+    return;
+  }
   showToast('🔄 Refreshed', false, false);
 };
 
