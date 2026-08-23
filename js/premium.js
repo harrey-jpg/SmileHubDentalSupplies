@@ -87,6 +87,7 @@
   SH.openCart=openMiniCart;
 
   function quickView(){
+    if(location.pathname.split("/").pop().toLowerCase()==="wishlist.html") return;
     if(!$(".sh-modal")) document.body.insertAdjacentHTML("beforeend",'<div class="sh-modal" id="shQuickModal" role="dialog" aria-modal="true" aria-label="Product quick view"><div class="sh-modal-card"><div style="display:flex;justify-content:flex-end"><button class="sh-icon-btn" data-close-quick aria-label="Close">✕</button></div><div id="shQuickBody"></div></div></div>');
     document.addEventListener("click",e=>{
       const close=e.target.closest("[data-close-quick]"); if(close){$("#shQuickModal").classList.remove("open");return;}
