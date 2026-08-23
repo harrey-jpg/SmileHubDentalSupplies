@@ -248,8 +248,22 @@
 </div>
 </div>
 </div>
-<div class="form-group">
-<input id="adminSearch" placeholder="🔍 Search product table..."/>
+<div class="admin-toolbar">
+<input id="adminSearch" placeholder="Search by name, SKU, or category..."/>
+<select id="adminCategoryFilter" aria-label="Filter by category">
+<option value="all">All categories</option>
+<option value="Oral Care">Oral Care</option>
+<option value="Instruments">Instruments</option>
+<option value="PPE">PPE</option>
+<option value="Restorative">Restorative</option>
+<option value="Disposables">Disposables</option>
+<option value="Impression">Impression</option>
+<option value="Orthodontics">Orthodontics</option>
+<option value="Rotary">Rotary</option>
+<option value="Equipment">Equipment</option>
+<option value="Cosmetic">Cosmetic</option>
+</select>
+<span class="toolbar-count" id="productCount"></span>
 </div>
 <div class="table-wrap">
 <table>

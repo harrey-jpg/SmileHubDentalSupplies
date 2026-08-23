@@ -163,13 +163,19 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- RENDER PRODUCTS ---
   function renderProducts(filter) {
     if (!productsBody) return;
-    
+
     const searchTerm = (filter || adminSearch?.value || '').toLowerCase();
+    const catSelect = document.getElementById('adminCategoryFilter');
+    const selectedCat = catSelect ? catSelect.value : 'all';
     const filtered = products.filter(function(p) {
-      return p.name.toLowerCase().includes(searchTerm) ||
+      const matchesSearch = p.name.toLowerCase().includes(searchTerm) ||
              p.sku.toLowerCase().includes(searchTerm) ||
              p.category.toLowerCase().includes(searchTerm);
+      return matchesSearch && (selectedCat === 'all' || p.category === selectedCat);
     });
+
+    const countEl = document.getElementById('productCount');
+    if (countEl) countEl.textContent = 'Showing ' + filtered.length + ' of ' + products.length + ' products';
 
     if (filtered.length === 0) {
       productsBody.innerHTML = `<tr><td colspan="7" class="text-center muted" style="padding:40px;">No products found.</td></tr>`;
@@ -181,15 +187,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'out-of-stock';
       return `
         <tr>
-          <td><img src="${p.image || 'assets/products/default.svg'}" alt="${p.name}" style="width:40px;height:40px;object-fit:contain;background:var(--sky);border-radius:6px;padding:4px;"></td>
-          <td>${p.sku}</td>
+          <td><img class="prod-thumb" src="${p.image || 'assets/products/default.svg'}" alt="${p.name}"></td>
+          <td><span class="sku-muted">${p.sku}</span></td>
           <td><strong>${p.name}</strong></td>
-          <td>${p.category}</td>
-          <td>₱${Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+          <td><span class="chip-cat">${p.category}</span></td>
+          <td class="price-strong">₱${Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
           <td><span class="status ${statusClass}">${p.status}</span></td>
           <td>
-            <button class="btn btn-light edit-product" data-id="${p.id}" style="padding:6px 12px;font-size:0.8rem;">✏️ Edit</button>
-            <button class="btn btn-danger delete-product" data-id="${p.id}" style="padding:6px 12px;font-size:0.8rem;">🗑️</button>
+            <div class="row-actions">
+              <button class="btn btn-light edit-product" data-id="${p.id}" style="padding:6px 12px;font-size:0.8rem;">✏️ Edit</button>
+              <button class="btn btn-danger delete-product" data-id="${p.id}" style="padding:6px 12px;font-size:0.8rem;">🗑️</button>
+            </div>
           </td>
         </tr>
       `;
@@ -1718,10 +1726,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Search
     if (adminSearch) {
-      adminSearch.addEventListener('input', function() { 
-        renderProducts(this.value); 
+      adminSearch.addEventListener('input', function() {
+        renderProducts(this.value);
       });
     }
+
+    // Category filter
+    var catFilter = document.getElementById('adminCategoryFilter');
+    if (catFilter) {
+      catFilter.addEventListener('change', function() { renderProducts(); });
+    }
+
+    // Close product modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      var pModal = document.getElementById('productModal');
+      if (e.key === 'Escape' && pModal && pModal.style.display !== 'none') resetForm();
+    });
 
     // Modal close - order modal
     document.addEventListener('click', function(e) {
