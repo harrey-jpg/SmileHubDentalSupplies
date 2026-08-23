@@ -34,6 +34,40 @@
     } catch (_) { return []; }
   }
 
+  // Tombstones remember locally removed items so a stale cloud copy
+  // can never bring them back (even if a sync write failed or the
+  // user signs out and back in). Re-adding an item clears its tombstone.
+  function tombstoneKey(key, uid) {
+    return 'smilehub_tombstones:' + uid + ':' + key;
+  }
+
+  function getTombstones(key, uid) {
+    try {
+      var raw = JSON.parse(localStorage.getItem(tombstoneKey(key, uid)) || '[]');
+      return Array.isArray(raw) ? raw.map(String) : [];
+    } catch (_) { return []; }
+  }
+
+  function setTombstones(key, uid, ids) {
+    try { localStorage.setItem(tombstoneKey(key, uid), JSON.stringify(ids.slice(-200))); } catch (_) {}
+  }
+
+  function trackRemovals(key, previous, next) {
+    var user = firebase.auth().currentUser;
+    if (!user || !LISTS[key]) return;
+    var nextIds = {};
+    (Array.isArray(next) ? next : []).forEach(function (item) { nextIds[String(item && item.id)] = true; });
+    var tombs = getTombstones(key, user.uid);
+    var changed = false;
+    (Array.isArray(previous) ? previous : []).forEach(function (item) {
+      var id = String(item && item.id);
+      if (!(id in nextIds) && tombs.indexOf(id) === -1) { tombs.push(id); changed = true; }
+    });
+    var kept = tombs.filter(function (id) { return !nextIds[id]; });
+    if (kept.length !== tombs.length) { tombs = kept; changed = true; }
+    if (changed) setTombstones(key, user.uid, tombs);
+  }
+
   function docFor(key, uid) {
     return firebase.firestore().collection(LISTS[key]).doc(uid);
   }
@@ -63,6 +97,13 @@
     return docFor(key, uid).get().then(function (doc) {
       var remote = doc.exists && Array.isArray(doc.data().items) ? doc.data().items : null;
       var local = localList(key);
+      var tombs = getTombstones(key, uid);
+      function withoutTombstones(items) {
+        return (items || []).filter(function (item) {
+          return tombs.indexOf(String(item && item.id)) === -1;
+        });
+      }
+      if (remote) remote = withoutTombstones(remote);
       // An explicit clear (for example, after checkout) is authoritative.
       // This prevents stale Firestore items from coming back on another page.
       var chosen;
@@ -72,6 +113,7 @@
         // On first sign-in, use remote only when the browser has no current list.
         // Never merge removed items back into a non-empty local list.
         chosen = (remote && local.length === 0) ? remote : local;
+        chosen = withoutTombstones(chosen);
       }
       writeLocal(key, chosen);
       initialized[key] = true;
@@ -121,6 +163,7 @@
     saveList: saveList,
     clearList: clearList,
     syncAll: syncAll,
+    trackRemovals: trackRemovals,
     isApplyingRemote: function () { return applyingRemote; }
   };
 })();

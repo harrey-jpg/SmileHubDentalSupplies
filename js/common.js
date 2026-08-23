@@ -26,10 +26,12 @@ function getStoredList(key) {
 }
 
 function saveStoredList(key, list) {
+  const previous = getStoredList(key);
   if (window.SmileHubStorage) {
     window.SmileHubStorage.set(key, list);
   }
   if (window.SmileHubFirebaseSync && !window.SmileHubFirebaseSync.isApplyingRemote()) {
+    window.SmileHubFirebaseSync.trackRemovals(key, previous, list);
     return window.SmileHubFirebaseSync.saveList(key, list);
   }
   return Promise.resolve();
