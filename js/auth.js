@@ -187,6 +187,23 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         name = acct.name || name;
       }
 
+      // Self-heal: ensure a users/{uid} profile doc exists so Firestore
+      // rules (isAdmin) recognize this account. Without it, collection
+      // reads like the accounts list are denied.
+      if (!profile) {
+        firebase.firestore().collection('users').doc(firebaseUser.uid).set({
+          email: firebaseUser.email,
+          role: role,
+          firstName: firstName,
+          lastName: lastName,
+          displayName: name
+        }, { merge: true }).catch(function(healError) {
+          console.warn('SmileHub profile self-heal failed:', healError);
+        });
+      } else if (!profile.role || ['admin', 'staff', 'superadmin'].indexOf(profile.role) === -1) {
+        console.info('SmileHub: users/' + firebaseUser.uid + ' exists but role is "' + profile.role + '" — update it in Firebase Console if this should be an admin.');
+      }
+
       cacheUser({
         uid: firebaseUser.uid,
         name: name,
