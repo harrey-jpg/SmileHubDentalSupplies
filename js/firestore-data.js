@@ -283,15 +283,3 @@ var SmileHubData = {
 };
 
 window.SmileHubData = SmileHubData;
-
-// Load active discount coupons so cart/checkout accept admin-created codes.
-db.collection('coupons').get().then(function(snapshot) {
-  var map = {};
-  snapshot.forEach(function(doc) {
-    var d = doc.data();
-    if (d && d.code && d.active !== false && Number(d.rate) > 0) {
-      map[String(d.code).trim().toUpperCase()] = Number(d.rate);
-    }
-  });
-  window.SmileHubCoupons = map;
-}).catch(function() {});
