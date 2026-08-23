@@ -1181,6 +1181,9 @@ document.addEventListener('DOMContentLoaded', function() {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
+          // Remove the Firestore doc too, otherwise getAccounts() restores it on reload.
+          firebase.firestore().collection('accounts').doc(email).delete()
+            .catch(function(error) { console.warn('Could not delete account from Firestore:', error); });
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
