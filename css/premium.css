@@ -96,3 +96,16 @@ body.dark .sh-category-card span,
 body.dark .sh-blog-card p,
 body.dark .sh-testimonial p { color: var(--muted); }
 body.dark .sh-chip { background: var(--sky); color: #6fd3cf; }
+
+/* Spacing polish for premium homepage sections */
+.sh-premium-strip { margin: 46px auto; }
+.sh-section-head { margin-bottom: 26px; gap: 24px; }
+.sh-section-head h2 { line-height: 1.3; }
+.sh-section-head p { margin-top: 8px; line-height: 1.6; }
+.sh-category-card, .sh-brand-card, .sh-blog-card, .sh-testimonial { padding: 22px; border-radius: 18px; }
+.sh-category-card i { display: block; margin-bottom: 12px; }
+.sh-category-card b { display: block; margin-bottom: 6px; line-height: 1.4; }
+.sh-category-card span, .sh-blog-card p, .sh-testimonial p { line-height: 1.65; }
+.sh-blog-card h3 { margin: 12px 0 8px; line-height: 1.4; }
+.sh-blog-card a { display: inline-block; margin-top: 10px; font-weight: 700; }
+.sh-testimonial b { display: block; margin-top: 14px; color: var(--sh-primary-dark); }

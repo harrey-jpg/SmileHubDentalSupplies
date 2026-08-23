@@ -2,15 +2,79 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="SmileHub maintenance page."><title>Maintenance | SmileHub Dental Supplies</title>
 <link href="css/style.css?v=5.0.0" rel="stylesheet"><link href="css/premium.css?v=5.0.0" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script defer src="js/auth.js"></script>
 </head>
 <body>
-<div class="topbar"><div class="container"><span>Free shipping on orders over ₱3,000</span><span>Metro Manila delivery • Mon–Sat</span></div></div>
-<header class="header"><div class="container header-main"><a class="logo" href="homepage.html"><img src="assets/logo.svg" alt="SmileHub logo"><span>SmileHub<br>Dental Supplies</span></a>
-<form action="products.html" class="search-bar"><input name="q" placeholder="Search dental supplies"><button type="submit">Search</button></form>
-<div class="header-actions"><a href="wishlist.html">Wishlist</a><a class="cart-link" href="cart.html">Cart</a><a href="profile.html">Account</a></div></div>
-<nav class="nav"><div class="container nav-list"><a href="homepage.html">Home</a><a href="products.html">Products</a><a href="compare.html">Compare</a><a href="blog.html">Journal</a><a href="faq.html">Help</a></div></nav></header>
+<div class="topbar">
+<div class="container">
+<span>Free shipping on orders over ₱3,000</span>
+<span>Metro Manila delivery • Mon–Sat</span>
+</div>
+</div>
+<header class="header">
+<div class="container header-main">
+<a class="logo" href="homepage.html"><img alt="SmileHub logo" src="assets/logo.svg"/><span>SmileHub<br/>Dental Supplies</span></a>
+<form action="products.html" class="search-bar"><input name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
+<div class="header-actions">
+<button class="theme-button" title="Dark mode" type="button">◐</button>
+<a class="icon-link" href="wishlist.html">♡<span class="text-label">Wishlist</span><span class="cart-count wishlist-count">0</span></a>
+<a class="icon-link" href="cart.html">🛒<span class="text-label">Cart</span><span class="cart-count">0</span></a>
+<a class="icon-link" href="login.html">👤<span class="text-label">Login</span></a>
+<button class="menu-button" type="button">Menu</button>
+</div>
+</div>
+<nav class="nav">
+<div class="container">
+<ul class="nav-list">
+<li><a href="homepage.html">Home</a></li>
+<li><a href="products.html">Products</a></li>
+<li><a href="about.html">About</a></li>
+<li><a href="faq.html">FAQ</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="developers.html">Developers</a></li>
+</ul>
+</div>
+</nav>
+</header>
 <main id="main-content"><section class="sh-premium-strip" style="padding-top:30px"><div class="sh-blog-card" style="text-align:center;max-width:720px;margin:auto;padding:50px"><div style="font-size:70px">🛠️</div><h1>We are polishing SmileHub</h1><p>This optional page is ready for planned maintenance or deployment windows.</p><a class="btn btn-primary" href="homepage.html">Check storefront</a></div></section></main>
-<footer class="footer"><div class="container"><div class="footer-grid"><div><a class="logo" href="homepage.html"><img src="assets/logo.svg" alt=""><span>SmileHub Dental Supplies</span></a><p>Frontend dental commerce experience for clinics, professionals, and students.</p></div><div><h4>Shop</h4><a href="products.html">Products</a><a href="brands.html">Brands</a><a href="compare.html">Compare</a></div><div><h4>Support</h4><a href="contact.html">Contact</a><a href="faq.html">FAQs</a><a href="shipping.html">Shipping</a><a href="return-policy.html">Returns</a></div><div><h4>Company</h4><a href="about.html">About</a><a href="careers.html">Careers</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div></div><div class="footer-bottom"><span>© 2026 SmileHub Dental Supplies</span><span>Frontend academic project • Philippines</span></div></div></footer>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div>
+<h3>SmileHub Dental Supplies</h3>
+<p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
+</div>
+<div>
+<h4>Shop</h4>
+<a href="products.html">All Products</a>
+<a href="wishlist.html">Wishlist</a>
+<a href="cart.html">Shopping Cart</a>
+<a href="orders.html">Orders</a>
+</div>
+<div>
+<h4>Company</h4>
+<a href="about.html">About SmileHub</a>
+<a href="developers.html">Developer Profiles</a>
+<a href="contact.html">Contact Us</a>
+<a href="faq.html">FAQs</a>
+</div>
+<div>
+<h4>Policies</h4>
+<a href="privacy.html">Privacy Policy</a>
+<a href="terms.html">Terms and Conditions</a>
+<a href="profile.html">Customer Profile</a>
+</div>
+</div>
+<div class="footer-bottom">
+<span>© 2026 SmileHub Dental Supplies</span>
+<span>Frontend academic project • Philippines</span>
+</div>
+</div>
+</footer>
 <script src="js/common.js?v=5.0.0"></script>
   <script src="js/firebase-sync.js?v=6.5.3"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=5.0.0"></script>
