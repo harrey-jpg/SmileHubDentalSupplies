@@ -44,9 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return item.id !== id;
       });
       
-      saveStoredList(WISH_KEY, wishlist);
+      var synced = saveStoredList(WISH_KEY, wishlist);
       updateWishlistCount();
-      
+
       // Also update heart icons on product pages/catalog
       document.querySelectorAll('.add-wishlist').forEach(function(wishBtn) {
         if (Number(wishBtn.dataset.id) === id) {
@@ -54,9 +54,16 @@ document.addEventListener('DOMContentLoaded', function() {
           wishBtn.classList.remove('wished');
         }
       });
-      
-      // Re-render wishlist page
-      location.reload();
+
+      // Re-render wishlist page only after the cloud sync settles,
+      // otherwise the reload cancels the Firestore write and the
+      // stale cloud list restores the removed item.
+      var reloaded = false;
+      var finishReload = function() {
+        if (!reloaded) { reloaded = true; location.reload(); }
+      };
+      Promise.resolve(synced).then(finishReload, finishReload);
+      setTimeout(finishReload, 2500);
     });
   });
 });

@@ -30,8 +30,9 @@ function saveStoredList(key, list) {
     window.SmileHubStorage.set(key, list);
   }
   if (window.SmileHubFirebaseSync && !window.SmileHubFirebaseSync.isApplyingRemote()) {
-    window.SmileHubFirebaseSync.saveList(key, list);
+    return window.SmileHubFirebaseSync.saveList(key, list);
   }
+  return Promise.resolve();
 }
 
 function money(value) {
