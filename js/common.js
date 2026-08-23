@@ -13,7 +13,13 @@ function setAppliedCoupon(code) {
 
 function couponDiscountRate(code) {
   if (!code) return 0;
-  if (String(code).trim().toUpperCase() === 'SMILE10') return 0.10;
+  var normalized = String(code).trim().toUpperCase();
+  if (normalized === 'SMILE10') return 0.10;
+  var coupons = window.SmileHubCoupons || {};
+  if (Object.prototype.hasOwnProperty.call(coupons, normalized)) {
+    var rate = Number(coupons[normalized]);
+    if (rate > 0 && rate <= 90) return rate / 100;
+  }
   return 0;
 }
 
