@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
     return `
       <article class="card product-card">
         <button class="wish-button remove-wishlist" data-index="${index}" data-id="${item.id}" title="Remove from wishlist">♥</button>
-        <div class="product-image"><img src="${item.image}" alt="${item.name}"></div>
+        <a class="product-image" href="product.html?id=${item.id}"><img src="${item.image}" alt="${item.name}"></a>
         <div class="product-body">
-          <h3>${item.name}</h3>
+          <a href="product.html?id=${item.id}"><h3>${item.name}</h3></a>
           <div class="price-row"><span class="price">${money(item.price)}</span></div>
           <button class="btn btn-primary btn-block add-cart" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-image="${item.image}">Add to Cart</button>
         </div>
