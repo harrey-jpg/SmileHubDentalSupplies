@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
     saveProducts(products);
     renderProducts();
     updateDashboard();
-    addAuditLog('Added product "' + newProduct.name + '" (' + newProduct.sku + ')');
-    showToast('"' + newProduct.name + '" added. Set its stock in Inventory.', false, true);
+    addAuditLog('Added product "' + newProduct.name + '" (' + newProduct.sku + ') with ' + stock + ' units');
+    showToast('"' + newProduct.name + '" added with ' + stock + ' units', false, true);
     resetForm();
   }
 
@@ -330,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
       form.querySelector('[name="brand"]').value = product.brand || '';
       form.querySelector('[name="category"]').value = product.category;
       form.querySelector('[name="price"]').value = product.price;
+      form.querySelector('[name="stock"]').value = product.stock;
       form.querySelector('[name="sku"]').value = product.sku || '';
       form.querySelector('[name="description"]').value = product.description || '';
       form.querySelector('[name="specs"]').value = product.specs ? product.specs.join(', ') : '';
@@ -862,13 +863,14 @@ document.addEventListener('DOMContentLoaded', function() {
         image = customInput.value.trim();
       }
       
+      const stockVal = parseInt(formData.get('stock'));
       const productData = {
         name: formData.get('name') || '',
         brand: formData.get('brand') || '',
         category: formData.get('category') || '',
         price: formData.get('price') || 0,
         sku: formData.get('sku') || '',
-        stock: undefined,
+        stock: isNaN(stockVal) ? 0 : stockVal,
         image: image,
         description: formData.get('description') || '',
         specs: formData.get('specs') || ''
