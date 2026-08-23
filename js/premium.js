@@ -86,39 +86,7 @@
   function closeMiniCart(){const d=$(".sh-mini-cart"); if(!d)return; d.classList.remove("open");$(".sh-drawer-backdrop").classList.remove("open");d.setAttribute("aria-hidden","true");}
   SH.openCart=openMiniCart;
 
-  function quickView(){
-    if(location.pathname.split("/").pop().toLowerCase()==="wishlist.html") return;
-    if(!$(".sh-modal")) document.body.insertAdjacentHTML("beforeend",'<div class="sh-modal" id="shQuickModal" role="dialog" aria-modal="true" aria-label="Product quick view"><div class="sh-modal-card"><div style="display:flex;justify-content:flex-end"><button class="sh-icon-btn" data-close-quick aria-label="Close">✕</button></div><div id="shQuickBody"></div></div></div>');
-    document.addEventListener("click",e=>{
-      const close=e.target.closest("[data-close-quick]"); if(close){$("#shQuickModal").classList.remove("open");return;}
-      if(e.target.id==="shQuickModal") e.target.classList.remove("open");
-      const card=e.target.closest(".product-card"); if(!card)return;
-      if(!$(".sh-quick-actions",card)){
-        const actions=document.createElement("div");actions.className="sh-quick-actions";
-        actions.innerHTML='<button data-quick-view title="Quick view" aria-label="Quick view">⌕</button><button data-share-product title="Share" aria-label="Share product">↗</button>';
-        card.appendChild(actions);
-      }
-      if(e.target.closest("[data-quick-view]")) showQuick(card);
-      if(e.target.closest("[data-share-product]")) shareProduct(card);
-    },true);
-    $$(".product-card").forEach(card=>{
-      if(!$(".sh-quick-actions",card)){const a=document.createElement("div");a.className="sh-quick-actions";a.innerHTML='<button data-quick-view title="Quick view" aria-label="Quick view">⌕</button><button data-share-product title="Share" aria-label="Share product">↗</button>';card.appendChild(a);}
-    });
-  }
-  function productFromCard(card){
-    const name=($("h3,h4,.product-name,.product-title",card)||{}).textContent||"Dental product";
-    const price=($(".price,.product-price",card)||{}).textContent||"";
-    const img=($("img",card)||{}).src||"assets/logo.svg";
-    const link=($("a[href*='product']",card)||{}).href||"product.html";
-    return {name:name.trim(),price:price.trim(),img,link};
-  }
-  function showQuick(card){
-    const p=productFromCard(card);
-    $("#shQuickBody").innerHTML=`<div class="sh-modal-grid"><img src="${esc(p.img)}" alt="${esc(p.name)}"><div><span class="sh-chip">Quick view</span><h2>${esc(p.name)}</h2><div class="sh-rating">★★★★★ <small style="color:var(--sh-muted)">4.8 rating</small></div><p class="sh-price">${esc(p.price||"See product for price")}</p><p>Clinic-ready dental supply selected for reliability, convenience, and everyday professional use.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-primary" href="${esc(p.link)}">View details</a><button class="btn btn-light" data-quick-add>Add to cart</button></div><hr style="border:0;border-top:1px solid var(--sh-border);margin:20px 0"><small>✓ Secure checkout &nbsp; ✓ Delivery support &nbsp; ✓ Easy returns</small></div></div>`;
-    $("#shQuickModal").classList.add("open");
-    const add=$("[data-quick-add]"); add&&add.addEventListener("click",()=>{const existing=$(".add-to-cart, [data-add-to-cart]",card); if(existing) existing.click(); else SH.toast("Open product details","Choose quantity and options on the product page.");});
-  }
-  function shareProduct(card){const p=productFromCard(card); if(navigator.share) navigator.share({title:p.name,url:p.link}).catch(()=>{}); else {navigator.clipboard?.writeText(p.link);SH.toast("Link copied",p.name);}}
+
 
   function commandPalette(){
     document.body.insertAdjacentHTML("beforeend",`<div class="sh-command" id="shCommand"><div class="sh-command-box"><input id="shCommandInput" placeholder="Search products, pages, or help…" aria-label="Site search"><div class="sh-command-results" id="shCommandResults"></div></div></div>`);
@@ -197,7 +165,7 @@
   }
 
   function init(){
-    addAccessibility();mobileNav();breadcrumbs();miniCart();quickView();commandPalette();homepageSections();authPolish();networkStatus();adminExtras();backTop();preserveFeatureFeedback();
+    addAccessibility();mobileNav();breadcrumbs();miniCart();commandPalette();homepageSections();authPolish();networkStatus();adminExtras();backTop();preserveFeatureFeedback();
     document.documentElement.classList.add("sh-premium-ready");
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
