@@ -831,13 +831,35 @@ body.dark .dev-skill { color: var(--muted); }
 
 /* Admin product management */
 .admin-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-.admin-toolbar input { flex: 1 1 260px; max-width: 420px; }
-.admin-toolbar select {
-  padding: 10px 12px;
+.admin-toolbar input {
+  flex: 1 1 260px;
+  max-width: 420px;
+  min-height: 44px;
+  padding: 10px 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--white);
   color: var(--text);
+  font-size: 0.95rem;
+}
+.admin-toolbar input::placeholder { color: var(--muted); }
+.admin-toolbar input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(18, 97, 160, 0.15);
+}
+.admin-toolbar select {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text);
+}
+.admin-toolbar select:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(18, 97, 160, 0.15);
 }
 .admin-toolbar .toolbar-count { margin-left: auto; font-size: 0.9rem; color: var(--muted); white-space: nowrap; }
 .prod-thumb {
