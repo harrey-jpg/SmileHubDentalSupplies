@@ -715,12 +715,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (idx === -1) return;
     const old = orders[idx].status;
     orders[idx].status = status;
-    saveOrders(orders);
-    addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
+
+    // Surgical update: write ONLY this order's document. Rewriting the whole
+    // list fails whenever any single order is not writable.
+    const refId = orders[idx].docId || orders[idx].number;
+    db.collection('orders').doc(refId).update({
+      status: status,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function() {
+      addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
+      showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
+    }).catch(function(error) {
+      console.error('Order status update failed:', error);
+      showToast('Status update failed: ' + (error.code || error.message), true);
+    });
+
     const filter = document.getElementById('orderStatusFilter')?.value || 'all';
     renderOrders(filter);
     closeOrderModal();
-    showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
   }
 
   function viewOrder(number) {
