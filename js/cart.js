@@ -52,8 +52,11 @@ function renderCart() {
     empty.classList.add('hidden');
     cart.forEach(function(item) {
       const row = document.createElement('tr');
+      const safeName = String(item.name == null ? '' : item.name).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+      });
       row.innerHTML = `
-        <td><div class="cart-product"><img src="${item.image}" alt=""><div><strong>${item.name}</strong><br><small class="muted">Product ID: ${item.id}</small></div></div></td>
+        <td><div class="cart-product"><img src="${safeImage(item.image)}" alt=""><div><strong>${safeName}</strong><br><small class="muted">Product ID: ${Number(item.id)}</small></div></div></td>
         <td>${money(item.price)}</td>
         <td><div class="quantity-control"><button data-action="minus">−</button><span>${item.quantity}</span><button data-action="plus">+</button></div></td>
         <td>${money(item.price * item.quantity)}</td>
@@ -84,11 +87,20 @@ function removeItem(id) {
   renderCart();
 }
 
+function safeImage(value) {
+  var src = String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+  });
+  // Only allow relative asset paths and data URLs into the img src.
+  return /^(https?:|data:|assets\/)/.test(src) ? src : 'assets/products/default.svg';
+}
+
 function updateSummary(cart) {
   const subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
   const shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
-  const tax = subtotal * 0.12;
   const discount = subtotal * couponDiscountRate(getAppliedCoupon());
+  // VAT applies to the discounted amount actually paid (matches checkout).
+  const tax = (subtotal - discount) * 0.12;
   const total = subtotal + shipping + tax - discount;
   document.getElementById('cartSubtotal').textContent = money(subtotal);
   document.getElementById('cartShipping').textContent = money(shipping);

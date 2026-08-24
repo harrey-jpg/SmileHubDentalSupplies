@@ -91,11 +91,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (email) email.value = fullAccount.email || '';
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
+    });
+  }
+
   function getOrderTotals() {
     var subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
     var shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
-    var tax = subtotal * 0.12;
     var discount = subtotal * couponDiscountRate(getAppliedCoupon());
+    // VAT applies to the discounted amount actually paid.
+    var tax = (subtotal - discount) * 0.12;
     var total = subtotal + shipping + tax - discount;
     return { subtotal: subtotal, shipping: shipping, tax: tax, discount: discount, total: total };
   }
@@ -130,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
     items.innerHTML = cart.length ? cart.map(function(item) {
       var img = item.image || 'assets/products/default.svg';
       return '<div class="checkout-item" style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">' +
-        '<img src="' + img + '" alt="' + item.name.replace(/"/g,'&quot;') + '" style="width:50px;height:50px;object-fit:contain;border-radius:6px;background:#f8f9fa">' +
-        '<div style="flex:1"><strong>' + item.name + '</strong><br><small class="muted">Qty: ' + item.quantity + ' &times; ' + money(item.price) + '</small></div>' +
+        '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(item.name) + '" style="width:50px;height:50px;object-fit:contain;border-radius:6px;background:#f8f9fa">' +
+        '<div style="flex:1"><strong>' + escapeHtml(item.name) + '</strong><br><small class="muted">Qty: ' + Number(item.quantity) + ' &times; ' + money(item.price) + '</small></div>' +
         '<strong>' + money(item.price * item.quantity) + '</strong></div>';
     }).join('') : '<p class="muted">Your cart is empty.</p>';
 
@@ -230,9 +237,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return PayMongo.retrievePaymentIntent(paymentIntentId);
       }).then(function(updatedIntent) {
         if (updatedIntent.attributes.next_action && updatedIntent.attributes.next_action.type === 'redirect') {
-          window.location.href = updatedIntent.attributes.next_action.redirect.url;
+          // Report the redirect instead of navigating immediately: the caller must
+          // persist the order first, otherwise the navigation loses it entirely.
+          callback(null, { status: 'redirect', url: updatedIntent.attributes.next_action.redirect.url });
+        } else if (updatedIntent.attributes.status === 'succeeded') {
+          callback(null, { status: 'paid' });
         } else {
-          callback(null);
+          callback(null, { status: 'unpaid' });
         }
       });
     }).catch(function() {
@@ -242,6 +253,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('checkoutForm').addEventListener('submit', function(event) {
     event.preventDefault();
+    var form = this;
+    if (form.dataset.submitting === '1') return;
     if (!cart.length) return showToast('Add products before checking out');
 
     var firstName = document.getElementById('checkoutFirstName').value.trim();
@@ -269,7 +282,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // OTP is recommended but no longer blocks checkout. This prevents Firebase quota/domain
     // problems from trapping customers. Orders retain the verification status for admin review.
     if (!phoneVerifiedForOrder) {
-      checkoutOtpStatus('Phone is not verified yet. You may still place the order; staff can confirm it manually.', false);
+      var otpStatus = document.getElementById('checkoutOtpStatus');
+      if (otpStatus) otpStatus.textContent = 'Phone is not verified yet. You may still place the order; staff can confirm it manually.';
     }
 
     // Validate billing fields for card/GCash payments.
@@ -313,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var fullAddress = [address, city].filter(Boolean).join(', ') + (postal ? ' ' + postal : '');
-
     var order = {
       number: orderNumber,
       orderNumber: orderNumber,
@@ -367,30 +380,29 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    processPayment(order, total, function(paymentError) {
-      order.status = needsQuote ? 'Pending Quotation' : 'Pending';
-      if (!paymentError && (paymentMethod === 'Credit Card' || paymentMethod === 'GCash')) {
-        if (order.paymentStatus !== 'paid') order.status = 'Pending';
-      }
+    form.dataset.submitting = '1';
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.originalLabel = submitBtn.textContent; submitBtn.textContent = 'Processing…'; }
 
+    processPayment(order, total, function(paymentError, result) {
+      result = result || {};
+      var paid = !paymentError && (paymentMethod === 'Credit Card' || paymentMethod === 'GCash') && result.status === 'paid';
+      order.paymentStatus = paid ? 'paid' : 'unpaid';
+      order.status = needsQuote ? 'Pending Quotation' : (paid ? 'Processing' : 'Pending');
+
+      // Persist only the new order to Firestore. Rewriting the full local
+      // history would be rejected by the security rules (owners may not
+      // overwrite existing orders) and silently lose every later order.
       orders.unshift(order);
       SmileHubStorage.set('smilehub_orders', orders);
-      SmileHubData.saveOrders(orders);
+      SmileHubData.saveOrder(order);
 
       var simpleOrders = getStoredList('smilehub_simple_orders');
       simpleOrders.unshift({ number: order.number, date: order.date, total: total, status: order.status });
       saveStoredList('smilehub_simple_orders', simpleOrders);
 
-      SmileHubData.getProducts(function(products) {
-        cart.forEach(function(item) {
-          var product = products.find(function(p) { return String(p.id) === String(item.id); });
-          if (product) {
-            product.stock = Math.max(0, product.stock - item.quantity);
-            product.status = product.stock === 0 ? 'Out of Stock' : product.stock <= 10 ? 'Low Stock' : 'Active';
-          }
-        });
-        SmileHubData.saveProducts(products);
-      });
+      // Stock is decremented server-side by the onOrderCreated Cloud Function,
+      // so inventory stays accurate regardless of who placed the order.
 
       if (buyNowMode) {
         window.SmileHubStorage.remove(BUY_NOW_KEY);
@@ -410,11 +422,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       updateCartCount();
 
+      // Payment provider needs the customer to authorize on their site.
+      // Everything is already saved, so navigating away is safe now.
+      if (result.status === 'redirect' && result.url) {
+        window.location.href = result.url;
+        return;
+      }
+
       document.getElementById('confirmOrderNumber').textContent = order.orderNumber;
       document.getElementById('confirmEmail').textContent = email;
       var modal = document.getElementById('orderConfirmModal');
       modal.style.display = 'flex';
       modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+
+      form.dataset.submitting = '';
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; }
     });
   });
 });

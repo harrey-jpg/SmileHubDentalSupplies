@@ -21,7 +21,10 @@
     if(!$(".sh-skip")) document.body.insertAdjacentHTML("afterbegin",'<a class="sh-skip" href="#main-content">Skip to content</a>');
     const main=$("main"); if(main&&!main.id) main.id="main-content";
     $$("img:not([alt])").forEach(i=>i.alt="");
-    $$("button:not([type])").forEach(b=>b.type="button");
+    // Typeless standalone buttons must not submit anything, but typeless
+    // buttons INSIDE a form default to submit — converting them breaks
+    // forms whose only submit button omits the attribute.
+    $$("button:not([type])").forEach(b=>{ if(!b.closest("form")) b.type="button"; });
     $$("input,select,textarea").forEach(i=>{
       if(!i.getAttribute("aria-label")&&!i.id){
         const p=i.getAttribute("placeholder"); if(p) i.setAttribute("aria-label",p);

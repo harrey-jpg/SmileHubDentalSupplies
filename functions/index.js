@@ -191,4 +191,38 @@ exports.onOrderCreated = onDocumentCreated({
     orderId: event.params.orderId,
     userId: order.userId
   });
+
+  // Decrement stock server-side with a transaction. Doing this from the
+  // browser is impossible for customers (security rules reserve product
+  // writes for admins) and racy between concurrent checkouts.
+  const items = Array.isArray(order.items) ? order.items : [];
+  if (!items.length) return;
+
+  try {
+    await db.runTransaction(async tx => {
+      const refs = items.map(item => db.collection("products").doc(String(item.productId)));
+      const snaps = await tx.getAll(...refs);
+
+      snaps.forEach((snap, index) => {
+        if (!snap.exists) {
+          logger.warn("Stock update skipped, product missing", { productId: items[index].productId });
+          return;
+        }
+        const product = snap.data() || {};
+        const qty = Math.max(0, Number(items[index].quantity || 0));
+        const newStock = Math.max(0, Number(product.stock || 0) - qty);
+        const updates = { stock: newStock };
+        if (product.status !== "Out of Stock") {
+          updates.status = newStock === 0 ? "Out of Stock" : newStock <= 10 ? "Low Stock" : "Active";
+        }
+        tx.update(snap.ref, updates);
+      });
+    });
+    logger.info("Stock updated for order", { orderId: event.params.orderId });
+  } catch (error) {
+    logger.error("Stock decrement failed", {
+      orderId: event.params.orderId,
+      message: error.message
+    });
+  }
 });

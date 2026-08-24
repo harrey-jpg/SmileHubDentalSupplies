@@ -82,12 +82,19 @@
   }
   function ensureBuyNow(){
     document.querySelectorAll('.product-card').forEach(function(card){
-      if(card.querySelector('[data-buy-now],.buy-now-btn')) return;
+      // Cards rendered by catalog.js/homepage templates already ship a working
+      // .buy-now button; only fill in cards that have none of the variants.
+      if(card.querySelector('[data-buy-now],.buy-now-btn,.buy-now')) return;
       var id=card.dataset.productId||card.getAttribute('data-id');
+      var price=card.dataset.price;
       var actions=card.querySelector('.product-actions');
-      if(!actions||!id) return;
+      if(!actions||!id||!price) return;
       var b=document.createElement('button');
-      b.type='button'; b.className='btn buy-now-btn'; b.dataset.buyNow=id; b.textContent='⚡ Buy Now';
+      b.type='button'; b.className='btn buy-now-btn'; b.dataset.buyNow=id;
+      b.dataset.id=id; b.dataset.name=card.dataset.name||'Product'; b.dataset.price=price;
+      b.dataset.image=card.dataset.image||'assets/products/default.svg';
+      b.textContent='⚡ Buy Now';
+      b.addEventListener('click',function(){ if(window.buyNow) window.buyNow(b); });
       actions.appendChild(b);
     });
   }

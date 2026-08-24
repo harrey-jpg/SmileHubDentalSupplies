@@ -14,6 +14,22 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && (!('phoneVerified' in request.resource.data) || request.resource.data.phoneVerified is bool);
     }
+    // The role a write would set. Defaults to 'customer' when absent.
+    function requestedRole() {
+      return request.resource.data.get('role', 'customer');
+    }
+    function currentRole() {
+      return resource.data.get('role', 'customer');
+    }
+    // Elevated roles may only be claimed once, from an unclaimed invitation
+    // document that an admin created in user_registrations with that role.
+    function invitedRole() {
+      let regPath = /databases/$(database)/documents/user_registrations/$(request.auth.token.email);
+      return exists(regPath)
+        && get(regPath).data.claimed == false
+        ? get(regPath).data.get('role', 'customer')
+        : null;
+    }
 
     match /products/{id} {
       allow read: if true;
@@ -28,7 +44,16 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     match /users/{uid} {
-      allow create, update: if validProfile(uid);
+      // Create: self-registration is allowed as 'customer'. Elevated roles
+      // require a matching unclaimed admin-created invitation.
+      allow create: if validProfile(uid)
+        && (requestedRole() == 'customer'
+            || (requestedRole() in ['admin', 'staff', 'superadmin']
+                && invitedRole() == requestedRole()));
+      // Update: profile fields may change, but the role can NEVER be changed
+      // by the owner. Without this, any user could promote themselves to
+      // superadmin and satisfy isAdmin() server-side.
+      allow update: if validProfile(uid) && requestedRole() == currentRole();
       allow read: if own(uid) || isAdmin();
       allow delete: if own(uid) || isAdmin();
     }
@@ -73,7 +98,13 @@ service cloud.firestore {
     match /user_registrations/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
       allow create: if signedIn() && request.auth.token.email == email;
-      allow update, delete: if isAdmin();
+      // The invited account may claim its own invitation, but may only touch
+      // the claim fields — everything else stays admin-managed.
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.token.email == email
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['claimed', 'claimedUid', 'claimedAt']));
+      allow delete: if isAdmin();
     }
     match /audit_logs/{id} {
       allow read: if isAdmin();

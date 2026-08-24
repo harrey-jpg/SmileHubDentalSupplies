@@ -1,34 +1,31 @@
+// Demo accounts grant their role purely from an email match on the client,
+// which is not a security boundary. Keep this disabled in production so roles
+// come exclusively from the Firestore users/{uid} document.
+const DEMO_MODE_ENABLED = false;
+
 const DEMO_ACCOUNTS = {
   'admin@smilehub.ph': { role: 'admin', firstName: 'Admin', lastName: 'User' },
   'staff@smilehub.ph': { role: 'staff', firstName: 'Staff', lastName: 'User' },
   'super@smilehub.ph': { role: 'superadmin', firstName: 'Super', lastName: 'Admin' },
   'customer@smilehub.ph': { role: 'customer', firstName: 'Demo', lastName: 'Customer' }
 };
+function demoRoleFor(email) {
+  return DEMO_MODE_ENABLED ? (DEMO_ACCOUNTS[email] || {}) : {};
+}
 const RETURN_KEY = 'smilehub_return_page';
 const AUTH_KEY = 'smilehub_logged_in_user';
-const WINDOW_STATE_PREFIX = 'SMILEHUB_STATE:';
 
 const PUBLIC_PAGES = [
   'index.html',
   'homepage.html',
   'login.html',
-  'register.html'
+  'register.html',
+  '404.html',
+  'offline.html',
+  'maintenance.html'
 ];
 
 const currentPage = location.pathname.split('/').pop() || 'index.html';
-
-function readWindowState() {
-  if (!window.name.startsWith(WINDOW_STATE_PREFIX)) return {};
-  try {
-    return JSON.parse(window.name.slice(WINDOW_STATE_PREFIX.length)) || {};
-  } catch (error) {
-    return {};
-  }
-}
-
-function writeWindowState(state) {
-  window.name = WINDOW_STATE_PREFIX + JSON.stringify(state);
-}
 
 function storageGet(key) {
   try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -49,29 +46,20 @@ function sessionRemove(key) {
   try { sessionStorage.removeItem(key); } catch (e) {}
 }
 
+// window.name is readable/writable across origins during navigation, so it
+// must never be trusted as a data store — values injected there flow straight
+// into innerHTML sinks elsewhere. Session + localStorage are sufficient.
 const SmileHubStorage = {
   get(key, fallbackValue) {
-    const windowState = readWindowState();
-    if (Object.prototype.hasOwnProperty.call(windowState, key)) {
-      return windowState[key];
-    }
-
     const ss = sessionGet(key);
     if (ss !== null) {
-      try {
-        const parsedValue = JSON.parse(ss);
-        windowState[key] = parsedValue;
-        writeWindowState(windowState);
-        return parsedValue;
-      } catch (e) {}
+      try { return JSON.parse(ss); } catch (e) {}
     }
 
     const ls = storageGet(key);
     if (ls !== null) {
       try {
         const parsedValue = JSON.parse(ls);
-        windowState[key] = parsedValue;
-        writeWindowState(windowState);
         sessionSet(key, ls);
         return parsedValue;
       } catch (e) {}
@@ -80,19 +68,11 @@ const SmileHubStorage = {
     return fallbackValue;
   },
   set(key, value) {
-    const windowState = readWindowState();
-    windowState[key] = value;
-    writeWindowState(windowState);
-
     const json = JSON.stringify(value);
     sessionSet(key, json);
     storageSet(key, json);
   },
   remove(key) {
-    const windowState = readWindowState();
-    windowState[key] = null;
-    writeWindowState(windowState);
-
     sessionRemove(key);
     storageRemove(key);
   }
@@ -137,7 +117,7 @@ var authReady = false;
 
 firebase.auth().onAuthStateChanged(function(firebaseUser) {
   if (firebaseUser) {
-    var demo = DEMO_ACCOUNTS[firebaseUser.email] || {};
+    var demo = demoRoleFor(firebaseUser.email);
     cacheUser({
       uid: firebaseUser.uid,
       name: firebaseUser.email,
@@ -216,7 +196,9 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         password: ''
       });
       updateAccountLink();
-    }).catch(function() {}).then(function() {
+    }).catch(function(error) {
+      console.warn('Could not resolve SmileHub profile after sign-in:', error);
+    }).then(function() {
       authReady = true;
       afterAuthReady();
     });
@@ -397,9 +379,21 @@ function handleGoogleLogin() {
     });
 }
 function redirectAfterLogin() {
-  // Always return users to the public landing page after authentication.
-  // Admin users can open the dashboard from the account/navigation controls.
+  // Send users back to the page they were on when login was requested.
+  // Only relative .html paths are accepted to prevent open redirects.
+  var returnPage = SmileHubStorage.get(RETURN_KEY, null);
   SmileHubStorage.remove(RETURN_KEY);
+  if (typeof returnPage === 'string' && returnPage) {
+    var pathOnly = returnPage.split('?')[0].split('#')[0].split('/').pop();
+    var isSafe = /^[A-Za-z0-9._-]+\.html$/.test(pathOnly)
+      && returnPage.indexOf('//') === -1
+      && !returnPage.startsWith('/');
+    if (isSafe) {
+      location.href = returnPage;
+      return;
+    }
+  }
+  // Admin users can open the dashboard from the account/navigation controls.
   location.href = 'homepage.html';
 }
 
@@ -408,7 +402,13 @@ function handleLogin(event) {
   var email = document.getElementById('loginEmail').value.trim().toLowerCase();
   var password = document.getElementById('loginPassword').value;
 
-  firebase.auth().signOut().catch(function() {}).then(function() {
+  var currentUser = firebase.auth().currentUser;
+  var alreadySignedIn = currentUser && currentUser.email && currentUser.email.toLowerCase() === email;
+  var prepare = alreadySignedIn
+    ? Promise.resolve()
+    : firebase.auth().signOut().catch(function() {});
+
+  prepare.then(function() {
     return firebase.auth().signInWithEmailAndPassword(email, password);
   }).then(function() {
     showAuthMessage('Login successful! Redirecting...');
@@ -564,9 +564,9 @@ function protectPage() {
     return;
   }
 
-  if (user && DEMO_ACCOUNTS[user.email]) {
-    var hardcodedRole = DEMO_ACCOUNTS[user.email].role;
-    if (user.role !== hardcodedRole) {
+  if (user && DEMO_MODE_ENABLED) {
+    var hardcodedRole = DEMO_ACCOUNTS[user.email] && DEMO_ACCOUNTS[user.email].role;
+    if (hardcodedRole && user.role !== hardcodedRole) {
       user.role = hardcodedRole;
       cacheUser(user);
     }

@@ -1,5 +1,20 @@
 var db = firebase.firestore();
 
+// Seeding demo data requires admin privileges. Track attempts per browser
+// session so non-admin visitors don't fire denied writes on every page load.
+function seedAlreadyAttempted(key) {
+  try {
+    if (sessionStorage.getItem(key)) return true;
+    sessionStorage.setItem(key, '1');
+  } catch (e) {}
+  return false;
+}
+
+function canAttemptSeed(key) {
+  // Only signed-in users can possibly have write access; guests never do.
+  return Boolean(firebase.auth().currentUser) && !seedAlreadyAttempted(key);
+}
+
 var defaultProducts = [
   { id: 1, sku: 'SH-OC-001', name: 'ProClean Soft Toothbrush 4-Pack', brand: 'SmilePro', category: 'Oral Care', price: 189, stock: 86, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Soft rounded bristles for gentle daily plaque removal and comfortable gum care.', specs: ['4 toothbrushes', 'Soft nylon bristles', 'Ergonomic non-slip handle'] },
   { id: 2, sku: 'SH-OC-002', name: 'SonicWave Electric Toothbrush', brand: 'Dentiva', category: 'Oral Care', price: 1299, stock: 24, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Rechargeable sonic toothbrush with three cleaning modes and two-minute timer.', specs: ['3 cleaning modes', 'USB-C rechargeable', '2 brush heads included'] },
@@ -54,12 +69,13 @@ function getProducts(callback) {
     snapshot.forEach(function(doc) {
       products.push(doc.data());
     });
-    if (products.length === 0) {
+    if (products.length === 0 && canAttemptSeed('smilehub_seed_products')) {
       seedDefaultProducts(callback);
     } else {
-      callback(products);
+      callback(products.length ? products : defaultProducts);
     }
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not load products from Firestore:', error);
     callback(defaultProducts);
   });
 }
@@ -72,7 +88,8 @@ function seedDefaultProducts(callback) {
   });
   batch.commit().then(function() {
     callback(defaultProducts);
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not seed default products (requires admin):', error);
     callback(defaultProducts);
   });
 }
@@ -95,7 +112,8 @@ function saveProducts(products, callback) {
   }, { merge: true });
   batch.commit().then(function() {
     if (callback) callback();
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not save products to Firestore:', error);
     if (callback) callback();
   });
 }
@@ -186,17 +204,20 @@ function getOrders(callback) {
     snapshot.forEach(function(doc) {
       orders.push(doc.data());
     });
-    if (orders.length === 0) {
+    if (orders.length === 0 && canAttemptSeed('smilehub_seed_orders')) {
       var defaults = getDefaultOrders();
       orders = mergeOrders(local, defaults);
       var batch = db.batch();
       defaults.forEach(function(o) { batch.set(db.collection('orders').doc(o.number), o); });
-      batch.commit().catch(function() {});
+      batch.commit().catch(function(error) {
+        console.warn('Could not seed demo orders (requires admin):', error);
+      });
     } else {
-      orders = mergeOrders(local, orders);
+      orders = mergeOrders(local, orders.length ? orders : getDefaultOrders());
     }
     callback(orders);
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not load orders from Firestore:', error);
     callback(mergeOrders(local, getDefaultOrders()));
   });
 }
@@ -215,6 +236,18 @@ function saveOrdersToFirestore(orders) {
   });
 }
 
+function saveOrder(order, callback) {
+  // Writes a single order document. Owners may create their own orders, but
+  // the security rules forbid rewriting existing ones — so callers must pass
+  // only the NEW order here.
+  db.collection('orders').doc(order.number).set(order).then(function() {
+    if (callback) callback();
+  }).catch(function(error) {
+    console.warn('Could not save order to Firestore:', error);
+    if (callback) callback();
+  });
+}
+
 function saveOrders(orders, callback) {
   var batch = db.batch();
   orders.forEach(function(o) {
@@ -223,7 +256,8 @@ function saveOrders(orders, callback) {
   });
   batch.commit().then(function() {
     if (callback) callback();
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not save orders to Firestore:', error);
     if (callback) callback();
   });
 }
@@ -261,7 +295,8 @@ function getDefaultCms() {
 function saveCms(data, callback) {
   db.collection('cms').doc('site').set(data).then(function() {
     if (callback) callback();
-  }).catch(function() {
+  }).catch(function(error) {
+    console.warn('Could not save CMS content to Firestore:', error);
     if (callback) callback();
   });
 }
@@ -276,6 +311,7 @@ var SmileHubData = {
   deleteProductById: deleteProductById,
   getOrders: getOrders,
   saveOrders: saveOrders,
+  saveOrder: saveOrder,
   getCms: getCms,
   saveCms: saveCms,
   categoryImages: categoryImages,
