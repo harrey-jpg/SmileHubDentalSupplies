@@ -56,6 +56,11 @@ service cloud.firestore {
       allow update: if validProfile(uid) && requestedRole() == currentRole();
       allow read: if own(uid) || isAdmin();
       allow delete: if own(uid) || isAdmin();
+
+      // Saved shipping addresses subcollection (mobile app).
+      match /addresses/{addressId} {
+        allow read, create, update, delete: if own(uid);
+      }
     }
 
     match /carts/{uid} {
