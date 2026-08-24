@@ -1161,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (idx > -1) {
           var oldRole = accounts[idx].role;
           accounts[idx].role = newRole;
-          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast('Update failed: ' + (error.code || error.message || 'check console'), true); });
           addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
           showToast('Role updated for ' + email, false, true);
         }
@@ -1176,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var idx = accounts.findIndex(function(a) { return a.email === email; });
         if (idx > -1) {
           accounts[idx].status = newStatus;
-          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast('Update failed: ' + (error.code || error.message || 'check console'), true); });
           addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
           showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
         }
@@ -1192,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (idx > -1) {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
-          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts);
+          window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast('Update failed: ' + (error.code || error.message || 'check console'), true); });
           // Remove the Firestore doc too, otherwise getAccounts() restores it on reload.
           firebase.firestore().collection('accounts').doc(email).delete()
             .catch(function(error) { console.warn('Could not delete account from Firestore:', error); });
