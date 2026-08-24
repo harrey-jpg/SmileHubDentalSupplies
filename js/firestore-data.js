@@ -205,6 +205,9 @@ function getOrders(callback) {
     var orders = [];
     snapshot.forEach(function(doc) {
       var o = doc.data();
+      // Remember the real document id so admin edits update the correct
+      // record (mobile orders use auto-ids, not their number as id).
+      o.docId = doc.id;
       if (!o.date && o.createdAt && typeof o.createdAt.toDate === 'function') {
         try {
           var created = o.createdAt.toDate();
@@ -267,8 +270,12 @@ function saveOrder(order, callback) {
 function saveOrders(orders, callback) {
   var batch = db.batch();
   orders.forEach(function(o) {
-    var ref = db.collection('orders').doc(o.number);
-    batch.set(ref, o);
+    // Mobile orders live under auto-generated doc ids (o.docId); writing them
+    // to doc(o.number) would create duplicates the app would never see.
+    var ref = db.collection('orders').doc(o.docId || o.number);
+    var copy = Object.assign({}, o);
+    delete copy.docId;
+    batch.set(ref, copy);
   });
   batch.commit().then(function() {
     if (callback) callback();
