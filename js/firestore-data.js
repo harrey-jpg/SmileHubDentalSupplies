@@ -199,10 +199,26 @@ function mergeOrders(local, remote) {
 
 function getOrders(callback) {
   var local = getLocalOrders();
-  db.collection('orders').orderBy('date', 'desc').get().then(function(snapshot) {
+  // No orderBy('date') here: mobile-app orders store createdAt instead and
+  // Firestore silently excludes documents missing the ordered field.
+  db.collection('orders').get().then(function(snapshot) {
     var orders = [];
     snapshot.forEach(function(doc) {
-      orders.push(doc.data());
+      var o = doc.data();
+      if (!o.date && o.createdAt && typeof o.createdAt.toDate === 'function') {
+        try {
+          var created = o.createdAt.toDate();
+          o.date = created.toLocaleDateString();
+          o.sortTs = created.getTime();
+        } catch (e) {}
+      }
+      if (!o.number) o.number = o.orderNumber || doc.id;
+      if (!o.customer) o.customer = o.customerName || o.customerEmail || 'Mobile customer';
+      if (!o.address && o.shippingAddress && typeof o.shippingAddress === 'object') {
+        var sa = o.shippingAddress;
+        o.address = [sa.recipient, sa.phone, sa.address].filter(Boolean).join(' • ');
+      }
+      orders.push(o);
     });
     if (orders.length === 0 && canAttemptSeed('smilehub_seed_orders')) {
       var defaults = getDefaultOrders();

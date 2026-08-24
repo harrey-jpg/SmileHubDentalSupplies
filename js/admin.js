@@ -660,7 +660,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!body) return;
     const orders = getOrders();
     let filtered = filter === 'all' ? orders : orders.filter(function(o) { return o.status === filter; });
-    filtered.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    filtered.sort(function(a, b) {
+      var ta = a.sortTs || (new Date(a.date).getTime() || 0);
+      var tb = b.sortTs || (new Date(b.date).getTime() || 0);
+      return tb - ta;
+    });
 
     if (filtered.length === 0) {
       body.innerHTML = `<tr><td colspan="7" class="text-center muted" style="padding:40px;">No orders found</td></tr>`;
