@@ -98,7 +98,10 @@ service cloud.firestore {
     }
     match /accounts/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
-      allow write: if isAdmin();
+      // New sign-ups (web or mobile) may create their own account record;
+      // only admins may modify or remove records afterwards.
+      allow create: if signedIn() && request.auth.token.email == email;
+      allow update, delete: if isAdmin();
     }
     match /user_registrations/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isAdmin());

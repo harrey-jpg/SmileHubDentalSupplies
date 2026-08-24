@@ -645,9 +645,39 @@ function protectLinksForGuests() {
 }
 
 function getAccounts() {
-  return firebase.firestore().collection('accounts').get().then(function(snapshot) {
-    var accounts = [];
-    snapshot.forEach(function(doc) { accounts.push(doc.data()); });
+  return Promise.all([
+    firebase.firestore().collection('accounts').get(),
+    firebase.firestore().collection('users').get()
+  ]).then(function(results) {
+    var byEmail = {};
+    // Base records from the accounts collection.
+    results[0].forEach(function(doc) {
+      var a = doc.data();
+      if (a && a.email) byEmail[String(a.email).toLowerCase()] = a;
+    });
+    // Merge in user profiles (mobile sign-ups only write here).
+    results[1].forEach(function(doc) {
+      var u = doc.data();
+      var email = String(u.email || '').toLowerCase();
+      if (!email) return;
+      var name = u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || email;
+      if (!byEmail[email]) {
+        byEmail[email] = {
+          name: name,
+          email: email,
+          role: u.role || 'customer',
+          status: 'active',
+          firstName: u.firstName || '',
+          lastName: u.lastName || ''
+        };
+      } else {
+        var existing = byEmail[email];
+        if (!existing.name || existing.name === email) existing.name = name;
+        if (u.role && (!existing.role || existing.role === 'customer')) existing.role = u.role;
+      }
+    });
+
+    var accounts = Object.keys(byEmail).map(function(email) { return byEmail[email]; });
     if (accounts.length === 0) {
       accounts = [
         { name: 'Demo Customer', email: 'customer@smilehub.ph', role: 'customer', status: 'active', firstName: 'Demo', lastName: 'Customer' },
