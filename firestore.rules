@@ -107,7 +107,7 @@ service cloud.firestore {
     }
     match /user_registrations/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
-      allow create: if signedIn() && request.auth.token.email == email;
+      allow create: if signedIn() && (request.auth.token.email == email || isAdmin());
       // The invited account may claim its own invitation, but may only touch
       // the claim fields — everything else stays admin-managed.
       allow update: if isAdmin()

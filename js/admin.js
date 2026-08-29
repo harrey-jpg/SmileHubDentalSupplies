@@ -1208,6 +1208,24 @@ document.addEventListener('DOMContentLoaded', function() {
           // Remove the Firestore doc too, otherwise getAccounts() restores it on reload.
           firebase.firestore().collection('accounts').doc(email).delete()
             .catch(function(error) { console.warn('Could not delete account from Firestore:', error); });
+          // Also delete matching users/{uid} profile(s) — getAccounts() merges
+          // users collection, so a lingering users doc resurrects the account.
+          firebase.firestore().collection('users').where('email', '==', email).get()
+            .then(function(snap) {
+              snap.forEach(function(doc) {
+                doc.ref.delete().catch(function() {});
+              });
+              // Also try lower-cased variant if stored that way
+              if (snap.empty && email !== email.toLowerCase()) {
+                return firebase.firestore().collection('users').where('email', '==', email.toLowerCase()).get();
+              }
+            })
+            .then(function(snap2) {
+              if (snap2 && !snap2.empty) {
+                snap2.forEach(function(doc) { doc.ref.delete().catch(function() {}); });
+              }
+            })
+            .catch(function() {});
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
