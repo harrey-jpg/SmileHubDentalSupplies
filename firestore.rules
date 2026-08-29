@@ -45,15 +45,15 @@ service cloud.firestore {
     }
     match /users/{uid} {
       // Create: self-registration is allowed as 'customer'. Elevated roles
-      // require a matching unclaimed admin-created invitation.
-      allow create: if validProfile(uid)
+      // require a matching unclaimed admin-created invitation. Admins may also
+      // create/repair other users' docs directly (for account re-linking).
+      allow create: if (validProfile(uid)
         && (requestedRole() == 'customer'
             || (requestedRole() in ['admin', 'staff', 'superadmin']
-                && invitedRole() == requestedRole()));
+                && invitedRole() == requestedRole()))) || isAdmin();
       // Update: profile fields may change, but the role can NEVER be changed
-      // by the owner. Without this, any user could promote themselves to
-      // superadmin and satisfy isAdmin() server-side.
-      allow update: if validProfile(uid) && requestedRole() == currentRole();
+      // by the owner. Admins may update any user's profile (e.g., to repair roles).
+      allow update: if (validProfile(uid) && requestedRole() == currentRole()) || isAdmin();
       allow read: if own(uid) || isAdmin();
       allow delete: if own(uid) || isAdmin();
 

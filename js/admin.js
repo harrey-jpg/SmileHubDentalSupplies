@@ -1881,6 +1881,14 @@ document.addEventListener('DOMContentLoaded', function() {
       renderCms();
       setupCms();
     });
+    // Re-apply role-gated UI once the Firebase profile (and correct role) is loaded
+    document.addEventListener('authReady', function() {
+      applyRoleVisibility();
+      // Re-fetch accounts with correct isAdmin after role resolves
+      if (window.SmileHubAuth) {
+        window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(){});
+      }
+    });
     fetchAuditLogs();
     setupAccountSearch();
     if (window.SmileHubAuth) {
