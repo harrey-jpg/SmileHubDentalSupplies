@@ -1318,24 +1318,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         accounts.push(newAccount);
 
-        Promise.all([
-          window.SmileHubAuth.saveAccounts(accounts),
-          firebase.firestore().collection('user_registrations').doc(email).set({
+        window.SmileHubAuth.saveAccounts(accounts).then(function() {
+          // Invitation doc is best-effort — live rules may not yet be deployed,
+          // so don't fail the whole create if this write is denied.
+          return firebase.firestore().collection('user_registrations').doc(email).set({
             firstName: firstName,
             lastName: lastName,
             displayName: firstName + ' ' + lastName,
             email: email,
             role: role,
             claimed: false
-          })
-        ]).then(function() {
+          }).catch(function(regErr) {
+            console.warn('user_registrations write failed (deploy firestore.rules):', regErr);
+          });
+        }).then(function() {
           form.classList.remove('show');
           form.reset();
           renderAccounts();
           addAuditLog('Pre-registered: ' + email + ' (' + role + ')');
           showToast('Account pre-registered! User must sign up via Register page to activate.', false, true);
         }).catch(function(error) {
-          showToast('Firestore error: ' + error.message, true);
+          // Roll back local array if the accounts write itself failed
+          var idx = accounts.findIndex(function(a) { return a.email === email; });
+          if (idx > -1) accounts.splice(idx, 1);
+          showToast('Firestore error: ' + (error && error.message ? error.message : error), true);
         });
       });
     }
