@@ -122,50 +122,51 @@
 <h2>
             Send a Message
           </h2>
-<form class="demo-form">
+<form id="contactForm">
 <div class="form-grid">
 <div class="form-group">
-<label>
+<label for="contactName">
                   Name
                 </label>
-<input required=""/>
+<input id="contactName" required=""/>
 </div>
 <div class="form-group">
-<label>
+<label for="contactEmail">
                   Email
                 </label>
-<input required="" type="email"/>
+<input id="contactEmail" required="" type="email"/>
 </div>
 </div>
 <div class="form-group">
-<label>
+<label for="contactTopic">
                 Topic
               </label>
-<select>
-<option>
+<select id="contactTopic">
+<option value="Product Inquiry">
                   Product Inquiry
                 </option>
-<option>
+<option value="Order Concern">
                   Order Concern
                 </option>
-<option>
+<option value="Payment Question">
                   Payment Question
                 </option>
-<option>
+<option value="Technical Support">
                   Technical Support
                 </option>
 </select>
 </div>
 <div class="form-group">
-<label>
+<label for="contactMessage">
                 Message
               </label>
-<textarea required="">
+<textarea id="contactMessage" required="">
               </textarea>
 </div>
-<button class="btn btn-primary">
+<button class="btn btn-primary" id="contactSubmitBtn" type="submit">
               Submit Message
             </button>
+<p id="contactStatus" class="muted" style="margin-top:10px;display:none;"></p>
 </form>
 </section>
 <aside class="card form-card">

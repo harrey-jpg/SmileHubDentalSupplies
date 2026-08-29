@@ -318,7 +318,46 @@ function setupPageActions() {
     });
   }
 
+  // Contact form — real Firestore write (contact.html)
+  var contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var btn = document.getElementById('contactSubmitBtn');
+      var status = document.getElementById('contactStatus');
+      var name = (document.getElementById('contactName') || {}).value || '';
+      var email = (document.getElementById('contactEmail') || {}).value || '';
+      var topic = (document.getElementById('contactTopic') || {}).value || '';
+      var message = (document.getElementById('contactMessage') || {}).value || '';
+      if (!name.trim() || !email.trim() || !message.trim()) { showToast('Please fill in all fields', true); return; }
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+      if (status) { status.style.display = 'block'; status.textContent = 'Sending...'; }
+      var db = firebase.firestore();
+      db.collection('contact_messages').add({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        topic: topic,
+        message: message.trim(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'new'
+      }).then(function() {
+        showToast('Message sent! We\'ll get back to you soon.', false, true);
+        if (status) status.textContent = 'Message sent — thank you!';
+        contactForm.reset();
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit Message'; }
+        setTimeout(function(){ if(status) status.style.display='none'; }, 4000);
+      }).catch(function(err){
+        console.error('Contact send failed:', err);
+        showToast('Failed to send: ' + (err.message || 'check connection'), true);
+        if (status) status.textContent = 'Failed to send. Please try again.';
+        if (btn) { btn.disabled = false; btn.textContent = 'Submit Message'; }
+      });
+    });
+  }
+
   document.querySelectorAll('.newsletter-form, .demo-form').forEach(function (form) {
+    // Skip contactForm — handled above with real Firestore write
+    if (form.id === 'contactForm') return;
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       showToast('Form submitted successfully');
