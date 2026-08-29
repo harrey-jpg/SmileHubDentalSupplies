@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
         renderAuditLogs();
       }
     }
+    if (sectionId === '#messages') {
+      fetchMessages();
+    }
   }
 
   // --- RENDER PRODUCTS ---
@@ -1759,6 +1762,123 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('');
   }
 
+  // --- MESSAGES INBOX ---
+  var messagesCache = [];
+  function fetchMessages(callback) {
+    firebase.firestore().collection('contact_messages').orderBy('createdAt','desc').limit(100).get().then(function(snap){
+      messagesCache = [];
+      snap.forEach(function(doc){
+        var d = doc.data(); d._id = doc.id;
+        if (d.createdAt && d.createdAt.toDate) d._time = d.createdAt.toDate().toLocaleString();
+        else d._time = d.createdAt ? String(d.createdAt) : '';
+        messagesCache.push(d);
+      });
+      if (callback) callback(messagesCache);
+      renderMessages();
+    }).catch(function(err){
+      console.warn('Could not load messages:', err);
+      var body = document.getElementById('messagesBody');
+      if (body) body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      if (callback) callback([]);
+    });
+  }
+  function updateMessageStats(list){
+    var total = messagesCache.length;
+    var n = messagesCache.filter(function(m){ return (m.status||'new')==='new'; }).length;
+    var r = messagesCache.filter(function(m){ return m.status==='read'; }).length;
+    var rep = messagesCache.filter(function(m){ return m.status==='replied'; }).length;
+    var el1=document.getElementById('msgTotal'), el2=document.getElementById('msgNew'), el3=document.getElementById('msgRead'), el4=document.getElementById('msgReplied');
+    if(el1) el1.textContent=total; if(el2) el2.textContent=n; if(el3) el3.textContent=r; if(el4) el4.textContent=rep;
+  }
+  function renderMessages(){
+    var body=document.getElementById('messagesBody'); if(!body) return;
+    var q=((document.getElementById('msgSearch')||{}).value||'').toLowerCase().trim();
+    var statusF=(document.getElementById('msgStatusFilter')||{}).value||'all';
+    var topicF=(document.getElementById('msgTopicFilter')||{}).value||'all';
+    var filtered=messagesCache.filter(function(m){
+      if(statusF!=='all' && (m.status||'new')!==statusF) return false;
+      if(topicF!=='all' && m.topic!==topicF) return false;
+      if(q){
+        var hay=[m.name,m.email,m.topic,m.message].join(' ').toLowerCase();
+        if(hay.indexOf(q)===-1) return false;
+      }
+      return true;
+    });
+    updateMessageStats();
+    var countEl=document.getElementById('msgCount'); if(countEl) countEl.textContent=filtered.length+' of '+messagesCache.length;
+    if(messagesCache.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No messages yet — contact form submissions will appear here.</td></tr>'; return; }
+    if(filtered.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No matching messages.</td></tr>'; return; }
+    body.innerHTML=filtered.map(function(m){
+      var st=m.status||'new';
+      var badge = st==='new' ? 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;' : st==='replied' ? 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;' : 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;';
+      var snippet=(m.message||'').length>80 ? (m.message||'').slice(0,80)+'…' : (m.message||'');
+      var safeEmail=(m.email||'').replace(/'/g,"\\'");
+      return '<tr>'+
+        '<td style="white-space:nowrap;font-size:0.82rem;color:var(--muted);">'+(m._time||'')+'</td>'+
+        '<td><strong>'+(m.name||'')+'</strong></td>'+
+        '<td><a href="mailto:'+(m.email||'')+'">'+(m.email||'')+'</a></td>'+
+        '<td><span class="chip-cat">'+(m.topic||'')+'</span></td>'+
+        '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(m.message||'').replace(/"/g,'&quot;')+'">'+snippet+'</td>'+
+        '<td><span style="padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;'+badge+'">'+st+'</span></td>'+
+        '<td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;">'+
+          '<button class="btn btn-light msg-view" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">View</button>'+
+          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\nThank you for contacting SmileHub about \"'+(m.topic||'')+'\".\n\n')+'" style="padding:4px 8px;font-size:0.78rem;text-decoration:none;">Reply</a>'+
+          (st!=='replied' ? '<button class="btn btn-light msg-replied" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Replied</button>' : '')+
+          (st==='new' ? '<button class="btn btn-light msg-read" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Read</button>' : '')+
+          '<button class="btn btn-danger msg-del" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>'+
+        '</td></tr>';
+    }).join('');
+    body.querySelectorAll('.msg-view').forEach(function(btn){
+      btn.addEventListener('click', function(){ openMessage(this.dataset.id); });
+    });
+    body.querySelectorAll('.msg-read').forEach(function(btn){
+      btn.addEventListener('click', function(){ updateMsgStatus(this.dataset.id,'read'); });
+    });
+    body.querySelectorAll('.msg-replied').forEach(function(btn){
+      btn.addEventListener('click', function(){ updateMsgStatus(this.dataset.id,'replied'); });
+    });
+    body.querySelectorAll('.msg-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id=this.dataset.id; if(!confirm('Delete this message?')) return;
+        firebase.firestore().collection('contact_messages').doc(id).delete().then(function(){
+          messagesCache=messagesCache.filter(function(m){ return m._id!==id; });
+          renderMessages(); showToast('Message deleted', false, false);
+        }).catch(function(e){ showToast('Delete failed: '+(e.message||e), true); });
+      });
+    });
+    // Auto-mark as read when viewed via mailto reply? No, manual
+  }
+  function updateMsgStatus(id, status){
+    firebase.firestore().collection('contact_messages').doc(id).update({status:status}).then(function(){
+      var m=messagesCache.find(function(x){ return x._id===id; }); if(m) m.status=status;
+      renderMessages(); addAuditLog('Marked message '+id+' as '+status); showToast('Marked as '+status, false, true);
+    }).catch(function(e){ showToast('Update failed: '+(e.message||e), true); });
+  }
+  function openMessage(id){
+    var m=messagesCache.find(function(x){ return x._id===id; }); if(!m) return;
+    var modal=document.getElementById('msgModal'), content=document.getElementById('msgModalContent'), title=document.getElementById('msgModalTitle');
+    if(!modal||!content) return;
+    if(title) title.textContent=m.topic ? m.topic+' — '+(m.name||'') : 'Message';
+    content.innerHTML=
+      '<div style="display:grid;gap:10px;">'+
+        '<div><strong>From:</strong> '+(m.name||'')+' &lt;'+(m.email||'')+'&gt;</div>'+
+        '<div><strong>Topic:</strong> '+(m.topic||'')+'</div>'+
+        '<div><strong>Time:</strong> '+(m._time||'')+'</div>'+
+        '<div><strong>Status:</strong> '+(m.status||'new')+'</div>'+
+        '<div style="padding:12px;background:var(--sky);border-radius:8px;white-space:pre-wrap;">'+(m.message||'')+'</div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">'+
+          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\n')+'">Reply via Email</a>'+
+          '<button class="btn btn-light" id="msgModalRead">Mark Read</button>'+
+          '<button class="btn btn-light" id="msgModalReplied">Mark Replied</button>'+
+        '</div>'+
+      '</div>';
+    modal.style.display='flex';
+    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); modal.style.display='none'; };
+    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); modal.style.display='none'; };
+    // Auto-mark new as read when opened
+    if((m.status||'new')==='new') updateMsgStatus(id,'read');
+  }
+
   // --- NOTIFICATION TEMPLATES ---
   var defaultTemplates = [
     { key: 'order_confirmation', label: 'Order Confirmation', subject: 'Order Confirmed - {{order_number}}', body: 'Hi {{customer}},\n\nYour order {{order_number}} has been confirmed.\nTotal: {{total}}\nWe will notify you once it ships.\n\nThanks,\nSmileHub Dental Supplies' },
@@ -1903,6 +2023,19 @@ document.addEventListener('DOMContentLoaded', function() {
       renderAccounts();
     }
     renderNotificationTemplates();
+
+    // Messages inbox filters
+    var msgSearch = document.getElementById('msgSearch');
+    var msgStatusFilter = document.getElementById('msgStatusFilter');
+    var msgTopicFilter = document.getElementById('msgTopicFilter');
+    var refreshMessagesBtn = document.getElementById('refreshMessagesBtn');
+    if (msgSearch) msgSearch.addEventListener('input', renderMessages);
+    if (msgStatusFilter) msgStatusFilter.addEventListener('change', renderMessages);
+    if (msgTopicFilter) msgTopicFilter.addEventListener('change', renderMessages);
+    if (refreshMessagesBtn) refreshMessagesBtn.addEventListener('click', function(){ fetchMessages(); showToast('Messages refreshed', false, false); });
+    // Close msg modal on backdrop click
+    var msgModal = document.getElementById('msgModal');
+    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) msgModal.style.display='none'; });
 
     // Report period filter
     var periodSelect = document.getElementById('reportPeriod');
