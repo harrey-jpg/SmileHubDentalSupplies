@@ -1316,9 +1316,17 @@ document.addEventListener('DOMContentLoaded', function() {
         secondaryApp.auth().createUserWithEmailAndPassword(email, password).then(function(cred) {
           var newUid = cred.user.uid;
           var displayName = firstName + ' ' + lastName;
-          // Create Firestore profiles directly — new account is immediately usable
-          return Promise.all([
-            firebase.firestore().collection('users').doc(newUid).set({
+          // Firestore rules require an unclaimed invitation for elevated roles:
+          // 1) create invitation with claimed:false, 2) create users/{uid} (invitedRole check), 3) mark claimed:true
+          return firebase.firestore().collection('user_registrations').doc(email).set({
+            firstName: firstName,
+            lastName: lastName,
+            displayName: displayName,
+            email: email,
+            role: role,
+            claimed: false
+          }).catch(function() {}).then(function() {
+            return firebase.firestore().collection('users').doc(newUid).set({
               firstName: firstName,
               lastName: lastName,
               displayName: displayName,
@@ -1326,28 +1334,37 @@ document.addEventListener('DOMContentLoaded', function() {
               role: role,
               phone: '',
               address: ''
-            }),
-            firebase.firestore().collection('accounts').doc(email).set({
-              firstName: firstName,
-              lastName: lastName,
-              name: displayName,
-              email: email,
-              phone: '',
-              address: '',
-              role: role,
-              status: 'active'
-            }),
-            firebase.firestore().collection('user_registrations').doc(email).set({
-              firstName: firstName,
-              lastName: lastName,
-              displayName: displayName,
-              email: email,
-              role: role,
-              claimed: true,
-              claimedUid: newUid,
-              claimedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(function() {})
-          ]).then(function() {
+            });
+          }).then(function() {
+            return Promise.all([
+              firebase.firestore().collection('accounts').doc(email).set({
+                firstName: firstName,
+                lastName: lastName,
+                name: displayName,
+                email: email,
+                phone: '',
+                address: '',
+                role: role,
+                status: 'active'
+              }),
+              firebase.firestore().collection('user_registrations').doc(email).update({
+                claimed: true,
+                claimedUid: newUid,
+                claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+              }).catch(function() {
+                return firebase.firestore().collection('user_registrations').doc(email).set({
+                  firstName: firstName,
+                  lastName: lastName,
+                  displayName: displayName,
+                  email: email,
+                  role: role,
+                  claimed: true,
+                  claimedUid: newUid,
+                  claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {merge:true}).catch(function(){});
+              })
+            ]);
+          }).then(function() {
             return secondaryApp.auth().signOut();
           }).then(function() {
             var newAccount = {
@@ -1372,34 +1389,53 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }).catch(function(error) {
           if (error && error.code === 'auth/email-already-in-use') {
-            // Auth user already exists (previous attempt partially succeeded) — just re-link Firestore docs
-            showToast('Auth already exists — re-linking Firestore for ' + email + '...', false, false);
+            // Auth user already exists (previous attempt partially succeeded) — fix Firestore via invitation flow
+            showToast('Auth already exists — repairing Firestore for ' + email + '...', false, false);
             var displayName2 = firstName + ' ' + lastName;
-            // Try to find existing uid for this email to keep users/{uid} consistent
             return firebase.firestore().collection('users').where('email','==',email).get().catch(function(){ return { empty:true, forEach:function(){} }; }).then(function(snap){
               var existingUid = null;
               if (snap && snap.forEach) snap.forEach(function(doc){ existingUid = doc.id; });
-              var p = [];
-              if (existingUid) {
-                p.push(firebase.firestore().collection('users').doc(existingUid).set({
-                  firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,phone:'',address:''
-                }, {merge:true}));
-              }
-              p.push(firebase.firestore().collection('accounts').doc(email).set({
-                firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active'
-              }));
-              p.push(firebase.firestore().collection('user_registrations').doc(email).set({
-                firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:true,claimedAt:firebase.firestore.FieldValue.serverTimestamp()
-              }).catch(function(){}));
-              return Promise.all(p);
+              // 1) Ensure invitation exists with claimed:false so users create/update can claim elevated role
+              return firebase.firestore().collection('user_registrations').doc(email).set({
+                firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:false
+              }).catch(function(){}).then(function(){
+                if (existingUid) {
+                  // Role cannot be changed via update (rule blocks it) — delete and recreate
+                  return firebase.firestore().collection('users').doc(existingUid).delete().catch(function(){}).then(function(){
+                    return firebase.firestore().collection('users').doc(existingUid).set({
+                      firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,phone:'',address:''
+                    });
+                  });
+                } else {
+                  // No users doc yet — the next login's self-heal will create it, but create a placeholder
+                  // Find uid via Auth is not possible from client, so just ensure invitation + accounts
+                  return Promise.resolve();
+                }
+              }).then(function(){
+                return Promise.all([
+                  firebase.firestore().collection('accounts').doc(email).set({
+                    firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active'
+                  }),
+                  firebase.firestore().collection('user_registrations').doc(email).update({
+                    claimed:true, claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                  }).catch(function(){
+                    return firebase.firestore().collection('user_registrations').doc(email).set({
+                      firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:true,claimedAt:firebase.firestore.FieldValue.serverTimestamp()
+                    }, {merge:true}).catch(function(){});
+                  })
+                ]);
+              }).then(function(){
+                // Clear tombstone so getAccounts() shows it again
+                return firebase.firestore().collection('deleted_accounts').doc(email.toLowerCase()).delete().catch(function(){});
+              });
             }).then(function(){
               var newAccount2 = { firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active' };
               if (!accounts.some(function(a){ return a.email===email; })) accounts.push(newAccount2);
               return window.SmileHubAuth.saveAccounts(accounts).catch(function(){});
             }).then(function(){
               form.classList.remove('show'); form.reset(); renderAccounts();
-              addAuditLog('Re-linked account: ' + email + ' (' + role + ')');
-              showToast('Account re-linked — ' + email + ' can log in now!', false, true);
+              addAuditLog('Repaired account: ' + email + ' (' + role + ')');
+              showToast('Account repaired — ' + email + ' can log in now! Have them refresh and log in again.', false, true);
             });
           }
           var msg = error && error.message ? error.message : String(error);
