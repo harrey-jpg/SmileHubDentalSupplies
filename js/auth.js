@@ -647,19 +647,32 @@ function protectLinksForGuests() {
 function getAccounts() {
   return Promise.all([
     firebase.firestore().collection('accounts').get(),
-    firebase.firestore().collection('users').get()
+    firebase.firestore().collection('users').get(),
+    firebase.firestore().collection('deleted_accounts').get().catch(function() { return { forEach: function() {} }; })
   ]).then(function(results) {
+    var deletedSet = {};
+    var deletedSnap = results[2];
+    if (deletedSnap && deletedSnap.forEach) {
+      deletedSnap.forEach(function(doc) {
+        deletedSet[String(doc.id).toLowerCase()] = true;
+        var d = doc.data();
+        if (d && d.email) deletedSet[String(d.email).toLowerCase()] = true;
+      });
+    }
     var byEmail = {};
-    // Base records from the accounts collection.
+    // Base records from the accounts collection — skip tombstoned emails.
     results[0].forEach(function(doc) {
       var a = doc.data();
-      if (a && a.email) byEmail[String(a.email).toLowerCase()] = a;
+      if (!a || !a.email) return;
+      var em = String(a.email).toLowerCase();
+      if (deletedSet[em] || deletedSet[String(doc.id).toLowerCase()]) return;
+      byEmail[em] = a;
     });
-    // Merge in user profiles (mobile sign-ups only write here).
+    // Merge in user profiles (mobile sign-ups only write here) — skip tombstoned.
     results[1].forEach(function(doc) {
       var u = doc.data();
       var email = String(u.email || '').toLowerCase();
-      if (!email) return;
+      if (!email || deletedSet[email]) return;
       var name = u.displayName || [u.firstName, u.lastName].filter(Boolean).join(' ') || email;
       if (!byEmail[email]) {
         byEmail[email] = {

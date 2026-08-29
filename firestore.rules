@@ -116,6 +116,10 @@ service cloud.firestore {
                  .hasOnly(['claimed', 'claimedUid', 'claimedAt']));
       allow delete: if isAdmin();
     }
+    match /deleted_accounts/{email} {
+      allow read, create, delete: if isAdmin();
+      allow update: if isAdmin();
+    }
     match /audit_logs/{id} {
       allow read: if isAdmin();
       allow create: if signedIn();

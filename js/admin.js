@@ -1205,9 +1205,18 @@ document.addEventListener('DOMContentLoaded', function() {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast('Update failed: ' + (error.code || error.message || 'check console'), true); });
+          var lowerEmail = email.toLowerCase();
+          // Tombstone so getAccounts() never re-merges this email from users.
+          firebase.firestore().collection('deleted_accounts').doc(lowerEmail).set({
+            email: lowerEmail,
+            originalEmail: email,
+            deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deletedBy: (window.SmileHubAuth.getLoggedInUser() || {}).email || ''
+          }).catch(function() {});
           // Remove the Firestore doc too, otherwise getAccounts() restores it on reload.
           firebase.firestore().collection('accounts').doc(email).delete()
             .catch(function(error) { console.warn('Could not delete account from Firestore:', error); });
+          firebase.firestore().collection('accounts').doc(lowerEmail).delete().catch(function() {});
           // Also delete matching users/{uid} profile(s) — getAccounts() merges
           // users collection, so a lingering users doc resurrects the account.
           firebase.firestore().collection('users').where('email', '==', email).get()
@@ -1215,9 +1224,8 @@ document.addEventListener('DOMContentLoaded', function() {
               snap.forEach(function(doc) {
                 doc.ref.delete().catch(function() {});
               });
-              // Also try lower-cased variant if stored that way
-              if (snap.empty && email !== email.toLowerCase()) {
-                return firebase.firestore().collection('users').where('email', '==', email.toLowerCase()).get();
+              if (snap.empty && email !== lowerEmail) {
+                return firebase.firestore().collection('users').where('email', '==', lowerEmail).get();
               }
             })
             .then(function(snap2) {
@@ -1226,6 +1234,9 @@ document.addEventListener('DOMContentLoaded', function() {
               }
             })
             .catch(function() {});
+          // Also clean up any pending invitation.
+          firebase.firestore().collection('user_registrations').doc(email).delete().catch(function() {});
+          firebase.firestore().collection('user_registrations').doc(lowerEmail).delete().catch(function() {});
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
