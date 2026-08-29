@@ -247,16 +247,25 @@
 <h2 id="password" class="sr-only">Change Password</h2>
 <div class="form-group" id="currentPasswordGroup">
 <label for="currentPassword">Current Password</label>
+<div class="password-wrap">
 <input autocomplete="current-password" id="currentPassword" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+</div>
 </div>
 <div class="form-grid">
 <div class="form-group">
 <label for="newPassword">New Password</label>
+<div class="password-wrap">
 <input autocomplete="new-password" id="newPassword" minlength="6" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+</div>
 </div>
 <div class="form-group">
 <label for="confirmPassword">Confirm Password</label>
+<div class="password-wrap">
 <input autocomplete="new-password" id="confirmPassword" minlength="6" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+</div>
 </div>
 </div>
 <button class="btn btn-primary" type="submit">Change Password</button>

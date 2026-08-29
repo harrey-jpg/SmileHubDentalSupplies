@@ -485,7 +485,10 @@
 </div>
 <div class="form-group">
 <label>Password *</label>
+<div class="password-wrap">
 <input id="createAccPassword" minlength="6" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+</div>
 </div>
 <div style="display:flex;align-items:end;gap:8px;grid-column:1/-1;">
 <button class="btn btn-primary" style="flex:1;" type="submit">Create</button>
