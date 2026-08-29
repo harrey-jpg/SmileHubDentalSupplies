@@ -1303,45 +1303,75 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
-        showToast('Pre-registering account...');
+        showToast('Creating account...');
 
-        var newAccount = {
-          firstName: firstName,
-          lastName: lastName,
-          name: firstName + ' ' + lastName,
-          email: email,
-          phone: '',
-          address: '',
-          role: role,
-          status: 'pending'
-        };
+        // Use a secondary app so creating the new Auth user doesn't sign out the current admin
+        var secondaryApp;
+        try { secondaryApp = firebase.app('Secondary'); } catch (e) { secondaryApp = firebase.initializeApp(firebaseConfig, 'Secondary'); }
 
-        accounts.push(newAccount);
-
-        window.SmileHubAuth.saveAccounts(accounts).then(function() {
-          // Invitation doc is best-effort — live rules may not yet be deployed,
-          // so don't fail the whole create if this write is denied.
-          return firebase.firestore().collection('user_registrations').doc(email).set({
-            firstName: firstName,
-            lastName: lastName,
-            displayName: firstName + ' ' + lastName,
-            email: email,
-            role: role,
-            claimed: false
-          }).catch(function(regErr) {
-            console.warn('user_registrations write failed (deploy firestore.rules):', regErr);
+        secondaryApp.auth().createUserWithEmailAndPassword(email, password).then(function(cred) {
+          var newUid = cred.user.uid;
+          var displayName = firstName + ' ' + lastName;
+          // Create Firestore profiles directly — new account is immediately usable
+          return Promise.all([
+            firebase.firestore().collection('users').doc(newUid).set({
+              firstName: firstName,
+              lastName: lastName,
+              displayName: displayName,
+              email: email,
+              role: role,
+              phone: '',
+              address: ''
+            }),
+            firebase.firestore().collection('accounts').doc(email).set({
+              firstName: firstName,
+              lastName: lastName,
+              name: displayName,
+              email: email,
+              phone: '',
+              address: '',
+              role: role,
+              status: 'active'
+            }),
+            firebase.firestore().collection('user_registrations').doc(email).set({
+              firstName: firstName,
+              lastName: lastName,
+              displayName: displayName,
+              email: email,
+              role: role,
+              claimed: true,
+              claimedUid: newUid,
+              claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(function() {})
+          ]).then(function() {
+            return secondaryApp.auth().signOut();
+          }).then(function() {
+            var newAccount = {
+              firstName: firstName,
+              lastName: lastName,
+              name: displayName,
+              email: email,
+              phone: '',
+              address: '',
+              role: role,
+              status: 'active'
+            };
+            accounts.push(newAccount);
+            // Keep the merged list in sync (best-effort)
+            return window.SmileHubAuth.saveAccounts(accounts).catch(function() {});
+          }).then(function() {
+            form.classList.remove('show');
+            form.reset();
+            renderAccounts();
+            addAuditLog('Created account: ' + email + ' (' + role + ')');
+            showToast('Account created — ' + email + ' can log in now!', false, true);
           });
-        }).then(function() {
-          form.classList.remove('show');
-          form.reset();
-          renderAccounts();
-          addAuditLog('Pre-registered: ' + email + ' (' + role + ')');
-          showToast('Account pre-registered! User must sign up via Register page to activate.', false, true);
         }).catch(function(error) {
-          // Roll back local array if the accounts write itself failed
-          var idx = accounts.findIndex(function(a) { return a.email === email; });
-          if (idx > -1) accounts.splice(idx, 1);
-          showToast('Firestore error: ' + (error && error.message ? error.message : error), true);
+          var msg = error && error.message ? error.message : String(error);
+          if (error && error.code === 'auth/email-already-in-use') msg = 'That email is already registered in Authentication.';
+          else if (error && error.code === 'auth/weak-password') msg = 'Password is too weak.';
+          else if (error && error.code === 'auth/invalid-email') msg = 'Invalid email address.';
+          showToast(msg, true);
         });
       });
     }
