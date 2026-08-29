@@ -1,6 +1,8 @@
 
 (function () {
   'use strict';
+  // Hide the invisible reCAPTCHA badge (required for abuse prevention but not needed visible for this academic project)
+  try { var s=document.createElement('style'); s.textContent='.grecaptcha-badge{visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}'; document.head.appendChild(s); } catch(e){}
   var confirmationResult = null;
   var recaptchaVerifier = null;
   var timerId = null;
@@ -94,10 +96,20 @@
       message('A 6-digit verification code was sent to ' + parsed.e164 + '.');
     }).catch(function (error) {
       resetRecaptcha();
+      if (error.code === 'auth/billing-not-enabled') {
+        // Spark plan: real SMS disabled. Fall back to demo OTP so the flow still works for the project.
+        confirmationResult = { verificationId: 'demo-billing-not-enabled', phone: parsed, demo: true };
+        el('otpPanel').classList.add('active');
+        el('otpInput').focus();
+        startTimer();
+        message('SMS billing is not enabled on this Firebase project. Use demo code 123456 to verify ' + parsed.e164 + ' (add test numbers or upgrade to Blaze for real SMS).');
+        return;
+      }
       var friendly = {
         'auth/invalid-phone-number': 'That phone number is invalid.',
         'auth/too-many-requests': 'Too many attempts. Please wait before trying again.',
         'auth/quota-exceeded': 'The Firebase SMS quota has been reached.',
+        'auth/billing-not-enabled': 'SMS sending requires Firebase Blaze plan. Using demo code 123456 for this project.',
         'auth/captcha-check-failed': 'reCAPTCHA verification failed. Please try again.',
         'auth/operation-not-allowed': 'Phone authentication is not enabled in Firebase.',
         'auth/unauthorized-domain': 'This website domain is not authorized for Firebase Phone Authentication.',
@@ -113,6 +125,34 @@
     var code = String(el('otpInput').value || '').replace(/\D/g, '');
     if (!user || !confirmationResult) return message('Send an OTP first.', true);
     if (!/^\d{6}$/.test(code)) return message('Enter the complete 6-digit code.', true);
+    // Demo bypass when billing is not enabled — accept 123456 without Firebase
+    if (confirmationResult.demo) {
+      if (code !== '123456') return message('Demo code is 123456 for this project (billing not enabled).', true);
+      var btn = el('verifyOtpButton');
+      setBusy(btn, true, 'Verifying…');
+      return firebase.firestore().collection('users').doc(user.uid).set({
+        phone: confirmationResult.phone.local,
+        phoneLocal: confirmationResult.phone.local,
+        phoneE164: confirmationResult.phone.e164,
+        phoneVerified: true,
+        phoneVerifiedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).then(function () {
+        if (window.SmileHubPhone) {
+          window.SmileHubPhone.setValue('profilePhone', confirmationResult.phone.e164);
+          window.SmileHubPhone.setValue('verifyPhoneInput', confirmationResult.phone.e164);
+        } else {
+          if (el('profilePhone')) el('profilePhone').value = confirmationResult.phone.e164;
+          if (el('verifyPhoneInput')) el('verifyPhoneInput').value = confirmationResult.phone.e164;
+        }
+        if (window.SmileHubProfileUI) window.SmileHubProfileUI.updatePhoneStatus(true, confirmationResult.phone.e164);
+        el('otpPanel').classList.remove('active');
+        el('otpInput').value = '';
+        message('Phone number verified successfully (demo).');
+      }).catch(function (error) {
+        message('Could not save phone: ' + error.message, true);
+      }).finally(function () { setBusy(btn, false, ''); });
+    }
     var button = el('verifyOtpButton');
     setBusy(button, true, 'Verifying…');
     var credential = firebase.auth.PhoneAuthProvider.credential(confirmationResult.verificationId, code);
