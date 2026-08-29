@@ -1570,16 +1570,92 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function getAuditCategory(action) {
+    var a = (action || '').toLowerCase();
+    if (a.indexOf('stock') !== -1 || a.indexOf('inventory') !== -1 || a.indexOf('bulk') !== -1) return 'stock';
+    if (a.indexOf('order') !== -1 || a.indexOf('shipped') !== -1 || a.indexOf('delivered') !== -1 || a.indexOf('pending') !== -1) return 'order';
+    if (a.indexOf('product') !== -1) return 'product';
+    if (a.indexOf('account') !== -1 || a.indexOf('role') !== -1 || a.indexOf('suspended') !== -1 || a.indexOf('activated') !== -1 || a.indexOf('pre-registered') !== -1) return 'account';
+    if (a.indexOf('cms') !== -1 || a.indexOf('promotion') !== -1 || a.indexOf('faq') !== -1) return 'cms';
+    return 'other';
+  }
+  function getAuditIcon(cat) {
+    var icons = { stock: '📦', order: '📋', product: '🛒', account: '👤', cms: '🎨', other: '•' };
+    return icons[cat] || '•';
+  }
+  function getAuditBadge(cat) {
+    var colors = {
+      stock: 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;',
+      order: 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;',
+      product: 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;',
+      account: 'background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;',
+      cms: 'background:#fef3c7;color:#92400e;border:1px solid #fde68a;',
+      other: 'background:var(--sky);color:var(--muted);border:1px solid var(--border);'
+    };
+    return colors[cat] || colors.other;
+  }
+  function populateAuditAdminFilter() {
+    var sel = document.getElementById('auditAdminFilter');
+    if (!sel) return;
+    var admins = {};
+    getAuditLogs().forEach(function(l) { if (l.admin) admins[l.admin] = true; });
+    var current = sel.value;
+    var opts = '<option value="all">All Admins</option>' + Object.keys(admins).sort().map(function(a) {
+      return '<option value="' + a.replace(/"/g,'&quot;') + '">' + a + '</option>';
+    }).join('');
+    sel.innerHTML = opts;
+    if (admins[current] || current === 'all') sel.value = current;
+  }
   function renderAuditLogs() {
     var body = document.getElementById('auditBody');
     if (!body) return;
     var logs = getAuditLogs();
+    populateAuditAdminFilter();
+    // Read filters
+    var q = (document.getElementById('auditSearch') || {}).value || '';
+    q = q.toLowerCase().trim();
+    var adminF = (document.getElementById('auditAdminFilter') || {}).value || 'all';
+    var catF = (document.getElementById('auditActionFilter') || {}).value || 'all';
+    var dateF = (document.getElementById('auditDateFilter') || {}).value || 'all';
+    var now = new Date();
+    var filtered = logs.filter(function(log) {
+      if (q && (log.action || '').toLowerCase().indexOf(q) === -1 && (log.admin || '').toLowerCase().indexOf(q) === -1 && (log.time || '').toLowerCase().indexOf(q) === -1) return false;
+      if (adminF !== 'all' && log.admin !== adminF) return false;
+      var cat = getAuditCategory(log.action);
+      if (catF !== 'all' && cat !== catF) return false;
+      if (dateF !== 'all') {
+        var d = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate() : (log.time ? new Date(log.time) : null);
+        if (!d || isNaN(d.getTime())) {
+          // fallback: try parse time string
+          d = new Date(log.time);
+        }
+        if (!d || isNaN(d.getTime())) return false;
+        if (dateF === 'today' && d.toDateString() !== now.toDateString()) return false;
+        if (dateF === 'week') { var w = new Date(now); w.setDate(w.getDate()-7); if (d < w) return false; }
+        if (dateF === 'month' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
+      }
+      return true;
+    });
+    var countEl = document.getElementById('auditCount');
+    if (countEl) countEl.textContent = filtered.length + ' of ' + logs.length + ' entries';
     if (logs.length === 0) {
       body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
       return;
     }
-    body.innerHTML = logs.map(function(log) {
-      return '<tr><td>' + log.time + '</td><td>' + log.admin + '</td><td>' + log.action + '</td></tr>';
+    if (filtered.length === 0) {
+      body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:32px;">No results — try a different search or filter.</td></tr>';
+      return;
+    }
+    body.innerHTML = filtered.map(function(log) {
+      var cat = getAuditCategory(log.action);
+      var icon = getAuditIcon(cat);
+      var badge = getAuditBadge(cat);
+      var label = cat.charAt(0).toUpperCase() + cat.slice(1);
+      return '<tr>' +
+        '<td style="white-space:nowrap;font-size:0.85rem;color:var(--muted);">' + (log.time || '') + '</td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--sky);display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">' + (log.admin || '?').charAt(0).toUpperCase() + '</span>' + (log.admin || '') + '</span></td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;' + badge + '">' + icon + ' ' + label + '</span><span>' + (log.action || '') + '</span></span></td>' +
+        '</tr>';
     }).join('');
   }
 
@@ -1732,11 +1808,48 @@ document.addEventListener('DOMContentLoaded', function() {
       printBtn.addEventListener('click', printReport);
     }
 
+    // Audit filters
+    var auditSearch = document.getElementById('auditSearch');
+    var auditAdminFilter = document.getElementById('auditAdminFilter');
+    var auditActionFilter = document.getElementById('auditActionFilter');
+    var auditDateFilter = document.getElementById('auditDateFilter');
+    var auditClearFilters = document.getElementById('auditClearFilters');
+    if (auditSearch) auditSearch.addEventListener('input', renderAuditLogs);
+    if (auditAdminFilter) auditAdminFilter.addEventListener('change', renderAuditLogs);
+    if (auditActionFilter) auditActionFilter.addEventListener('change', renderAuditLogs);
+    if (auditDateFilter) auditDateFilter.addEventListener('change', renderAuditLogs);
+    if (auditClearFilters) auditClearFilters.addEventListener('click', function() {
+      if (auditSearch) auditSearch.value = '';
+      if (auditAdminFilter) auditAdminFilter.value = 'all';
+      if (auditActionFilter) auditActionFilter.value = 'all';
+      if (auditDateFilter) auditDateFilter.value = 'all';
+      renderAuditLogs();
+    });
+    var exportAuditBtn = document.getElementById('exportAuditBtn');
+    if (exportAuditBtn) exportAuditBtn.addEventListener('click', function() {
+      var logs = getAuditLogs();
+      if (!logs.length) { showToast('No logs to export', true); return; }
+      var csv = 'Time,Admin,Action\n' + logs.map(function(l) {
+        return '"' + (l.time||'').replace(/"/g,'""') + '","' + (l.admin||'').replace(/"/g,'""') + '","' + (l.action||'').replace(/"/g,'""') + '"';
+      }).join('\n');
+      var blob = new Blob([csv], {type:'text/csv'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = 'smilehub-audit-' + new Date().toISOString().slice(0,10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+      showToast('Audit log exported', false, true);
+    });
+
     // Clear audit log
     var clearAuditBtn = document.getElementById('clearAuditBtn');
     if (clearAuditBtn) {
       clearAuditBtn.addEventListener('click', function() {
         if (confirm('Clear all audit log entries?')) {
+          // Clear Firestore collection (best-effort) + local cache
+          firebase.firestore().collection('audit_logs').get().then(function(snap) {
+            var batch = firebase.firestore().batch();
+            snap.forEach(function(doc) { batch.delete(doc.ref); });
+            return batch.commit();
+          }).catch(function() {});
+          auditLogsCache = [];
           localStorage.removeItem('smilehub_audit_log');
           renderAuditLogs();
           addAuditLog('Audit log cleared');

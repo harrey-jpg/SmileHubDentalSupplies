@@ -660,17 +660,48 @@
 <!-- ===== AUDIT TRAIL ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="audit" style="display:none;">
 <div class="admin-top">
-<h2>Audit Trail</h2>
-<div style="display:flex;gap:10px;">
-<button class="btn btn-light" id="clearAuditBtn">Clear Log</button>
+<div>
+<h2 style="margin:0;">Audit Trail</h2>
+<p class="muted" style="margin:4px 0 0;font-size:0.85rem;">Track every admin action — stock, orders, products, accounts</p>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<button class="btn btn-light" id="exportAuditBtn" title="Download as CSV" style="padding:8px 14px;font-size:0.85rem;">⬇ Export</button>
+<button class="btn btn-light" id="clearAuditBtn" style="padding:8px 14px;font-size:0.85rem;">Clear Log</button>
 </div>
 </div>
-<div class="table-wrap">
+<!-- Search + Filters -->
+<div class="card" style="padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--white);border:1px solid var(--border);border-radius:12px;">
+<div style="flex:1;min-width:220px;position:relative;">
+<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:0.5;font-size:0.9rem;">🔍</span>
+<input id="auditSearch" placeholder="Search actions, admins, keywords..." style="width:100%;padding:9px 12px 9px 32px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.9rem;"/>
+</div>
+<select id="auditAdminFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.85rem;min-width:140px;">
+<option value="all">All Admins</option>
+</select>
+<select id="auditActionFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.85rem;min-width:150px;">
+<option value="all">All Actions</option>
+<option value="stock">📦 Stock</option>
+<option value="order">📋 Orders</option>
+<option value="product">🛒 Products</option>
+<option value="account">👤 Accounts</option>
+<option value="cms">🎨 CMS</option>
+<option value="other">• Other</option>
+</select>
+<select id="auditDateFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.85rem;">
+<option value="all">All Time</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+<button id="auditClearFilters" class="btn btn-light" style="padding:8px 12px;font-size:0.8rem;white-space:nowrap;">✕ Clear</button>
+<span id="auditCount" class="muted" style="font-size:0.82rem;white-space:nowrap;margin-left:auto;"></span>
+</div>
+<div class="table-wrap" style="border-radius:12px;overflow:hidden;">
 <table>
 <thead>
 <tr>
-<th>Time</th>
-<th>Admin</th>
+<th style="width:170px;">Time</th>
+<th style="width:150px;">Admin</th>
 <th>Action</th>
 </tr>
 </thead>
