@@ -1309,6 +1309,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var secondaryApp;
         try { secondaryApp = firebase.app('Secondary'); } catch (e) { secondaryApp = firebase.initializeApp(firebaseConfig, 'Secondary'); }
 
+        // Allow re-creating a previously deleted email — clear its tombstone first
+        firebase.firestore().collection('deleted_accounts').doc(email.toLowerCase()).delete().catch(function() {});
+        firebase.firestore().collection('deleted_accounts').doc(email).delete().catch(function() {});
+
         secondaryApp.auth().createUserWithEmailAndPassword(email, password).then(function(cred) {
           var newUid = cred.user.uid;
           var displayName = firstName + ' ' + lastName;
