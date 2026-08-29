@@ -1371,9 +1371,39 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('Account created — ' + email + ' can log in now!', false, true);
           });
         }).catch(function(error) {
+          if (error && error.code === 'auth/email-already-in-use') {
+            // Auth user already exists (previous attempt partially succeeded) — just re-link Firestore docs
+            showToast('Auth already exists — re-linking Firestore for ' + email + '...', false, false);
+            var displayName2 = firstName + ' ' + lastName;
+            // Try to find existing uid for this email to keep users/{uid} consistent
+            return firebase.firestore().collection('users').where('email','==',email).get().catch(function(){ return { empty:true, forEach:function(){} }; }).then(function(snap){
+              var existingUid = null;
+              if (snap && snap.forEach) snap.forEach(function(doc){ existingUid = doc.id; });
+              var p = [];
+              if (existingUid) {
+                p.push(firebase.firestore().collection('users').doc(existingUid).set({
+                  firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,phone:'',address:''
+                }, {merge:true}));
+              }
+              p.push(firebase.firestore().collection('accounts').doc(email).set({
+                firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active'
+              }));
+              p.push(firebase.firestore().collection('user_registrations').doc(email).set({
+                firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:true,claimedAt:firebase.firestore.FieldValue.serverTimestamp()
+              }).catch(function(){}));
+              return Promise.all(p);
+            }).then(function(){
+              var newAccount2 = { firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active' };
+              if (!accounts.some(function(a){ return a.email===email; })) accounts.push(newAccount2);
+              return window.SmileHubAuth.saveAccounts(accounts).catch(function(){});
+            }).then(function(){
+              form.classList.remove('show'); form.reset(); renderAccounts();
+              addAuditLog('Re-linked account: ' + email + ' (' + role + ')');
+              showToast('Account re-linked — ' + email + ' can log in now!', false, true);
+            });
+          }
           var msg = error && error.message ? error.message : String(error);
-          if (error && error.code === 'auth/email-already-in-use') msg = 'That email is already registered in Authentication.';
-          else if (error && error.code === 'auth/weak-password') msg = 'Password is too weak.';
+          if (error && error.code === 'auth/weak-password') msg = 'Password is too weak.';
           else if (error && error.code === 'auth/invalid-email') msg = 'Invalid email address.';
           showToast(msg, true);
         });
