@@ -1333,6 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
               firstName: firstName,
               lastName: lastName,
               displayName: displayName,
+              fullName: displayName,
               email: email,
               role: role,
               phone: '',
@@ -1406,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   // Role cannot be changed via update (rule blocks it) — delete and recreate
                   return firebase.firestore().collection('users').doc(existingUid).delete().catch(function(){}).then(function(){
                     return firebase.firestore().collection('users').doc(existingUid).set({
-                      firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,phone:'',address:''
+                      firstName:firstName,lastName:lastName,displayName:displayName2,fullName:displayName2,email:email,role:role,phone:'',address:''
                     });
                   });
                 } else {
