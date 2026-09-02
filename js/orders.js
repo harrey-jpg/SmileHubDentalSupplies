@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     table.innerHTML = filtered.map(function(order) {
       var num = order.number || order.orderNumber || '';
       var cls = (order.status === 'Delivered' ? 'delivered' : order.status === 'Cancelled' ? 'low' : 'processing');
-      return '<tr><td><strong>' + escapeHtml(num) + '</strong></td><td>' + escapeHtml(order.date || '') + '</td><td>' + money(order.total || 0) + '</td><td><span class="status ' + cls + '">' + escapeHtml(order.status || 'Pending') + '</span></td><td style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-light view-order" data-number="' + escapeHtml(num) + '" style="padding:4px 10px;font-size:0.8rem;">View</button><button class="btn btn-light invoice-btn" data-number="' + escapeHtml(num) + '" style="padding:4px 10px;font-size:0.8rem;">Invoice</button></td></tr>';
+      return '<tr><td><strong>' + escapeHtml(num) + '</strong></td><td>' + escapeHtml(order.date || '') + '</td><td>' + money(order.total || 0) + '</td><td><span class="status ' + cls + '">' + escapeHtml(order.status || 'Pending') + '</span></td><td><div class="order-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><button class="btn btn-light view-order" data-number="' + escapeHtml(num) + '" style="padding:6px 10px;font-size:0.78rem;min-height:32px;">View</button><button class="btn btn-light invoice-btn" data-number="' + escapeHtml(num) + '" style="padding:6px 10px;font-size:0.78rem;min-height:32px;">Invoice</button></div></td></tr>';
     }).join('');
     table.querySelectorAll('.view-order').forEach(function(btn){
       btn.addEventListener('click', function(){ viewOrder(this.dataset.number); });

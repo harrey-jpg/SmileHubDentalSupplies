@@ -94,9 +94,14 @@
     function addTools(){
       document.querySelectorAll('#ordersBody tr').forEach(function(row){
         if(row.textContent.indexOf('Loading orders')!==-1 || row.textContent.indexOf('No orders yet')!==-1) return;
-        var last=row.lastElementChild;
-        if(last && !last.querySelector('.order-tools')){
-          last.insertAdjacentHTML('beforeend','<div class="order-tools"><button class="btn btn-light reorder-btn">Reorder</button><a class="btn btn-light" href="returns.html">Return</a></div>');
+        var actions=row.querySelector('.order-actions');
+        if(actions && !actions.querySelector('.reorder-btn')){
+          actions.insertAdjacentHTML('beforeend','<button class="btn btn-light reorder-btn" style="padding:6px 10px;font-size:0.78rem;min-height:32px;">Reorder</button><a class="btn btn-light" href="returns.html" style="padding:6px 10px;font-size:0.78rem;min-height:32px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Return</a>');
+        } else if(!actions) {
+          var last=row.lastElementChild;
+          if(last && !last.querySelector('.order-tools')){
+            last.insertAdjacentHTML('beforeend','<div class="order-tools" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;"><button class="btn btn-light reorder-btn" style="padding:6px 10px;font-size:0.78rem;min-height:32px;">Reorder</button><a class="btn btn-light" href="returns.html" style="padding:6px 10px;font-size:0.78rem;min-height:32px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Return</a></div>');
+          }
         }
       });
     }
