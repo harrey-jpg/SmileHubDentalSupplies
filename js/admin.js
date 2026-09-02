@@ -974,6 +974,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = link.getAttribute('data-role').split(',');
       if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
         link.style.display = 'none';
+      } else {
+        link.style.display = '';
       }
     });
 
@@ -982,6 +984,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = section.getAttribute('data-role').split(',');
       if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
         section.style.display = 'none';
+      } else {
+        section.style.display = '';
       }
     });
 
@@ -990,6 +994,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = el.getAttribute('data-role-btn').split(',');
       if (!allowedRoles.includes(role)) {
         el.style.display = 'none';
+      } else {
+        el.style.display = '';
       }
     });
   }
