@@ -928,9 +928,31 @@ document.addEventListener('DOMContentLoaded', function() {
       return user ? user.role : null;
     } catch(e) { return null; }
   }
-
-  function applyRoleVisibility() {
-    const role = getCurrentUserRole();
+  async function getCurrentUserRoleFresh() {
+    try {
+      const fbUser = firebase.auth().currentUser;
+      if (fbUser) {
+        const snap = await firebase.firestore().collection('users').doc(fbUser.uid).get();
+        if (snap.exists) {
+          const r = snap.data().role;
+          if (r) {
+            // Keep cache in sync so other pages see the correct role without extra fetch
+            try {
+              const cached = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+              if (cached && cached.role !== r) {
+                cached.role = r;
+                sessionStorage.setItem('smilehub_logged_in_user', JSON.stringify(cached));
+              }
+            } catch(e){}
+            return r;
+          }
+        }
+      }
+    } catch(e){}
+    return getCurrentUserRole();
+  }
+  async function applyRoleVisibility() {
+    const role = await getCurrentUserRoleFresh();
     if (!role) return;
 
     // Update top bar with user info
