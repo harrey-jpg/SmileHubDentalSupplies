@@ -12,10 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
   SmileHubData.getOrders(function(orders) {
     var user = getCachedUser();
     var filtered = orders.filter(function(o) {
-      var orderEmail = o.email || (o.customerObj && o.customerObj.email) || '';
+      if (!user) return false;
+      var orderUserId = o.userId || o.uid || o.customerId || '';
+      if (orderUserId && user.uid && orderUserId === user.uid) return true;
+      var orderEmail = o.email || o.customerEmail || o.customer_email || (o.customerObj && o.customerObj.email) || '';
+      if (orderEmail && orderEmail.toLowerCase() === String(user.email||'').toLowerCase()) return true;
       var orderName = o.customerName || o.customer || '';
-      // Match on email first; display names are not unique.
-      return user && (orderEmail === user.email || (!orderEmail && orderName === user.name));
+      // Fallback to display name only when email missing
+      return !orderEmail && orderName === user.name;
     }).filter(function(o, index, list) {
       // Deduplicate by order number in case local and remote copies merged.
       var number = o.number || o.orderNumber;

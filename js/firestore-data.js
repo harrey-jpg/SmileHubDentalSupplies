@@ -216,6 +216,7 @@ function getOrders(callback) {
         } catch (e) {}
       }
       if (!o.number) o.number = o.orderNumber || doc.id;
+      if (!o.email) o.email = o.customerEmail || o.customer_email || '';
       if (!o.customer) o.customer = o.customerName || o.customerEmail || 'Mobile customer';
       if (!o.address && o.shippingAddress && typeof o.shippingAddress === 'object') {
         var sa = o.shippingAddress;
