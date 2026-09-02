@@ -115,6 +115,37 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;"><button class="btn btn-light" onclick="printInvoice(\'' + escapeHtml(orderNum) + '\')">Print Invoice</button><button class="btn btn-light" onclick="document.getElementById(\'orderModal\').style.display=\'none\'">Close</button></div>';
   }
 
+  // Reorder: add this order's items to cart (overrides frontend-suite demo toast)
+  table.addEventListener('click', function(e){
+    if (!e.target.classList.contains('reorder-btn')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    var row = e.target.closest('tr');
+    var num = row && row.querySelector('.view-order') ? row.querySelector('.view-order').dataset.number : null;
+    if (!num) num = e.target.dataset.number;
+    var order = cachedOrders && cachedOrders.find(function(o){ return (o.number||o.orderNumber)===num; });
+    if (!order || !order.items || !order.items.length) { showToast('No items to reorder', true); return; }
+    // Resolve product ids via catalog if possible, otherwise use name-based fallback
+    SmileHubData.getProducts(function(products){
+      var cart = getStoredList(CART_KEY);
+      order.items.forEach(function(it){
+        var name = it.name || '';
+        var qty = Number(it.quantity||1);
+        var price = Number(it.price||0);
+        // Try to find real product id by name
+        var prod = products.find(function(p){ return String(p.name).toLowerCase() === String(name).toLowerCase(); });
+        var id = prod ? prod.id : ('reorder-' + name.replace(/\W+/g,'-').toLowerCase());
+        var existing = cart.find(function(c){ return String(c.id)===String(id); });
+        if (existing) existing.quantity += qty;
+        else cart.push({ id: id, name: name, price: price, quantity: qty, image: prod ? prod.image : 'assets/products/default.svg' });
+      });
+      saveStoredList(CART_KEY, cart);
+      updateCartCount();
+      showToast('Items added to cart — view cart to checkout', false, true);
+    });
+  });
+
   window.viewOrder = viewOrder;
   window.printInvoice = printInvoice;
   document.addEventListener('click', function(e){
