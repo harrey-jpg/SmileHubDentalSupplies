@@ -951,8 +951,81 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(e){}
     return getCurrentUserRole();
   }
+  function getCachedRoleTTL(){
+    try{
+      var raw=localStorage.getItem('smilehub_role_cache');
+      if(!raw) return null;
+      var obj=JSON.parse(raw);
+      if(!obj.role || !obj.ts) return null;
+      if(Date.now()-obj.ts > 5*60*1000) return null;
+      return obj.role;
+    }catch(e){ return null; }
+  }
+  function setCachedRoleTTL(role){
+    try{ localStorage.setItem('smilehub_role_cache', JSON.stringify({role:role, ts:Date.now()})); }catch(e){}
+  }
+  function paintRole(role){
+    var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+    if (user) {
+      var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
+      if (av) av.textContent = user.name.charAt(0).toUpperCase();
+      if (nm) nm.textContent = user.name;
+      if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[role]||role; }
+    }
+    document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link){
+      var allowed=link.getAttribute('data-role').split(',');
+      link.style.display = (!allowed.includes(role) && !allowed.includes('all')) ? 'none' : '';
+    });
+    document.querySelectorAll('[data-role]').forEach(function(sec){
+      var allowed=sec.getAttribute('data-role').split(',');
+      sec.style.display = (!allowed.includes(role) && !allowed.includes('all')) ? 'none' : '';
+    });
+    document.querySelectorAll('[data-role-btn]').forEach(function(el){
+      var allowed=el.getAttribute('data-role-btn').split(',');
+      el.style.display = (!allowed.includes(role)) ? 'none' : '';
+    });
+  }
   async function applyRoleVisibility() {
+    // Option B: instant paint from TTL cache, then background re-validate
+    var cachedTTL = getCachedRoleTTL();
+    if (cachedTTL) {
+      var loadingTTL = document.getElementById('adminLoading');
+      var layoutTTL = document.querySelector('.admin-layout');
+      if (layoutTTL) layoutTTL.style.visibility = 'visible';
+      if (loadingTTL) loadingTTL.style.display = 'none';
+      // Paint cached role immediately (0ms), then refresh in background
+      (function paintCached(r){
+        var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+        if (user) {
+          var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
+          if (av) av.textContent = user.name.charAt(0).toUpperCase();
+          if (nm) nm.textContent = user.name;
+          if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[r]||r; }
+        }
+        document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link){
+          var allowed=link.getAttribute('data-role').split(',');
+          link.style.display = (!allowed.includes(r) && !allowed.includes('all')) ? 'none' : '';
+        });
+        document.querySelectorAll('[data-role]').forEach(function(sec){
+          var allowed=sec.getAttribute('data-role').split(',');
+          sec.style.display = (!allowed.includes(r) && !allowed.includes('all')) ? 'none' : '';
+        });
+        document.querySelectorAll('[data-role-btn]').forEach(function(el){
+          var allowed=el.getAttribute('data-role-btn').split(',');
+          el.style.display = (!allowed.includes(r)) ? 'none' : '';
+        });
+      })(cachedTTL);
+      // Background fresh fetch — correct if role changed
+      getCurrentUserRoleFresh().then(function(fresh){
+        if (fresh && fresh !== cachedTTL) {
+          setCachedRoleTTL(fresh);
+          paintRole(fresh);
+        }
+      });
+      return;
+    }
     const role = await getCurrentUserRoleFresh();
+    if (role) setCachedRoleTTL(role);
     // Reveal layout once role is known — prevents flash of wrong role (customer -> superadmin)
     var loading = document.getElementById('adminLoading');
     var layout = document.querySelector('.admin-layout');
