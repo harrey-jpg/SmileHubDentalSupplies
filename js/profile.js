@@ -28,6 +28,8 @@
     box.textContent = message;
     box.classList.remove('hidden');
     box.classList.toggle('error', Boolean(isError));
+    clearTimeout(box._hideTimer);
+    box._hideTimer = setTimeout(function(){ box.classList.add('hidden'); box.textContent=''; }, 3500);
   }
   window.showProfileMessage = showProfileMessage;
 
