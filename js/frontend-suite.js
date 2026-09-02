@@ -91,12 +91,17 @@
 
   function initOrderTools(){
     var body=document.getElementById('ordersBody'); if(!body) return;
-    document.querySelectorAll('#ordersBody tr').forEach(function(row){
-      var last=row.lastElementChild;
-      if(last && !last.querySelector('.order-tools')){
-        last.insertAdjacentHTML('beforeend','<div class="order-tools"><button class="btn btn-light reorder-btn">Reorder</button><a class="btn btn-light" href="returns.html">Return</a></div>');
-      }
-    });
+    function addTools(){
+      document.querySelectorAll('#ordersBody tr').forEach(function(row){
+        if(row.textContent.indexOf('Loading orders')!==-1 || row.textContent.indexOf('No orders yet')!==-1) return;
+        var last=row.lastElementChild;
+        if(last && !last.querySelector('.order-tools')){
+          last.insertAdjacentHTML('beforeend','<div class="order-tools"><button class="btn btn-light reorder-btn">Reorder</button><a class="btn btn-light" href="returns.html">Return</a></div>');
+        }
+      });
+    }
+    addTools();
+    new MutationObserver(addTools).observe(body, {childList:true, subtree:true});
     body.addEventListener('click',function(e){if(e.target.classList.contains('reorder-btn')) toast('Items from this order were added to your cart.');});
   }
 
