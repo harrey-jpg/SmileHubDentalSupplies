@@ -224,13 +224,20 @@ body.dark-mode .profile-photo-help {
 }
 body.dark-mode input,
 body.dark-mode textarea,
-body.dark-mode select {
+body.dark-mode select,
+body.dark input,
+body.dark textarea,
+body.dark select {
   background:#0d1820 !important;
   color:#f2f7f9 !important;
   border-color:#3b5563 !important;
 }
 body.dark-mode input::placeholder,
-body.dark-mode textarea::placeholder { color:#78909c !important; opacity:1; }
+body.dark-mode textarea::placeholder,
+body.dark input::placeholder,
+body.dark textarea::placeholder { color:#78909c !important; opacity:1; }
+body.dark #contactForm select option,
+body.dark-mode #contactForm select option { background:#0d1820; color:#f2f7f9; }
 body.dark-mode .phone-prefix { background:#172833 !important; color:#f2f7f9 !important; border-color:#3b5563 !important; }
 body.dark-mode .profile-photo { background:#17303a; border-color:#d8f4f2; }
 
