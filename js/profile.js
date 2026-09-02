@@ -179,6 +179,19 @@
   function loadProfile() {
     firebase.auth().onAuthStateChanged(function (user) {
       if (!user) return;
+      // Paint instantly from cache (no Firestore round-trip) to avoid flash of "Demo Customer"
+      try {
+        var cachedAuth = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+        if (cachedAuth) {
+          fillProfile({
+            firstName: cachedAuth.firstName || '',
+            lastName: cachedAuth.lastName || '',
+            displayName: cachedAuth.name || '',
+            email: cachedAuth.email || '',
+            photoDataUrl: cachedProfilePhoto(user.uid)
+          }, user);
+        }
+      } catch(e){}
       firebase.firestore().collection('users').doc(user.uid).get().then(function (doc) {
         fillProfile(doc.exists ? doc.data() : {}, user);
       }).catch(function () {
