@@ -17,7 +17,12 @@
 <link rel="stylesheet" href="css/final-polish.css?v=6.5.2">
 </head>
 <body class="admin-body">
-<div class="admin-layout">
+<div id="adminLoading" style="position:fixed;inset:0;background:var(--white, #fff);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:12px;">
+<div style="width:36px;height:36px;border:3px solid var(--border, #dce5ec);border-top-color:var(--primary, #1261a0);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+<span class="muted" style="font-size:0.9rem;">Verifying admin access...</span>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+<div class="admin-layout" style="visibility:hidden;">
 <aside class="admin-sidebar">
 <a class="logo" href="homepage.html">
 <img alt="" src="assets/logo.svg"/>

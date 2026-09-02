@@ -953,6 +953,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   async function applyRoleVisibility() {
     const role = await getCurrentUserRoleFresh();
+    // Reveal layout once role is known — prevents flash of wrong role (customer -> superadmin)
+    var loading = document.getElementById('adminLoading');
+    var layout = document.querySelector('.admin-layout');
+    if (layout) layout.style.visibility = 'visible';
+    if (loading) loading.style.display = 'none';
     if (!role) return;
 
     // Update top bar with user info
