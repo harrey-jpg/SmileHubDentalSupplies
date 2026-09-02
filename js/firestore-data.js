@@ -199,9 +199,20 @@ function mergeOrders(local, remote) {
 
 function getOrders(callback) {
   var local = getLocalOrders();
+  // Customers may only read their own orders (firestore.rules: userId == uid),
+  // so a plain collection get is denied for non-admins. Use a filtered query.
+  var user = (typeof getCachedUser === 'function' ? getCachedUser() : null);
+  var isAdminUser = false;
+  try {
+    var role = user && user.role;
+    isAdminUser = role && ['admin','staff','superadmin'].indexOf(String(role).toLowerCase()) !== -1;
+  } catch(e){}
+  var ordersQuery = (!isAdminUser && user && user.uid)
+    ? db.collection('orders').where('userId', '==', user.uid)
+    : db.collection('orders');
   // No orderBy('date') here: mobile-app orders store createdAt instead and
   // Firestore silently excludes documents missing the ordered field.
-  db.collection('orders').get().then(function(snapshot) {
+  ordersQuery.get().then(function(snapshot) {
     var orders = [];
     snapshot.forEach(function(doc) {
       var o = doc.data();
