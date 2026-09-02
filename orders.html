@@ -135,7 +135,7 @@
                   Status
                 </th>
 <th>
-                  Invoice
+                  Details
                 </th>
 </tr>
 </thead>
@@ -163,6 +163,15 @@
 </tr>
 </tbody>
 </table>
+</div>
+<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+<div class="card" style="max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:28px; background:var(--white); border-radius:14px;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+<h2 id="orderModalTitle" style="margin:0;">Order</h2>
+<button class="btn btn-light" onclick="document.getElementById('orderModal').style.display='none'" style="padding:6px 12px;">✕ Close</button>
+</div>
+<div id="orderModalContent"></div>
+</div>
 </div>
 <section class="card form-card admin-section">
 <h2>
