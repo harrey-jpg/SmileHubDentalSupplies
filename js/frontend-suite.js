@@ -90,6 +90,7 @@
   }
 
   function initOrderTools(){
+    if (document.body.classList.contains('admin-body') || /admin\.html/.test(location.pathname)) return;
     var body=document.getElementById('ordersBody'); if(!body) return;
     function addTools(){
       document.querySelectorAll('#ordersBody tr').forEach(function(row){
