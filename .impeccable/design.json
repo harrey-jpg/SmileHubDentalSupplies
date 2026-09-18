@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T00:00:00Z",
+  "title": "Design System: SmileHub Dental Supplies",
+  "extensions": {
+    "colorMeta": {
+      "primary":        { "role": "primary", "displayName": "Clinic Teal",    "canonical": "#0f8f8f", "tonalRamp": ["#042a2a", "#064", "#086a68", "#087b79", "#0f8f8f", "#3ba7a6", "#73c2c1", "#bfe8e7"] },
+      "primary-deep":   { "role": "primary", "displayName": "Deep Teal",      "canonical": "#096d70", "tonalRamp": ["#031e1f", "#053f41", "#065254", "#087b79", "#096d70", "#4f999a", "#90c2c3", "#d3e9e9"] },
+      "secondary":      { "role": "secondary", "displayName": "Trust Blue",   "canonical": "#1261a0", "tonalRamp": ["#04182a", "#07304f", "#094370", "#0b4f85", "#1261a0", "#4784bb", "#8cb4d6", "#d7e6f2"] },
+      "secondary-deep": { "role": "secondary", "displayName": "Deep Blue",    "canonical": "#0b4779", "tonalRamp": ["#031423", "#052a46", "#06355a", "#083d68", "#0b4779", "#4f76a0", "#92abcd", "#d8e4ef"] },
+      "accent":         { "role": "tertiary", "displayName": "Safety Amber",  "canonical": "#ffb84d", "tonalRamp": ["#3d2400", "#71450a", "#995d12", "#c07a14", "#ffb84d", "#ffcd80", "#ffdfae", "#fff2dd"] },
+      "ink":            { "role": "neutral", "displayName": "Ink Navy",       "canonical": "#12343b", "tonalRamp": ["#050f12", "#0a1c1f", "#0d252a", "#0f2c31", "#12343b", "#4d686e", "#90a6aa", "#eef5f6"] },
+      "text":           { "role": "neutral", "displayName": "Slate Text",     "canonical": "#203047", "tonalRamp": ["#070c12", "#101924", "#15202e", "#1a2838", "#203047", "#5c6b7d", "#9aa6b3", "#eef0f4"] },
+      "muted":          { "role": "neutral", "displayName": "Stone Muted",    "canonical": "#64777b", "tonalRamp": ["#161c1d", "#2c383a", "#394749", "#465658", "#64777b", "#8b9a9c", "#b7c2c4", "#eef1f2"] },
+      "surface":        { "role": "neutral", "displayName": "Surface White",  "canonical": "#ffffff", "tonalRamp": ["#334", "#556", "#778", "#99a", "#ffffff", "#ffffff", "#ffffff", "#ffffff"] },
+      "canvas":         { "role": "neutral", "displayName": "Cloud Canvas",   "canonical": "#f4f7fa", "tonalRamp": ["#2c333a", "#4a5866", "#667787", "#8596a6", "#c3ccd6", "#dce2e8", "#f4f7fa", "#fafbfd"] },
+      "soft":           { "role": "neutral", "displayName": "Sky Mist",       "canonical": "#e9f7fb", "tonalRamp": ["#1c2a2e", "#3d545b", "#55747e", "#7599a6", "#b6d6e0", "#cfe6ec", "#e9f7fb", "#f6fcfd"] },
+      "border":         { "role": "neutral", "displayName": "Mist Border",    "canonical": "#dcebea", "tonalRamp": ["#232f2f", "#405553", "#5b7472", "#7b9290", "#b5c8c5", "#dcebea", "#edf5f4", "#f7fbfa"] },
+      "danger":         { "role": "neutral", "displayName": "Alert Red",      "canonical": "#d64545", "tonalRamp": ["#380808", "#631313", "#821717", "#a51d1d", "#d64545", "#e07070", "#eea7a7", "#fae7e7"] },
+      "success":        { "role": "neutral", "displayName": "Stock Green",    "canonical": "#1e9b61", "tonalRamp": ["#06291a", "#0b4a2e", "#0f613d", "#13794c", "#1e9b61", "#54b584", "#8fd0ac", "#e0f4ea"] },
+      "warning":        { "role": "neutral", "displayName": "Warning Amber",  "canonical": "#f0a320", "tonalRamp": ["#3c2400", "#6b4207", "#8e580c", "#b66f10", "#f0a320", "#f6bc55", "#fbd492", "#fdf0d4"] },
+      "dark-canvas":    { "role": "neutral", "displayName": "Dark Canvas",    "canonical": "#101820", "tonalRamp": ["#05080b", "#101820", "#1b2731", "#2b3a47", "#41525f", "#5c6c78", "#8a98a3", "#c9d2d8"] },
+      "dark-surface":   { "role": "neutral", "displayName": "Dark Surface",   "canonical": "#17232e", "tonalRamp": ["#070c10", "#17232e", "#22303c", "#2f404e", "#486070", "#6a8392", "#9db0bb", "#dce5ea"] },
+      "dark-text":      { "role": "neutral", "displayName": "Dark Text",      "canonical": "#edf6fb", "tonalRamp": ["#3a4a52", "#5a6c76", "#7f94a0", "#a9bcc6", "#d3e4ee", "#e9f2f7", "#edf6fb", "#f5fafc"] },
+      "dark-muted":     { "role": "neutral", "displayName": "Dark Muted",     "canonical": "#a9bbc8", "tonalRamp": ["#2c353b", "#44515a", "#5a6974", "#758694", "#9aa9b6", "#a9bbc8", "#c4d1da", "#e9eef2"] },
+      "dark-border":    { "role": "neutral", "displayName": "Dark Border",    "canonical": "#2b3a47", "tonalRamp": ["#0e141a", "#1a232d", "#212c37", "#28353f", "#2b3a47", "#4d5e6c", "#758694", "#c3ced6"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero, page, and section headlines only; heavy 800 weight, tight leading." },
+      "body": { "displayName": "Body", "purpose": "Default copy at 1rem / 1.5; muted variants carry secondary info." },
+      "mono": { "displayName": "Code Label", "purpose": "SKU, order number, and invoice code lines only." }
+    },
+    "shadows": [
+      { "name": "ambient-card", "value": "0 10px 25px rgba(29,73,106,0.10)", "purpose": "Resting elevation of cards, panels, header, menus." },
+      { "name": "deep-float", "value": "0 18px 50px rgba(16,67,72,0.12)", "purpose": "Modals, toasts, mini-cart drawer, command palette, back-to-top." },
+      { "name": "ambient-card-dark", "value": "0 10px 25px rgba(0,0,0,0.30)", "purpose": "Resting elevation in dark mode." }
+    ],
+    "motion": [
+      { "name": "ease-fast", "value": "0.2s ease", "purpose": "Buttons, chips, icon actions; includes hover lift translateY(-2px)." },
+      { "name": "ease-smooth", "value": "0.3s ease", "purpose": "General transitions, product/component hovers." },
+      { "name": "ease-drawer", "value": "0.28s ease", "purpose": "Mini-cart drawer slide and scrim fade." }
+    ],
+    "breakpoints": [
+      { "name": "md", "value": "900px" },
+      { "name": "sm", "value": "700px" },
+      { "name": "xs", "value": "640px" },
+      { "name": "xxs", "value": "560px" },
+      { "name": "min", "value": "520px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The dominant action on a page (Trust Blue).",
+      "html": "<button class=\"ds-btn-primary\">Add to Cart</button>",
+      "css": ".ds-btn-primary { background: #1261a0; color: #fff; font-weight: 700; font-family: Arial, Helvetica, sans-serif; font-size: 1rem; border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; transition: transform .2s ease, background-color .2s ease; } .ds-btn-primary:hover { transform: translateY(-2px); background: #0b4779; } .ds-btn-primary:focus-visible { outline: 3px solid rgba(15,143,145,.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supporting teal action; Buy Now, browse, secondary CTA.",
+      "html": "<button class=\"ds-btn-secondary\">Buy Now</button>",
+      "css": ".ds-btn-secondary { background: #0f8f8f; color: #fff; font-weight: 700; font-family: Arial, Helvetica, sans-serif; font-size: 1rem; border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; transition: transform .2s ease, background-color .2s ease; } .ds-btn-secondary:hover { transform: translateY(-2px); background: #096d70; } .ds-btn-secondary:focus-visible { outline: 3px solid rgba(15,143,145,.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Bar",
+      "kind": "input",
+      "refersTo": "search-bar",
+      "description": "Pill search well with teal submit edge.",
+      "html": "<div class=\"ds-search\"><input type=\"search\" placeholder=\"Search products…\" aria-label=\"Search products\"><button type=\"button\" aria-label=\"Search\">🔍</button></div>",
+      "css": ".ds-search { display: flex; border: 1px solid #dce5ec; border-radius: 999px; overflow: hidden; background: #f4f7fa; } .ds-search input { flex: 1; min-width: 0; padding: 12px 16px; border: 0; background: transparent; color: #203047; outline: none; font-family: Arial, Helvetica, sans-serif; font-size: 1rem; } .ds-search input::placeholder { color: #6b7a8c; } .ds-search button { border: 0; padding: 0 18px; color: #fff; background: #0f9d9a; cursor: pointer; } .ds-search button:hover { background: #087b79; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "Tinted pill for order/product state.",
+      "html": "<span class=\"ds-status ds-status-processing\">Processing</span>",
+      "css": ".ds-status { display: inline-block; padding: 5px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; font-family: Arial, Helvetica, sans-serif; } .ds-status-processing { background: #fff4d7; color: #9b6800; } .ds-status-delivered { background: #e8f7ef; color: #16864f; } .ds-status-low { background: #fde9e9; color: #b93434; } .ds-status-disabled { background: #f0f0f0; color: #6b7a8c; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Shop listing card with sky image well, category eyebrow, price.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-card-img\"><span>🦷</span></div><div class=\"ds-card-body\"><span class=\"ds-card-cat\">Instruments</span><h3>Stainless Dental Mirror No. 5</h3><span class=\"ds-card-brand\">Clinix</span><div class=\"ds-card-price\">₱185.00</div></div></article>",
+      "css": ".ds-card { background: #fff; border: 1px solid #dce5ec; border-radius: 14px; box-shadow: 0 10px 25px rgba(29,73,106,.10); overflow: hidden; position: relative; font-family: Arial, Helvetica, sans-serif; } .ds-card-img { display: grid; place-items: center; height: 210px; padding: 20px; background: #e9f7fb; font-size: 2.2rem; } .ds-card-img img { width: 100%; height: 170px; object-fit: contain; } .ds-card-body { padding: 18px; } .ds-card-cat { font-size: .8rem; color: #087b79; font-weight: 700; text-transform: uppercase; } .ds-card-body h3 { margin: 6px 0; font-size: 1rem; min-height: 48px; color: #203047; } .ds-card-brand { color: #6b7a8c; font-size: .87rem; } .ds-card-price { color: #1261a0; font-weight: 800; font-size: 1.12rem; margin: 14px 0 0; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Form control with teal focus ring.",
+      "html": "<label class=\"ds-field\"><span>Full name</span><input type=\"text\" placeholder=\"Enter your name\" autocomplete=\"name\"></label>",
+      "css": ".ds-field { display: block; margin-bottom: 15px; font-family: Arial, Helvetica, sans-serif; } .ds-field span { display: block; margin-bottom: 7px; font-weight: 700; color: #203047; } .ds-field input { width: 100%; padding: 11px 12px; border: 1px solid #dce5ec; border-radius: 9px; background: #fff; color: #203047; font: inherit; box-sizing: border-box; transition: border-color .18s ease, box-shadow .18s ease; } .ds-field input:focus-visible { border-color: #0f8f91; box-shadow: 0 0 0 3px rgba(15,143,145,.13); outline: none; } .ds-field input::placeholder { color: #6b7a8c; }"
+    },
+    {
+      "name": "Mobile Bottom Nav",
+      "kind": "nav",
+      "refersTo": "sh-mobile-nav",
+      "description": "Frosted floating bottom tab bar used ≤900px.",
+      "html": "<nav class=\"ds-bnav\" aria-label=\"Primary\"><a class=\"active\" href=\"#\"><span>🏠</span>Home</a><a href=\"#\"><span>🛍️</span>Shop</a><a href=\"#\"><span>🛒</span>Cart</a></nav>",
+      "css": ".ds-bnav { position: fixed; left: 10px; right: 10px; bottom: 10px; background: rgba(255,255,255,.94); backdrop-filter: blur(18px); border: 1px solid #dcebea; border-radius: 18px; box-shadow: 0 18px 50px rgba(16,67,72,.12); padding: 7px; display: flex; font-family: Arial, Helvetica, sans-serif; z-index: 9990; } .ds-bnav a { flex: 1; text-align: center; text-decoration: none; color: #64777b; font-size: 11px; padding: 7px 3px; border-radius: 12px; } .ds-bnav a span { display: block; font-size: 19px; } .ds-bnav a.active { background: #eefafa; color: #096d70; }"
+    },
+    {
+      "name": "Status Timeline",
+      "kind": "custom",
+      "refersTo": "timeline",
+      "description": "Order tracking timeline with teal dot markers.",
+      "html": "<ol class=\"ds-timeline\"><li class=\"done\">Order placed</li><li class=\"done\">Processing</li><li>Shipped</li></ol>",
+      "css": ".ds-timeline { list-style: none; border-left: 3px solid #dce5ec; padding-left: 24px; margin: 10px 0 0 10px; font-family: Arial, Helvetica, sans-serif; color: #203047; } .ds-timeline li { position: relative; margin-bottom: 24px; } .ds-timeline li::before { content: ''; position: absolute; left: -33px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: #0f9d9a; border: 3px solid #fff; } .ds-timeline li.done::before { background: #0f8f8f; } .ds-timeline li.done { color: #6b7a8c; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Your Trusted Dental Supply Partner",
+    "overview": "SmileHub presents itself as the dependable, trusted supply partner for dental clinics in the Philippines — a working full-stack storefront that earns confidence through clarity, consistency, and a calm blue-and-teal palette borrowed from clean clinical environments. The personality is tactile and confident: rounded, comfortable controls with crisp feedback, a clear visual hierarchy on every page, and status communicated through familiar context. Reachable trust, not sterile distance. Layout is a generous, centered system (container max 1180px) built on 2/3/4-column grids that collapse to single columns at ~640px and below. Cards float on soft layered shadows; interactive elements lift slightly on hover with a fast 0.2s ease. A full dark mode re-maps surfaces to deep navy/ink tones while preserving the same teal accents.",
+    "keyCharacteristics": [
+      "Teal + trust-blue primary system with a single warm amber accent",
+      "System sans (Arial/Helvetica) for everything; mono (Consolas) reserved for SKU codes",
+      "Rounded, tactile controls; pills and badges carry status",
+      "Soft layered elevation; hover lifts interactive elements",
+      "Clear dominance: one primary action per region, muted supporting text"
+    ],
+    "rules": [
+      { "name": "The Rare-Accent Rule", "body": "Amber is never the base of a button or background fill of a region; it points at the exceptional and occupies a small share of any screen.", "section": "colors" },
+      { "name": "The Status Pill Rule", "body": "Order/product status never speaks in plain text alone — it always wears a tinted pill.", "section": "colors" },
+      { "name": "The Sloppy-Kicker Rule", "body": "Uppercase eyebrow/kicker text is never the biggest thing on screen.", "section": "typography" },
+      { "name": "The Mono-Only-Code Rule", "body": "Monospace appears only where a code appears (SKU, order number, invoice lines); never in body prose.", "section": "typography" },
+      { "name": "The Float-By-Default Rule", "body": "Product and content objects float on soft shadows at rest; only interactive micro-interactions lift on hover.", "section": "layout" },
+      { "name": "The Sticky-Intent Rule", "body": "Persistent helpers may be sticky (filters, header, bottom nav), but sticky surfaces must be translucent or clearly surfaced.", "section": "layout" },
+      { "name": "The Low-Shadow Rule", "body": "The darkest, heaviest shadows are reserved for floating layers (modals, drawers, command palette).", "section": "elevation" },
+      { "name": "The Radius-by-Role Rule", "body": "The bigger the object, the rounder the corner (pill for chips → 26px for hero); controls never exceed 14px.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do lead every region with one dominant primary action (Trust Blue) and let secondary/supporting actions ride behind it.",
+      "Do state product/order status through tinted pills, never plain text in a table cell.",
+      "Do keep one single warm accent (Safety Amber) rare enough that it still feels like a milestone when it appears.",
+      "Do reserve monospace for codes (SKU, order number, invoice lines) and nothing else.",
+      "Do keep product imagery on Sky Mist wells so object-fit: contain art floats cleanly off the page.",
+      "Do collapse grids to single columns below ~640px and always expose quick actions on the smallest screens.",
+      "Do write every surface also in dark mode, mapping surfaces to #101820/#17232e without losing teal accents."
+    ],
+    "donts": [
+      "Don't introduce new hues outside the teal/blue/amber system without a real semantic reason — the palette is the trust.",
+      "Don't make uppercase eyebrow or kicker text the loudest element; the headline owns the page.",
+      "Don't use amber as a button or prominent region fill; it points, it doesn't carry.",
+      "Don't add hard flat corners to interactive controls; radius tracks role.",
+      "Don't stack more than the two shadow stages; a third invented elevation dilutes the lift-by-state distinction.",
+      "Don't load webfonts; the system sans stack is the performance commitment.",
+      "Don't claim real customer testimonials or service capacity in copy — demonstration content stays labeled as demo."
+    ]
+  }
+}
