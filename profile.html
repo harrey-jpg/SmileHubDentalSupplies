@@ -8,15 +8,16 @@
 <title>
       Customer Profile | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=63">
-<link rel="stylesheet" href="css/final-polish.css?v=6.5.2">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -39,38 +40,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-profile">Search dental products</label>
+<input id="siteSearch-profile" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">
-            ◐
-          </button>
-<a class="icon-link" href="wishlist.html">
-            ♡
-            <span class="text-label">Wishlist</span>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-            🛒
-            <span class="text-label">Cart</span>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+    <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-            👤
-            <span class="text-label">Login</span>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+    <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">
-            Menu
-          </button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -124,30 +122,27 @@
 <main class="section-sm">
 <div class="container profile-layout">
 <aside class="card profile-menu">
-<a class="active" href="profile.html">
-            Profile Information
-          </a>
+<p class="eyebrow" style="margin:4px 12px 6px">Profile Hub</p>
+<a href="#zone-identity">Identity</a>
+<a href="#zone-personal">Personal</a>
+<a href="#zone-address">Address</a>
+<a href="#zone-security">Security</a>
+<hr style="margin:10px 0;border:0;border-top:1px solid var(--border)">
 <a href="orders.html">
             Order History
           </a>
 <a href="wishlist.html">
             Saved Products
           </a>
-<a href="#addresses">
-            Manage Addresses
-          </a>
-<a href="#password">
-            Change Password
-          </a>
 <a class="logout-link" href="#" id="logoutButton">
             Logout
           </a>
 </aside>
 <section>
-<div class="card profile-summary profile-hero-card">
+<section class="profile-zone" id="zone-identity"><div class="card profile-summary profile-hero-card">
 <div class="profile-photo-wrap">
   <img class="profile-photo" id="profilePhoto" alt="Profile photo" src="assets/profile-placeholder.svg">
-  <label class="profile-photo-edit" for="profileImageInput" title="Change profile photo" aria-label="Change profile photo">✎</label>
+   <label class="profile-photo-edit hidden" for="profileImageInput" title="Change profile photo" aria-label="Change profile photo" aria-hidden="true">✎</label>
   <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
 </div>
 <div class="profile-summary-copy">
@@ -162,7 +157,18 @@
 </div>
 </div>
 <div class="auth-message hidden" id="profileMessage"></div>
-<form class="card form-card" id="profileForm">
+<section class="profile-zone" id="zone-completeness" aria-labelledby="completenessTitle">
+  <div class="card profile-meter">
+    <div class="meter-head">
+      <h2 id="completenessTitle">Profile completeness</h2>
+      <span id="meterLabel" aria-live="polite">0 of 5 complete</span>
+    </div>
+    <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="completenessTitle" aria-describedby="meterHint"><span id="meterFill"></span></div>
+    <ul class="meter-items" id="meterItems" aria-label="Completeness checklist"></ul>
+    <p class="muted" id="meterHint">Complete the items above for faster checkout.</p>
+  </div>
+</section>
+<details class="profile-zone profile-accordion" id="zone-personal" open><summary><span>Personal Information</span><span class="accordion-status" id="personalStatus"></span></summary><form class="form-card" id="profileForm">
 <div class="form-heading-row"><div><h2>Personal Information</h2><p class="muted">Update your account details below.</p></div><span class="edit-indicator">Editable</span></div>
 <div class="form-grid">
 <div class="form-group">
@@ -183,48 +189,28 @@
 </div>
 <div class="form-group">
 <label for="profilePhone">Phone</label>
-<input id="profilePhone" inputmode="numeric" maxlength="13" placeholder="09XX XXX XXXX" type="tel" aria-describedby="phoneHelp phoneStatus"/>
-<small id="phoneHelp" class="muted">Use an active Philippine mobile number. It must be verified before checkout.</small>
+<input id="profilePhone" inputmode="numeric" maxlength="10" pattern="9[0-9]{9}" placeholder="9XXXXXXXXX" type="tel" aria-describedby="phoneHelp profilePhoneStatus"/>
+<small id="phoneHelp" class="muted">Use an active Philippine mobile number. Verification is recommended — checkout still works if SMS is unavailable.</small>
 <div id="profilePhoneStatus" class="phone-status unverified">● Not verified</div>
+<p class="field-error" id="profilePhoneError" role="alert"></p>
 </div>
 </div>
 <div class="profile-form-actions"><button class="btn btn-primary" id="saveProfileButton" type="submit">Save changes</button><span class="save-state" id="profileSaveState" aria-live="polite"></span></div>
-</form>
+</form></details>
 
-<section class="card form-card email-verification-card" id="emailVerificationCard" aria-labelledby="emailVerificationTitle">
-  <h2 id="emailVerificationTitle">Email Verification</h2>
-  <div class="verification-status-row">
-    <span class="verification-badge is-pending" id="emailVerificationBadge">Checking status…</span>
-    <span class="muted" id="emailVerificationHelp">Email/password accounts should verify their email. Google accounts are already provider-verified.</span>
-  </div>
-  <button class="btn btn-primary" id="resendEmailVerificationBtn" type="button" hidden>Resend verification email</button>
-  <p class="muted" id="emailVerificationMessage" role="status" aria-live="polite"></p>
-</section>
 
-<section class="card form-card phone-verification-card" aria-labelledby="verifyPhoneTitle">
-<h2 id="verifyPhoneTitle">Phone Verification</h2>
-<div class="verification-status-row">
-  <span id="verificationPhoneStatus" class="verification-badge is-pending">Not verified</span>
-  <span class="muted">We will send a 6-digit verification code to the mobile number saved above.</span>
-</div>
-<div class="phone-verification-actions">
-  <button class="btn btn-primary" id="sendOtpButton" type="button">Send OTP</button>
-  <button class="btn btn-light" id="changePhoneButton" type="button">Edit phone number</button>
-</div>
-<p class="muted verification-inline-message" id="profileOtpStatus" role="status" aria-live="polite"></p>
-<div id="recaptcha-container" class="recaptcha-host" aria-hidden="true"></div>
-</section>
-<form class="card form-card admin-section" id="addressForm">
-<h2 id="addresses">Default Delivery Address</h2>
+<details class="profile-zone profile-accordion" id="zone-address" open><summary><span>Delivery Address</span><span class="accordion-status" id="addressStatus"></span></summary><form class="form-card admin-section" id="addressForm">
+<h2 id="addresses" tabindex="-1">Default Delivery Address</h2>
 <div class="form-group">
 <label for="profileAddress">Street Address</label>
-<textarea id="profileAddress" required placeholder="House number and street"></textarea>
+<textarea id="profileAddress" required placeholder="House number and street" aria-describedby="streetError"></textarea>
+<p class="field-error" id="streetError" role="alert"></p>
 </div>
 <div class="form-grid">
-<div class="form-group"><label for="profileBarangay">Barangay</label><input id="profileBarangay" required></div>
-<div class="form-group"><label for="profileCity">City / Municipality</label><input id="profileCity" required></div>
-<div class="form-group"><label for="profileProvince">Province</label><input id="profileProvince" required></div>
-<div class="form-group"><label for="profilePostal">Postal Code</label><input id="profilePostal" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" required></div>
+<div class="form-group"><label for="profileProvince">Province</label><select id="profileProvince" required aria-describedby="provinceError"><option value="">Select province</option></select><input id="profileProvinceOther" class="hidden" placeholder="Enter province" autocomplete="address-level1"><p class="field-error" id="provinceError" role="alert"></p></div>
+<div class="form-group"><label for="profileCity">City / Municipality</label><select id="profileCity" required aria-describedby="cityError"><option value="">Select city / municipality</option></select><input id="profileCityOther" class="hidden" placeholder="Enter city / municipality" autocomplete="address-level2"><p class="field-error" id="cityError" role="alert"></p></div>
+<div class="form-group"><label for="profileBarangay">Barangay</label><select id="profileBarangay" required aria-describedby="barangayError"><option value="">Select barangay</option></select><input id="profileBarangayOther" class="hidden" placeholder="Enter barangay"><p class="field-error" id="barangayError" role="alert"></p></div>
+<div class="form-group"><label for="profilePostal">Postal Code</label><select id="profilePostal" required aria-describedby="postalError"><option value="">Select postal code</option></select><input id="profilePostal_other" class="hidden" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit code" aria-describedby="postalError"><p class="field-error" id="postalError" role="alert"></p></div>
 </div>
 <div class="form-group"><label for="profileDeliveryNotes">Delivery Instructions <span class="muted">(optional)</span></label><textarea id="profileDeliveryNotes" placeholder="Landmark, gate instructions, preferred delivery time"></textarea></div>
 <div class="profile-location-tools">
@@ -236,15 +222,44 @@
   <p class="muted" id="profileAddressMapStatus">Use current location to automatically fill available address details. Review the fields before saving.</p>
 </div>
 <label style="display:flex;gap:9px;align-items:flex-start;margin:12px 0"><input id="profileDefaultAddress" type="checkbox" checked> <span>Use this as my default checkout address</span></label>
+<p class="field-error" id="addressFormError" role="alert"></p>
 <button class="btn btn-primary" type="submit">Save Delivery Address</button>
-</form>
+</form></details>
 
+<details class="profile-zone profile-accordion" id="zone-security" open><summary><span>Security</span><span class="accordion-status" id="securityStatus"></span></summary>
+<details class="verify-group" id="verifications" open>
+<summary><strong>Verifications</strong> <span class="verify-summary" id="verifySummary" aria-live="polite">Checking…</span></summary>
+<section class="card form-card email-verification-card verify-nested" id="emailVerificationCard" aria-labelledby="emailVerificationTitle">
+  <h2 id="emailVerificationTitle">Email Verification</h2>
+  <div class="verification-status-row">
+    <span class="verification-badge is-pending" id="emailVerificationBadge">Checking status…</span>
+    <span class="muted" id="emailVerificationHelp">Email/password accounts should verify their email. Google accounts are already provider-verified.</span>
+  </div>
+   <button class="btn btn-primary" id="resendEmailVerificationBtn" type="button" hidden>Resend verification email</button>
+  <p class="muted" style="font-size:.82rem;margin-top:8px"><a href="contact.html">Need help?</a> · <a href="faq.html#verification">Verification FAQs</a></p>
+  <p class="muted" id="emailVerificationMessage" role="status" aria-live="polite"></p>
+</section>
+
+<section class="card form-card phone-verification-card verify-nested" aria-labelledby="verifyPhoneTitle">
+<h2 id="verifyPhoneTitle">Phone Verification</h2>
+<div class="verification-status-row">
+  <span id="verificationPhoneStatus" class="verification-badge is-pending">Not verified</span>
+  <span class="muted">We will send a 6-digit verification code to the mobile number saved above.</span>
+</div>
+<div class="phone-verification-actions">
+  <button class="btn btn-primary" id="sendOtpButton" type="button">Send OTP</button>
+   <button class="btn btn-light" id="changePhoneButton" type="button" disabled title="No unsaved changes">Discard phone changes</button>
+  </div>
+  <p class="muted" style="font-size:.82rem;margin-top:8px"><a href="contact.html">Need help?</a> · <a href="faq.html#verification">Verification FAQs</a></p>
+  <p class="muted verification-inline-message" id="profileOtpStatus" role="status" aria-live="polite"></p>
+  <div id="recaptcha-container" class="recaptcha-host" aria-hidden="true"></div>
+</section>
+</details>
 
 <details class="card form-card admin-section password-settings" id="passwordSettings">
 <summary><strong>Change Password</strong><span>Optional</span></summary>
 <p class="muted">Only use this when you want to replace your current password. It is never required for checkout.</p>
 <form id="passwordForm">
-<h2 id="password" class="sr-only">Change Password</h2>
 <div class="form-group" id="currentPasswordGroup">
 <label for="currentPassword">Current Password</label>
 <input autocomplete="current-password" id="currentPassword" required="" type="password"/>
@@ -259,9 +274,12 @@
 <input autocomplete="new-password" id="confirmPassword" minlength="6" required="" type="password"/>
 </div>
 </div>
-<button class="btn btn-primary" type="submit">Change Password</button>
+<p class="field-error" id="passwordFormError" role="alert"></p>
+<button class="btn btn-primary" type="submit">Save</button>
 </form>
 </details>
+</details>
+
 </section>
 </div>
 </main>
@@ -269,8 +287,7 @@
   <div class="otp-modal__backdrop" data-otp-close></div>
   <section class="otp-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="profileOtpModalTitle">
     <button class="otp-modal__close" type="button" aria-label="Close verification dialog" data-otp-close>×</button>
-    <div class="otp-modal__icon">📱</div>
-    <h2 id="profileOtpModalTitle">Verify your phone number</h2>
+    <h2 id="profileOtpModalTitle"><span aria-hidden="true">📱</span> Verify your phone number</h2>
     <p class="muted">Enter the 6-digit code sent to <strong id="profileOtpMaskedNumber">your number</strong>.</p>
     <div class="otp-digit-group" id="profileOtpDigits" aria-label="6-digit verification code">
       <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1">
@@ -321,9 +338,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -338,9 +353,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -355,9 +368,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -379,16 +390,149 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/phone-input.js?v=6.2.0"></script>
-<script src="js/account-verification.js?v=6.4.0"></script>
-<script src="js/profile.js?v=63"></script>
-<script src="js/email-verification.js?v=6.4.0"></script>
+<script src="js/ph-address.js?v=6.3.0"></script>
+<script src="js/phone-input.js?v=6.3.0"></script>
+<script src="js/account-verification.js?v=6.3.0"></script>
+<script src="js/profile.js?v=6.3.0"></script>
+<script src="js/email-verification.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=6.2.0"></script>
-<script src="js/final-polish.js?v=6.5.0"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    if(window.PHAddress) PHAddress.setup({
+      provinceId:'profileProvince',
+      cityId:'profileCity',
+      barangayId:'profileBarangay',
+      postalId:'profilePostal',
+      barangayOtherId:'profileBarangayOther',
+      cityOtherId:'profileCityOther',
+      provinceOtherId:'profileProvinceOther'
+    });
+    (function(){
+      var label=document.getElementById('meterLabel'), fill=document.getElementById('meterFill'), list=document.getElementById('meterItems'), track=document.querySelector('.meter-track');
+      if(!label||!fill||!list) return;
+      var lastRendered='', syncing=false;
+      function render(nextHtml, nextLabel, nextWidth, nextVal){
+        if(nextHtml===lastRendered) return false;
+        lastRendered=nextHtml;
+        syncing=true;
+        label.textContent=nextLabel;
+        if(track) track.setAttribute('aria-valuenow', String(nextVal));
+        fill.style.width=nextWidth;
+        list.innerHTML=nextHtml;
+        var hint=document.getElementById('meterHint');
+        if(hint) hint.textContent=nextVal===5?'All set — checkout will be faster.':'Complete the items above for faster checkout.';
+        setTimeout(function(){ syncing=false; },0);
+        return true;
+      }
+      function check(){
+        if(syncing) return;
+        var photo=document.getElementById('profilePhoto');
+        var hasPhoto=photo && photo.src && photo.src.indexOf('profile-placeholder.svg')===-1;
+        var fn=(document.getElementById('profileFirstName')||{}).value||'', ln=(document.getElementById('profileLastName')||{}).value||'';
+        var hasName=fn.trim()&&ln.trim();
+        var phoneBadge=document.getElementById('verificationPhoneStatus'), emailBadge=document.getElementById('emailVerificationBadge');
+        var phoneDone=phoneBadge && /verified/i.test(phoneBadge.textContent||'');
+        var emailBadgeText=(emailBadge||{}).textContent||'', emailDone=/verified/i.test(emailBadgeText) && !/not verified/i.test(emailBadgeText);
+        var addrStreet=(document.getElementById('profileAddress')||{}).value||'', addrProv=(document.getElementById('profileProvince')||{}).value||'', addrCity=(document.getElementById('profileCity')||{}).value||'';
+        var hasAddress=addrStreet.trim()&&addrProv&&addrCity&&addrProv!=='__other__'&&addrCity!=='__other__';
+        var items=[
+          {done:!!hasPhoto, label:'Photo added', href:'#zone-identity'},
+          {done:!!hasName, label:'Name complete', href:'#zone-personal'},
+          {done:!!phoneDone, label:'Phone verified', href:'#zone-security'},
+          {done:!!hasAddress, label:'Address saved', href:'#zone-address'},
+          {done:!!emailDone, label:'Email verified', href:'#zone-security'}
+        ];
+        var doneCount=items.filter(function(i){return i.done;}).length;
+        var nextHtml=items.map(function(it){
+          var dot='<span class="meter-dot '+(it.done?'done':'todo')+'" aria-hidden="true">'+(it.done?'✓':'○')+'</span>';
+          var text=it.done?'<span>'+it.label+'</span>':'<a href="'+it.href+'">'+it.label+'</a>';
+          return '<li>'+dot+text+'</li>';
+        }).join('');
+        render(nextHtml, doneCount+' of 5 complete', (doneCount/5*100)+'%', doneCount);
+        // accordion status
+        var ps=document.getElementById('personalStatus'), as=document.getElementById('addressStatus'), ss=document.getElementById('securityStatus');
+        if(ps) ps.textContent = hasName ? 'Complete' : 'Incomplete';
+        if(as){
+          if(hasAddress){
+            var cityEl=document.getElementById('profileCity'); var zipEl=document.getElementById('profilePostal');
+            var cityName=(cityEl&&cityEl.value)||''; var zip=(zipEl&&zipEl.value)||'';
+            as.textContent = (cityName ? cityName : 'Address') + (zip ? ' '+zip : '');
+          } else as.textContent='Not set';
+        }
+        if(ss){
+          var vCount=(phoneDone?1:0)+(emailDone?1:0);
+          ss.textContent = vCount+'/2 verified';
+        }
+        if(!window.__profileAccordionInit){
+          window.__profileAccordionInit=true;
+          var toOpen=null;
+          if(!hasName) toOpen=document.getElementById('zone-personal');
+          else if(!hasAddress) toOpen=document.getElementById('zone-address');
+          else if(!phoneDone || !emailDone) toOpen=document.getElementById('zone-security');
+          if(toOpen && !toOpen.hasAttribute('open')){
+            document.querySelectorAll('details.profile-accordion').forEach(function(d){ d.removeAttribute('open'); });
+            toOpen.setAttribute('open','');
+          }
+        }
+      }
+      check();
+      var meterObs=new MutationObserver(check);
+      ['profilePhoto','profileFirstName','profileLastName','verificationPhoneStatus','emailVerificationBadge','profileAddress','profileProvince','profileCity'].forEach(function(id){
+        var n=document.getElementById(id); if(n) meterObs.observe(n,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['src']});
+      });
+      document.addEventListener('input', check, true);
+      document.addEventListener('change', check, true);
+      var meterList=document.getElementById('meterItems');
+      if(meterList) meterList.addEventListener('click', function(e){
+        var a=e.target.closest('a[href^="#"]'); if(!a) return;
+        var det=document.getElementById(a.getAttribute('href').slice(1));
+        if(det && det.tagName==='DETAILS' && !det.hasAttribute('open')) det.setAttribute('open','');
+      });
+      setTimeout(check, 800);
+      window.addEventListener('storage', check);
+    })();
+  });
+  </script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function(){
+  var ps=document.getElementById('passwordSettings');
+  if(!ps) return;
+  function openPs(){ ps.setAttribute('open',''); ps.scrollIntoView({behavior:'smooth',block:'start'}); }
+  document.querySelectorAll('a[href="#passwordSettings"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      if(ps.hasAttribute('open')) return;
+      e.preventDefault(); openPs(); history.replaceState(null,'','#passwordSettings');
+    });
+  });
+  if(location.hash==='#passwordSettings') openPs();
+  window.addEventListener('hashchange',function(){ if(location.hash==='#passwordSettings') openPs(); });
+})();
+</script>
+<script>
+(function(){
+  var el=document.getElementById('verifySummary');
+  if(!el) return;
+  var emailBadge=document.getElementById('emailVerificationBadge');
+  var phoneBadge=document.getElementById('verificationPhoneStatus');
+  var phoneFallback=document.getElementById('profilePhoneStatus');
+  function text(n){ return n ? n.textContent.trim() : ''; }
+  function sync(){
+    var next='Email: ' + (text(emailBadge)||text(document.getElementById('emailVerificationHelp'))||'—') + ' · Phone: ' + (text(phoneBadge)||text(phoneFallback)||'—');
+    if(el.textContent===next) return;
+    el.textContent=next;
+  }
+  var obs=new MutationObserver(sync);
+  if(emailBadge) obs.observe(emailBadge,{childList:true,characterData:true,subtree:true});
+  if(phoneBadge) obs.observe(phoneBadge,{childList:true,characterData:true,subtree:true});
+  if(phoneFallback) obs.observe(phoneFallback,{childList:true,characterData:true,subtree:true});
+  setTimeout(sync, 600);
+})();
+</script>
+<script src="js/final-polish.js?v=6.3.0"></script>
 </body>
 </html>

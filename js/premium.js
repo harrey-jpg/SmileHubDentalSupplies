@@ -35,8 +35,14 @@
   function mobileNav(){
     if(document.body.classList.contains("admin-body")||$(".sh-mobile-nav")) return;
     const page=location.pathname.split("/").pop()||"homepage.html";
+    const svg=(inner)=>`<svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true">${inner}</svg>`;
+    const I_HOME=svg(`<path d="M32 128 128 48l96 80" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><path d="M64 112v96h128v-96" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>`);
+    const I_SEARCH=svg(`<circle cx="112" cy="112" r="64" stroke="currentColor" stroke-width="20"/><path d="M160 160l48 48" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>`);
+    const I_HEART=svg(`<path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>`);
+    const I_CART=svg(`<path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/>`);
+    const I_USER=svg(`<circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/>`);
     const links=[
-      ["homepage.html","⌂","Home"],["products.html","⌕","Shop"],["wishlist.html","♡","Wishlist"],["cart.html","🛒","Cart"],["profile.html","☺","Account"]
+      ["homepage.html",I_HOME,"Home"],["products.html",I_SEARCH,"Shop"],["wishlist.html",I_HEART,"Wishlist"],["cart.html",I_CART,"Cart"],["profile.html",I_USER,"Account"]
     ];
     const nav=document.createElement("nav"); nav.className="sh-mobile-nav"; nav.setAttribute("aria-label","Mobile navigation");
     nav.innerHTML=links.map(([href,icon,label])=>`<a href="${href}" class="${page===href?"active":""}"><span>${icon}</span>${label}</a>`).join("");
@@ -104,25 +110,18 @@
   }
 
   function homepageSections(){
+    // Native homepage already ships categories, brand pills, and testimonials —
+    // only inject the Journal, which has no native equivalent (distilled).
     if(!/homepage\.html$/.test(location.pathname)||$(".sh-premium-home")) return;
     const main=$("main")||$(".footer");
     const wrap=document.createElement("div");wrap.className="sh-premium-home";
     wrap.innerHTML=`
-    <section class="sh-premium-strip"><div class="sh-section-head"><div><span class="sh-chip">Shop by specialty</span><h2>Everything your dental workflow needs</h2><p>Browse focused collections for clinics, laboratories, students, and home care.</p></div><a href="products.html">View all products →</a></div>
-    <div class="sh-category-grid">
-      <a class="sh-category-card" href="products.html?category=Instruments"><i>🦷</i><div><b>Dental Instruments</b><span>Diagnostic, surgical, extraction and more</span></div></a>
-      <a class="sh-category-card" href="products.html?category=Consumables"><i>🧪</i><div><b>Consumables</b><span>Reliable daily materials and disposables</span></div></a>
-      <a class="sh-category-card" href="products.html?category=Infection%20Control"><i>🛡️</i><div><b>Infection Control</b><span>Protection, sterilization and disinfection</span></div></a>
-      <a class="sh-category-card" href="products.html?category=Equipment"><i>⚙️</i><div><b>Equipment</b><span>Clinic technology and durable essentials</span></div></a>
-    </div></section>
-    <section class="sh-premium-strip"><div class="sh-section-head"><div><span class="sh-chip">Trusted names</span><h2>Popular dental brands</h2></div><a href="brands.html">Brand directory →</a></div><div class="sh-brand-grid"><div class="sh-brand-card">3M Oral Care</div><div class="sh-brand-card">Dentsply Sirona</div><div class="sh-brand-card">GC</div><div class="sh-brand-card">Ivoclar</div></div></section>
     <section class="sh-premium-strip"><div class="sh-section-head"><div><span class="sh-chip">SmileHub Journal</span><h2>Helpful dental supply guides</h2><p>Simple guidance for choosing and maintaining equipment.</p></div><a href="blog.html">Read all guides →</a></div><div class="sh-blog-grid">
       <article class="sh-blog-card"><span class="sh-chip">Buying guide</span><h3>Choosing instruments for a starter clinic</h3><p>A practical checklist for balancing quality, workflow, and budget.</p><a href="blog.html#starter-clinic">Read guide →</a></article>
       <article class="sh-blog-card"><span class="sh-chip">Infection control</span><h3>Building a safer sterilization routine</h3><p>Organize your frontend shopping list around a consistent clinic workflow.</p><a href="blog.html#sterilization">Read guide →</a></article>
       <article class="sh-blog-card"><span class="sh-chip">Maintenance</span><h3>How to care for dental handpieces</h3><p>Common maintenance reminders that help protect your equipment.</p><a href="blog.html#handpieces">Read guide →</a></article>
       <article class="sh-blog-card"><span class="sh-chip">Students</span><h3>Dental student essentials checklist</h3><p>A focused list for pre-clinical and clinical requirements.</p><a href="blog.html#students">Read guide →</a></article>
-    </div></section>
-    <section class="sh-premium-strip"><div class="sh-section-head"><div><span class="sh-chip">Customer stories</span><h2>Built around real dental workflows</h2></div></div><div class="sh-testimonial-grid"><blockquote class="sh-testimonial"><p>“The category layout makes reordering clinic basics much easier.”</p><b>Clinic customer</b></blockquote><blockquote class="sh-testimonial"><p>“Product comparison is especially useful for equipment purchases.”</p><b>Dental practitioner</b></blockquote><blockquote class="sh-testimonial"><p>“The student-focused sections keep the catalog less overwhelming.”</p><b>Dental student</b></blockquote><blockquote class="sh-testimonial"><p>“Clear order and return screens make the experience feel complete.”</p><b>Practice manager</b></blockquote></div></section>`;
+    </div></section>`;
     if(main?.classList.contains("footer")) main.parentNode.insertBefore(wrap,main); else main?.appendChild(wrap);
   }
 
@@ -145,8 +144,9 @@
   }
 
   function backTop(){
-    const b=document.createElement("button");b.className="sh-backtop";b.textContent="↑";b.setAttribute("aria-label","Back to top");document.body.appendChild(b);
-    addEventListener("scroll",()=>b.classList.toggle("show",scrollY>500),{passive:true});b.addEventListener("click",()=>scrollTo({top:0,behavior:"smooth"}));
+    if(document.querySelector(".back-to-top"))return;
+    const b=document.createElement("button");b.className="back-to-top";b.setAttribute("aria-label","Back to top");b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-6 6"/><path d="M12 5l6 6"/><path d="M12 5v14"/></svg>';document.body.appendChild(b);
+    const syncVisibility=()=>b.classList.toggle("visible",scrollY>400);addEventListener("scroll",syncVisibility,{passive:true});syncVisibility();b.addEventListener("click",()=>{const m=window.matchMedia("(prefers-reduced-motion: reduce)").matches;scrollTo({top:0,behavior:m?"auto":"smooth"});});
   }
 
   function preserveFeatureFeedback(){

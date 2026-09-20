@@ -8,16 +8,18 @@
 <title>
       Terms | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
+<div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
 <div class="topbar">
 <div class="container">
 <span>
@@ -38,34 +40,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-terms">Search dental products</label>
+<input id="siteSearch-terms" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-    ♡
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-    🛒
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
     <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-    👤
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
     <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">Menu</button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -100,49 +103,151 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
-<div class="container">
-<div class="breadcrumbs">
-<a href="homepage.html">
-            Home
-          </a>
-          / Terms and Conditions
-        </div>
-<h1>
-          Terms and Conditions
-        </h1>
-<p class="muted">
-          Rules for using the SmileHub academic demonstration.
-        </p>
-</div>
+<section class="policy-hero" aria-labelledby="termsTitle">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="homepage.html">Home</a> / <span aria-current="page">Terms and Conditions</span>
+    </nav>
+    <h1 id="termsTitle">Terms and Conditions</h1>
+    <p class="lede">The governing rules for the SmileHub academic demonstration — what is real, what is simulated, and which Philippine laws we align with.</p>
+    <div class="policy-meta">
+      <span class="meta-chip">Last updated: September 2026</span>
+      <span class="meta-chip">5 min read</span>
+      <span class="meta-chip">Academic demo · No real charges</span>
+    </div>
+    <div class="trust-row" role="list" aria-label="Trust signals">
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>RA 8792 · RA 7394 aligned</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Payments simulated only</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Quezon City support</span>
+    </div>
+  </div>
 </section>
+
 <main class="section-sm">
-<div class="container card form-card">
-<h2>
-          Academic Demonstration
-        </h2>
-<p>
-          This site is a frontend project and not a live commercial dental marketplace.
-        </p>
-<h2>
-          Product Information
-        </h2>
-<p>
-          Products, prices, inventory, reviews, and delivery details are sample data prepared for demonstration.
-        </p>
-<h2>
-          Payments
-        </h2>
-<p>
-          GCash, card, and cash-on-delivery choices are simulations. No real payment is processed.
-        </p>
-<h2>
-          Equipment Listings
-        </h2>
-<p>
-          Dental chairs and autoclaves are marked as demo or quotation products.
-        </p>
-</div>
+  <div class="container">
+    <ul class="policy-quick-links" aria-label="Terms highlights">
+      <li><a href="#academic" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🎓</span>
+        <span><strong>Academic Demo</strong><span>What this project is — and is not.</span></span>
+      </a></li>
+      <li><a href="#payments" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">💳</span>
+        <span><strong>Payment Simulation</strong><span>GCash, cards, and COD are not charged.</span></span>
+      </a></li>
+      <li><a href="#ph-law" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">⚖️</span>
+        <span><strong>PH Law</strong><span>E-commerce and consumer protection alignment.</span></span>
+      </a></li>
+      <li><a href="#agreement" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🤝</span>
+        <span><strong>User Agreement</strong><span>What accessing this site means.</span></span>
+      </a></li>
+    </ul>
+
+    <button class="btn btn-light policy-toc-toggle" id="tocToggleTerms" type="button" aria-expanded="false" aria-controls="termsToc">Browse contents</button>
+
+    <div class="policy-layout">
+      <aside class="policy-sidebar">
+        <nav class="toc-nav" id="termsToc" aria-label="Terms and conditions contents">
+          <p class="eyebrow">Table of Contents</p>
+          <ul class="toc-list">
+            <li><a href="#academic">Academic Demonstration</a></li>
+            <li><a href="#products">Product Information</a></li>
+            <li><a href="#payments">Payments</a></li>
+            <li><a href="#equipment">Equipment Listings</a></li>
+            <li><a href="#policies">Related Policies</a></li>
+            <li><a href="#ph-law">Philippine Law</a></li>
+            <li><a href="#modifications">Modifications</a></li>
+            <li><a href="#agreement">Agreement</a></li>
+            <li><a href="#contact-info">Contact Information</a></li>
+          </ul>
+          <div class="toc-actions">
+            <button class="btn btn-light text-size-toggle" type="button" id="textSizeToggle" aria-pressed="false">Text size: Normal</button>
+            <button class="btn btn-light" type="button" data-print>Print / Save PDF</button>
+            <a class="btn btn-primary" href="privacy.html">Read Privacy Policy</a>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="policy-content">
+        <div class="policy-card">
+          <div class="demo-note" role="note"><span aria-hidden="true">🎓</span><span><strong>Academic demonstration.</strong> SmileHub is a frontend class project, not a live commercial dental marketplace. Nothing here creates a real buyer–seller obligation.</span></div>
+
+          <section class="policy-section" id="academic" aria-labelledby="academic-h">
+            <h2 id="academic-h">Academic Demonstration</h2>
+            <p>This site is a frontend project built for academic purposes. It demonstrates what a dental-supply storefront for Philippine clinics, dentists, and students could look like — but no real orders, shipments, or charges occur.</p>
+          </section>
+
+          <section class="policy-section" id="products" aria-labelledby="products-h">
+            <h2 id="products-h">Product Information</h2>
+            <p>Products, prices, inventory levels, reviews, and delivery details are sample data prepared for demonstration. They do not represent live stock or binding offers, and displayed prices cannot be honored as real quotations.</p>
+          </section>
+
+          <section class="policy-section" id="payments" aria-labelledby="payments-h">
+            <h2 id="payments-h">Payments</h2>
+            <p>GCash (a Philippine mobile-wallet payment method), card, and cash-on-delivery choices are simulations of a checkout flow. No real payment is processed, no gateway is contacted, and no money moves.</p>
+            <p>Do not enter real payment credentials anywhere on this site.</p>
+          </section>
+
+          <section class="policy-section" id="equipment" aria-labelledby="equipment-h">
+            <h2 id="equipment-h">Equipment Listings</h2>
+            <p>High-value items such as dental chairs and autoclaves (steam sterilizers) are marked as demo or quotation products. In a production store these would require assisted sales, site inspection, and formal written quotations rather than one-click checkout.</p>
+          </section>
+
+          <section class="policy-section" id="policies" aria-labelledby="policies-h">
+            <h2 id="policies-h">Related Policies</h2>
+            <p>These terms work together with our companion policies. Each is simulated for the same academic demonstration:</p>
+            <article id="privacy-link" aria-label="Privacy integration">
+              <p><strong>Privacy.</strong> Your use of this site is subject to our <a href="privacy.html">Privacy Policy</a>, which explains demo data handling under the Data Privacy Act of 2012.</p>
+            </article>
+            <article id="shipping-link" aria-label="Shipping terms">
+              <p><strong>Shipping.</strong> Delivery estimates are frontend demonstrations. See <a href="shipping.html">Shipping Information</a> for the simulated workflow.</p>
+            </article>
+            <article id="returns-link" aria-label="Return policy">
+              <p><strong>Returns.</strong> Return eligibility is simulated. See our <a href="return-policy.html">Return Policy</a> for the demonstration workflow.</p>
+            </article>
+          </section>
+
+          <section class="policy-section" id="ph-law" aria-labelledby="ph-law-h">
+            <div class="callout-box law">
+              <h2 id="ph-law-h"><span class="callout-icon" aria-hidden="true">⚖️</span>Philippine Law</h2>
+              <p>This demonstration is designed to align with <strong class="highlight">Philippine e-commerce and consumer protection standards</strong>:</p>
+              <ul>
+                <li><span class="glossary-term" tabindex="0"><strong>RA 8792</strong><span class="glossary-tooltip" role="tooltip">Electronic Commerce Act — validity of electronic transactions.</span></span> — Electronic Commerce Act (validity of electronic transactions).</li>
+                <li><span class="glossary-term" tabindex="0"><strong>RA 7394</strong><span class="glossary-tooltip" role="tooltip">Consumer Act — consumer rights and fair trade.</span></span> — Consumer Act of the Philippines (consumer rights and fair trade).</li>
+                <li><span class="glossary-term" tabindex="0"><strong>RA 10173</strong><span class="glossary-tooltip" role="tooltip">Data Privacy Act of 2012 — protection of personal information.</span></span> — Data Privacy Act of 2012 (protection of personal information).</li>
+              </ul>
+              <p>This is a class project, not legal advice. A production store should have these terms reviewed by Philippine counsel and register with the DTI.</p>
+            </div>
+          </section>
+
+          <section class="policy-section" id="modifications" aria-labelledby="modifications-h">
+            <h2 id="modifications-h">Modifications</h2>
+            <p>As an academic project, these terms may change as the frontend evolves. Material changes will be reflected in the “Last updated” date at the top of this page.</p>
+          </section>
+
+          <section class="policy-section" id="agreement" aria-labelledby="agreement-h">
+            <h2 id="agreement-h">Agreement</h2>
+            <p>By accessing this site, you agree to these demonstration terms: you will treat all content as sample data, enter no real personal or payment information, and use the site for evaluation and learning purposes only.</p>
+          </section>
+
+          <section class="policy-section" id="contact-info" aria-labelledby="contact-info-h">
+            <h2 id="contact-info-h">Contact Information</h2>
+            <p>For inquiries, please use the <a href="contact.html">Contact Us</a> page. Support for this academic project is based in Quezon City, Metro Manila.</p>
+          </section>
+        </div>
+
+        <div class="related-policies">
+          <h2>Related policies</h2>
+          <div class="related-grid">
+            <a class="related-card" href="privacy.html"><strong>Privacy Policy</strong><span>How demo data is handled under the DPA.</span></a>
+            <a class="related-card" href="shipping.html"><strong>Shipping Information</strong><span>Simulated delivery estimates.</span></a>
+            <a class="related-card" href="return-policy.html"><strong>Return Policy</strong><span>Simulated eligibility and steps.</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 <section class="newsletter">
 <div class="container newsletter-box">
@@ -174,9 +279,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -191,9 +294,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -208,9 +309,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -232,11 +331,65 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function(){
+  var nav=document.getElementById('termsToc'); if(!nav) return;
+  var links=Array.prototype.slice.call(nav.querySelectorAll('.toc-list a[href^="#"]'));
+  function setActive(id){ links.forEach(function(a){ var on=a.getAttribute('href')==='#'+id; a.classList.toggle('active',on); if(on){a.setAttribute('aria-current','true');}else{a.removeAttribute('aria-current');} }); }
+  if('IntersectionObserver' in window){
+    var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));}).filter(Boolean);
+    var obs=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting) setActive(e.target.id); }); },{rootMargin:'-35% 0px -55% 0px'});
+    secs.forEach(function(s){obs.observe(s);});
+  }
+  var t=document.getElementById('tocToggleTerms');
+  if(t){ t.addEventListener('click',function(){ var open=nav.classList.toggle('open'); t.setAttribute('aria-expanded',open?'true':'false'); }); }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-print]'),function(b){ b.addEventListener('click',function(){ window.print(); }); });
+})();
+</script>
+<script>
+(function(){
+  var bar=document.getElementById('readingProgress');
+  if(bar){
+    var tick=function(){
+      var h=document.documentElement;
+      var max=h.scrollHeight - h.clientHeight;
+      var pct=max>0 ? (window.scrollY / max * 100) : 0;
+      bar.style.transform='scaleX('+(pct/100)+')';
+      bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    };
+    window.addEventListener('scroll', tick, {passive:true});
+    window.addEventListener('resize', tick);
+    tick();
+  }
+  var btn=document.getElementById('textSizeToggle');
+  var key='smilehub_text_size';
+  try{
+    var saved=localStorage.getItem(key);
+    if(saved==='large') document.body.classList.add('large-text');
+  }catch(e){}
+  if(btn){
+    var sync=function(){
+      var large=document.body.classList.contains('large-text');
+      btn.textContent='Text size: '+(large?'Large':'Normal');
+      btn.setAttribute('aria-pressed', large?'true':'false');
+    };
+    sync();
+    btn.addEventListener('click', function(){
+      document.body.classList.toggle('large-text');
+      try{ localStorage.setItem(key, document.body.classList.contains('large-text')?'large':'normal'); }catch(e){}
+      sync();
+    });
+  }
+})();
+</script>
 </body>
 </html>
+
+
+

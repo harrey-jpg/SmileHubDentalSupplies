@@ -12,7 +12,13 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "functions/**"
+      "functions/**",
+      ".opencode/**",
+      "impeccable-*.json",
+      "impeccable-*.json/**",
+      "**/*.md",
+      "!README.md",
+      "data/assets/ph-locations.js"
     ],
     "cleanUrls": false,
     "rewrites": [

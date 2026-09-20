@@ -8,14 +8,14 @@
 <title>
       Contact | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -38,34 +38,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-contact">Search dental products</label>
+<input id="siteSearch-contact" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-    ♡
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-    🛒
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
     <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-    👤
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
     <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">Menu</button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -122,51 +123,42 @@
 <h2>
             Send a Message
           </h2>
-<form class="demo-form">
+<form id="contactForm" novalidate="">
 <div class="form-grid">
 <div class="form-group">
-<label>
-                  Name
-                </label>
-<input required=""/>
+<label for="contactName">Name</label>
+<input autocomplete="name" id="contactName" maxlength="80" name="name" required="" type="text" aria-describedby="contactNameError"/>
+<p class="field-error" id="contactNameError" role="alert"></p>
 </div>
 <div class="form-group">
-<label>
-                  Email
-                </label>
-<input required="" type="email"/>
+<label for="contactEmail">Email</label>
+<input autocomplete="email" id="contactEmail" maxlength="120" name="email" required="" type="email" aria-describedby="contactEmailError"/>
+<p class="field-error" id="contactEmailError" role="alert"></p>
 </div>
 </div>
 <div class="form-group">
-<label>
-                Topic
-              </label>
-<select>
-<option>
-                  Product Inquiry
-                </option>
-<option>
-                  Order Concern
-                </option>
-<option>
-                  Payment Question
-                </option>
-<option>
-                  Technical Support
-                </option>
+<label for="contactTopic">Topic</label>
+<select id="contactTopic" name="topic">
+<option>Product Inquiry</option>
+<option>Order Concern</option>
+<option>Payment Question</option>
+<option>Technical Support</option>
 </select>
 </div>
 <div class="form-group">
-<label>
-                Message
-              </label>
-<textarea required="">
-              </textarea>
+<label for="contactMessage">Message</label>
+<textarea id="contactMessage" maxlength="1000" minlength="10" name="message" required="" rows="5" aria-describedby="contactMessageError" placeholder="Tell us your order number (if any) and how we can help."></textarea>
+<p class="field-error" id="contactMessageError" role="alert"></p>
 </div>
-<button class="btn btn-primary">
-              Submit Message
-            </button>
+<button class="btn btn-primary btn-block" id="contactSubmit" type="submit"><span class="btn-label">Submit Message</span></button>
+<p class="muted" style="font-size:.85rem;margin:10px 0 0">Messages are saved on this device with a reference number. For an urgent reply, email <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> directly.</p>
 </form>
+<div class="contact-done hidden" id="contactDone" role="status">
+<h3>Message received</h3>
+<p class="muted">Reference: <strong id="contactTicket">—</strong></p>
+<p class="muted">We saved your message on this device. For the fastest reply, forward it to <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> with your reference number.</p>
+<button class="btn btn-light" id="contactAgain" type="button">Send another message</button>
+</div>
 </section>
 <aside class="card form-card">
 <h2>
@@ -176,14 +168,14 @@
 <strong>
               Email:
             </strong>
-            support@smilehub.ph
-          </p>
+<a href="mailto:support@smilehub.ph">support@smilehub.ph</a>
+</p>
 <p>
 <strong>
               Phone:
             </strong>
-            +63 917 555 0142
-          </p>
+<a href="tel:+639175550142">+63 917 555 0142</a>
+</p>
 <p>
 <strong>
               Hours:
@@ -210,8 +202,9 @@
           </p>
 </div>
 <form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>
+<label class="sr-only" for="newsletterEmail-contact">Your email address</label>
+<input id="newsletterEmail-contact" placeholder="Your email address" required="" type="email"/>
+<button type="submit">
             Subscribe
           </button>
 </form>
@@ -229,9 +222,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -246,9 +237,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -263,9 +252,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -287,11 +274,157 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function() {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+  var nameEl = document.getElementById('contactName');
+  var emailEl = document.getElementById('contactEmail');
+  var topicEl = document.getElementById('contactTopic');
+  var msgEl = document.getElementById('contactMessage');
+  var submitBtn = document.getElementById('contactSubmit');
+  var doneBox = document.getElementById('contactDone');
+  var ticketEl = document.getElementById('contactTicket');
+  var againBtn = document.getElementById('contactAgain');
+  var DRAFT_KEY = 'smilehub_contact_draft';
+  var OUTBOX_KEY = 'smilehub_contact_outbox';
+
+  function setError(input, errorId, message) {
+    var err = document.getElementById(errorId);
+    var bad = Boolean(message);
+    input.setAttribute('aria-invalid', bad ? 'true' : 'false');
+    if (err) {
+      err.textContent = message || '';
+      err.classList.toggle('show', bad);
+    }
+    return !bad;
+  }
+
+  try {
+    var draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
+    if (draft.name) nameEl.value = draft.name;
+    if (draft.email) emailEl.value = draft.email;
+    if (draft.topic) topicEl.value = draft.topic;
+    if (draft.message) msgEl.value = draft.message;
+  } catch (e) {}
+
+  form.addEventListener('input', function() {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        name: nameEl.value, email: emailEl.value,
+        topic: topicEl.value, message: msgEl.value
+      }));
+    } catch (e) {}
+  });
+
+  [ [nameEl, 'contactNameError'], [emailEl, 'contactEmailError'], [msgEl, 'contactMessageError'] ].forEach(function(pair) {
+    pair[0].addEventListener('input', function() { setError(pair[0], pair[1], ''); });
+  });
+
+  function validate() {
+    var ok = true;
+    var name = nameEl.value.trim();
+    var email = emailEl.value.trim();
+    var msg = msgEl.value.trim();
+    if (name.length < 2) { setError(nameEl, 'contactNameError', 'Please enter your name.'); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError(emailEl, 'contactEmailError', 'Enter a valid email address.'); ok = false; }
+    if (msg.length < 10) { setError(msgEl, 'contactMessageError', 'Please write at least 10 characters so we can help.'); ok = false; }
+    return ok;
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validate()) {
+      var firstBad = form.querySelector('[aria-invalid="true"]');
+      if (firstBad) firstBad.focus();
+      return;
+    }
+    var label = submitBtn.querySelector('.btn-label') || submitBtn;
+    var original = label.textContent;
+    submitBtn.disabled = true;
+    label.textContent = 'Sending...';
+    var ticket = 'SH-' + Date.now().toString(36).toUpperCase();
+    var record = {
+      ticket: ticket, name: nameEl.value.trim(), email: emailEl.value.trim(),
+      topic: topicEl.value, message: msgEl.value.trim(), date: new Date().toISOString()
+    };
+    function finish() {
+      try {
+        var box = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]');
+        box.unshift(record);
+        localStorage.setItem(OUTBOX_KEY, JSON.stringify(box.slice(0, 50)));
+        localStorage.removeItem(DRAFT_KEY);
+      } catch (e) {}
+      ticketEl.textContent = ticket;
+      form.classList.add('hidden');
+      doneBox.classList.remove('hidden');
+      doneBox.scrollIntoView({ block: 'nearest' });
+      if (typeof showToast === 'function') {
+        showToast(savedOnline
+          ? 'Message sent — reference ' + ticket
+          : 'Saved on this device — reference ' + ticket);
+      }
+      submitBtn.disabled = false;
+      label.textContent = original;
+    }
+    var savedOnline = false;
+    function finishOnline() { savedOnline = true; finish(); }
+    try {
+      if (window.firebase && firebase.firestore) {
+        firebase.firestore().collection('contactMessages').add(record).then(finishOnline).catch(finish);
+      } else {
+        setTimeout(finish, 400);
+      }
+    } catch (e) {
+      setTimeout(finish, 400);
+    }
+  });
+
+  function flushOutbox() {
+    var box = [];
+    try { box = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]'); } catch (e) { return; }
+    var pending = box.filter(function(m) { return m && !m.synced; });
+    if (!pending.length) return;
+    if (!window.firebase || !firebase.firestore || !navigator.onLine) return;
+    var remaining = pending.length;
+    pending.forEach(function(msg) {
+      firebase.firestore().collection('contactMessages').add(msg).then(function() {
+        try {
+          var current = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]');
+          current.forEach(function(m) {
+            if (m && m.ticket === msg.ticket) m.synced = true;
+          });
+          localStorage.setItem(OUTBOX_KEY, JSON.stringify(current.slice(0, 50)));
+        } catch (e) {}
+        remaining--;
+        if (remaining === 0 && typeof showToast === 'function') {
+          showToast('Pending messages delivered to support');
+        }
+      }).catch(function() {});
+    });
+  }
+  window.addEventListener('online', flushOutbox);
+  setTimeout(flushOutbox, 3000);
+
+  if (againBtn) againBtn.addEventListener('click', function() {
+    form.reset();
+    [ [nameEl, 'contactNameError'], [emailEl, 'contactEmailError'], [msgEl, 'contactMessageError'] ].forEach(function(pair) {
+      setError(pair[0], pair[1], '');
+    });
+    doneBox.classList.add('hidden');
+    form.classList.remove('hidden');
+    nameEl.focus();
+  });
+})();
+</script>
 </body>
 </html>
+
+
+

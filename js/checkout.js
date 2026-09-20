@@ -8,6 +8,32 @@ function normalizePHPhone(raw) {
   return /^\+639\d{9}$/.test(e164) ? e164 : null;
 }
 
+function checkoutVal(id){
+  var n=document.getElementById(id); if(!n) return '';
+  var v=(n.value||'').trim();
+  if(v==='__other__'){ var o=document.getElementById(id+'Other')||document.getElementById(id+'_other'); return o? (o.value||'').trim() : ''; }
+  return v;
+}
+function checkoutSet(id, value){
+  var n=document.getElementById(id); if(!n) return;
+  value=value||'';
+  if(n.tagName==='SELECT'){
+    var has=[].slice.call(n.options).some(function(o){return o.value===value;});
+    if(has){ n.value=value; return; }
+    if(!value){ n.value=''; return; }
+    var other=document.getElementById(id+'Other')||document.getElementById(id+'_other');
+    if(other && [].slice.call(n.options).some(function(o){return o.value==='__other__';})){ n.value='__other__'; other.value=value; other.classList.remove('hidden'); return; }
+    n.setAttribute('data-saved', value);
+    n.value='';
+    return;
+  }
+  if ((id === 'checkoutPhone' || id === 'billingPhone') && window.SmileHubPhone) {
+    window.SmileHubPhone.setValue(n, value);
+    return;
+  }
+  n.value=value;
+}
+
 function loadCheckoutProfile() {
   firebase.auth().onAuthStateChanged(function(user) {
     if (!user) return;
@@ -16,22 +42,17 @@ function loadCheckoutProfile() {
       var data = doc.data() || {};
       checkoutProfile = data;
       var address = data.address || {};
-      var set = function(id, value) {
-        var node = document.getElementById(id);
-        if (!node || node.value) return;
-        if ((id === 'checkoutPhone' || id === 'billingPhone') && window.SmileHubPhone) {
-          window.SmileHubPhone.setValue(node, value || '');
-        } else {
-          node.value = value || '';
-        }
-      };
+      var set = function(id, value) { checkoutSet(id, value); };
       set('checkoutFirstName', data.firstName);
       set('checkoutLastName', data.lastName);
       set('checkoutEmail', data.email || user.email);
       set('checkoutPhone', data.phoneE164 || data.phone || data.phoneLocal || '+63');
       set('checkoutAddress', typeof address === 'string' ? address : address.street);
+      set('checkoutProvince', address.province);
       set('checkoutCity', address.city);
+      set('checkoutBarangay', address.barangay);
       set('checkoutPostal', address.postal);
+      if(window.PHAddress && window.PHAddress.prefill) window.PHAddress.prefill('checkout', address);
       var badge = document.getElementById('checkoutPhoneVerification');
       if (badge) {
         badge.className = 'checkout-verified-note' + (data.phoneVerified ? '' : ' is-warning');
@@ -130,9 +151,42 @@ document.addEventListener('DOMContentLoaded', function() {
     renderSummary();
   }
 
+  function renderExpressBanner() {
+    var items = document.getElementById('checkoutItems');
+    if (!items || !items.parentNode) return;
+    var existing = document.getElementById('expressBanner');
+    if (existing) existing.parentNode.removeChild(existing);
+    if (!buyNowMode) return;
+    var savedCart = getStoredList(CART_KEY);
+    var savedCount = savedCart.reduce(function(sum, entry) { return sum + (Number(entry.quantity) || 0); }, 0);
+    var bar = document.createElement('div');
+    bar.className = 'checkout-note';
+    bar.id = 'expressBanner';
+    bar.setAttribute('role', 'status');
+    var label = 'Express checkout — ' + cart.length + (cart.length === 1 ? ' item' : ' items') + ', skipping the cart. ' +
+      (savedCount > 0
+        ? 'Your cart (' + savedCount + (savedCount === 1 ? ' item' : ' items') + ') is saved and untouched.'
+        : 'Your cart is untouched.');
+    var strong = document.createElement('strong');
+    strong.textContent = 'Buy Now express';
+    var span = document.createElement('span');
+    span.textContent = label;
+    bar.appendChild(strong);
+    bar.appendChild(span);
+    if (savedCount > 0) {
+      var link = document.createElement('a');
+      link.href = 'checkout.html';
+      link.textContent = 'Switch to cart checkout';
+      link.style.fontWeight = '700';
+      bar.appendChild(link);
+    }
+    items.parentNode.insertBefore(bar, items);
+  }
+
   function renderSummary() {
     var items = document.getElementById('checkoutItems');
     var totals = getOrderTotals();
+    renderExpressBanner();
 
     items.innerHTML = cart.length ? cart.map(function(item) {
       var img = item.image || 'assets/products/default.svg';
@@ -194,7 +248,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('billingLastName').value = document.getElementById('checkoutLastName').value;
     document.getElementById('billingEmail').value = document.getElementById('checkoutEmail').value;
     document.getElementById('billingPhone').value = document.getElementById('checkoutPhone').value;
-    document.getElementById('billingAddress').value = document.getElementById('checkoutAddress').value;
+    var streetSrc=document.getElementById('checkoutAddress');
+    var streetDst=document.getElementById('billingStreet')||document.getElementById('billingAddress');
+    if(streetSrc && streetDst) streetDst.value=streetSrc.value;
+    [['checkoutProvince','billingProvince'],['checkoutCity','billingCity'],['checkoutBarangay','billingBarangay'],['checkoutPostal','billingPostal']].forEach(function(pair){
+      var src=document.getElementById(pair[0]), dst=document.getElementById(pair[1]);
+      if(!src||!dst) return;
+      var srcOther=document.getElementById(pair[0]+'Other')||document.getElementById(pair[0]+'_other');
+      var dstOther=document.getElementById(pair[1]+'Other')||document.getElementById(pair[1]+'_other');
+      var val=src.value;
+      if(val==='__other__' && srcOther){
+        dst.value='__other__';
+        if(dstOther){ dstOther.value=srcOther.value; dstOther.classList.remove('hidden'); }
+      } else {
+        dst.value=val;
+        if(dstOther) dstOther.classList.add('hidden');
+        // trigger change to populate dependent selects
+        try{ dst.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+      }
+    });
   }
   var sameAsShipping = document.getElementById('sameAsShipping');
   if (sameAsShipping) {
@@ -261,13 +333,15 @@ document.addEventListener('DOMContentLoaded', function() {
     var lastName = document.getElementById('checkoutLastName').value.trim();
     var email = document.getElementById('checkoutEmail').value.trim();
     var phone = document.getElementById('checkoutPhone').value.trim();
-    var address = document.getElementById('checkoutAddress').value.trim();
-    var postal = document.getElementById('checkoutPostal').value.trim();
-    var city = document.getElementById('checkoutCity').value.trim();
+    var address = checkoutVal('checkoutAddress');
+    var postal = checkoutVal('checkoutPostal');
+    var city = checkoutVal('checkoutCity');
+    var province = checkoutVal('checkoutProvince');
+    var barangay = checkoutVal('checkoutBarangay');
     var payment = document.querySelector('input[name="payment"]:checked');
     var paymentMethod = payment ? payment.value : 'GCash';
 
-    if (!firstName || !lastName || !email || !phone || !address || !postal || !city) {
+    if (!firstName || !lastName || !email || !phone || !address || !postal || !city || !province || !barangay) {
       return showToast('Please fill in all required shipping fields', true);
     }
     var normalizedPhone = normalizePHPhone(phone);
@@ -297,8 +371,15 @@ document.addEventListener('DOMContentLoaded', function() {
       var bfName = document.getElementById('billingFirstName').value.trim();
       var blName = document.getElementById('billingLastName').value.trim();
       var bEmail = document.getElementById('billingEmail').value.trim();
-      var bAddr = document.getElementById('billingAddress').value.trim();
-      if (!bfName || !blName || !bEmail || !bAddr) {
+      var sameAsShippingEl=document.getElementById('sameAsShipping');
+      var isSame=sameAsShippingEl && sameAsShippingEl.checked;
+      var bStreetEl2=document.getElementById('billingStreet')||document.getElementById('billingAddress');
+      var bStreet2=bStreetEl2 ? bStreetEl2.value.trim() : '';
+      var bProv2=checkoutVal('billingProvince');
+      var bCity2=checkoutVal('billingCity');
+      var bBrgy2=checkoutVal('billingBarangay');
+      var bPostal2=checkoutVal('billingPostal');
+      if (!bfName || !blName || !bEmail || (!isSame && (!bStreet2 || !bProv2 || !bCity2 || !bBrgy2 || !bPostal2))) {
         return showToast('Please fill in all billing details');
       }
     }
@@ -317,16 +398,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var billingInfo = {};
     if (paymentMethod === 'Credit Card' || paymentMethod === 'GCash') {
+      var billingStreetEl=document.getElementById('billingStreet')||document.getElementById('billingAddress');
+      var billingProv=checkoutVal('billingProvince');
+      var billingCityVal=checkoutVal('billingCity');
+      var billingBrgy=checkoutVal('billingBarangay');
+      var billingPostalVal=checkoutVal('billingPostal');
+      var billingStreetVal=billingStreetEl ? billingStreetEl.value.trim() : '';
+      var billingFull=[billingStreetVal, billingBrgy, billingCityVal, billingProv].filter(Boolean).join(', ') + (billingPostalVal ? ' '+billingPostalVal : '');
       billingInfo = {
         firstName: document.getElementById('billingFirstName').value.trim(),
         lastName: document.getElementById('billingLastName').value.trim(),
         email: document.getElementById('billingEmail').value.trim(),
         phone: document.getElementById('billingPhone').value.trim(),
-        address: document.getElementById('billingAddress').value.trim()
+        address: billingFull || (document.getElementById('billingAddress') ? document.getElementById('billingAddress').value.trim() : ''),
+        street: billingStreetVal,
+        province: billingProv,
+        city: billingCityVal,
+        barangay: billingBrgy,
+        postal: billingPostalVal
       };
     }
 
-    var fullAddress = [address, city].filter(Boolean).join(', ') + (postal ? ' ' + postal : '');
+    var fullAddress = [address, barangay, city, province].filter(Boolean).join(', ') + (postal ? ' ' + postal : '');
     var order = {
       number: orderNumber,
       orderNumber: orderNumber,
@@ -336,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
       userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : '',
       customerObj: { name: firstName + ' ' + lastName, email: email, phone: normalizedPhone, phoneVerified: phoneVerifiedForOrder },
       address: fullAddress,
-      shippingDetails: { address: address, city: city, postal: postal, method: 'Standard' },
+      shippingDetails: { address: address, barangay: barangay, city: city, province: province, postal: postal, method: (document.querySelector('input[name="shippingMethod"]:checked')||{}).value || 'Standard' },
       billing: billingInfo,
       payment: paymentMethod,
       items: cart.map(function(item) {
@@ -369,8 +462,8 @@ document.addEventListener('DOMContentLoaded', function() {
           street: address,
           city: city,
           postal: postal,
-          barangay: checkoutProfile && checkoutProfile.address ? (checkoutProfile.address.barangay || '') : '',
-          province: checkoutProfile && checkoutProfile.address ? (checkoutProfile.address.province || '') : '',
+          barangay: barangay,
+          province: province,
           deliveryNotes: checkoutProfile && checkoutProfile.address ? (checkoutProfile.address.deliveryNotes || '') : '',
           isDefault: true
         },

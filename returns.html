@@ -6,14 +6,14 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Returns & Refunds | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -133,9 +133,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -150,9 +148,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -167,9 +163,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -191,11 +185,11 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/profile.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
 document.addEventListener('DOMContentLoaded',function(){
  var key='smilehub_returns',items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
@@ -203,5 +197,7 @@ document.addEventListener('DOMContentLoaded',function(){
  document.getElementById('returnForm').onsubmit=function(e){e.preventDefault();items.unshift({id:Date.now(),order:document.getElementById('returnOrder').value,reason:document.getElementById('returnReason').value,details:document.getElementById('returnDetails').value,date:new Date().toISOString()});localStorage.setItem(key,JSON.stringify(items));e.target.reset();render();alert('Return request saved on this device.');};
 });
 </script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
 </body></html>
+
+

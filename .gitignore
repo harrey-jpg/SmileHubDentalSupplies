@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# PH locations JS fallback (generated, deploy-ignored; JSON is the source)
+data/assets/ph-locations.js
+
+
+# local tooling & audit dumps (keep out of repo)
+.opencode/
+.impeccable/
+

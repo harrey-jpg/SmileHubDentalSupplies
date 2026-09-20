@@ -42,12 +42,12 @@ var defaultProducts = [
   { id: 24, sku: 'SH-IM-024', name: 'VPS Putty Impression Material Kit', brand: 'Impressa', category: 'Impression', price: 2499, stock: 14, status: 'Active', image: 'assets/products/impression.svg' },
   { id: 25, sku: 'SH-OR-025', name: 'Orthodontic Relief Wax 10-Pack', brand: 'OrthoEase', category: 'Orthodontics', price: 299, stock: 73, status: 'Active', image: 'assets/products/orthodontic.svg' },
   { id: 26, sku: 'SH-OR-026', name: 'Elastic Chain Assortment 15ft', brand: 'OrthoEase', category: 'Orthodontics', price: 749, stock: 27, status: 'Active', image: 'assets/products/orthodontic.svg' },
-  { id: 27, sku: 'SH-RO-027', name: 'Diamond Dental Bur Set 30pcs', brand: 'BurMaster', category: 'Rotary', price: 1199, stock: 19, status: 'Active', image: 'assets/products/instrument.svg' },
+  { id: 27, sku: 'SH-RO-027', name: 'Diamond Dental Bur Set 30pcs', brand: 'BurMaster', category: 'Rotary', price: 1199, stock: 19, status: 'Active', image: 'assets/products/rotary.svg' },
   { id: 28, sku: 'SH-EQ-028', name: 'LED Curing Light 1200mW', brand: 'LumaDent', category: 'Equipment', price: 3299, stock: 12, status: 'Active', image: 'assets/products/equipment.svg' },
   { id: 29, sku: 'SH-EQ-029', name: 'Ultrasonic Scaler with 5 Tips', brand: 'ProSonic', category: 'Equipment', price: 6999, stock: 7, status: 'Low Stock', image: 'assets/products/equipment.svg' },
   { id: 30, sku: 'SH-EQ-030', name: 'Class B Autoclave 18L Demo Unit', brand: 'SteriliTech', category: 'Equipment', price: 89999, stock: 2, status: 'Low Stock', image: 'assets/products/equipment.svg' },
   { id: 31, sku: 'SH-EQ-031', name: 'Ergonomic Dental Chair Demo Package', brand: 'ChairPro', category: 'Equipment', price: 189999, stock: 1, status: 'Low Stock', image: 'assets/products/equipment.svg' },
-  { id: 32, sku: 'SH-CO-032', name: 'Professional Teeth Whitening Kit', brand: 'BrightDent', category: 'Cosmetic', price: 2899, stock: 16, status: 'Active', image: 'assets/products/restorative.svg' }
+  { id: 32, sku: 'SH-CO-032', name: 'Professional Teeth Whitening Kit', brand: 'BrightDent', category: 'Cosmetic', price: 2899, stock: 16, status: 'Active', image: 'assets/products/cosmetic.svg' }
 ];
 
 var categoryImages = {
@@ -58,9 +58,9 @@ var categoryImages = {
   'Disposables': 'assets/products/disposable.svg',
   'Impression': 'assets/products/impression.svg',
   'Orthodontics': 'assets/products/orthodontic.svg',
-  'Rotary': 'assets/products/instrument.svg',
+  'Rotary': 'assets/products/rotary.svg',
   'Equipment': 'assets/products/equipment.svg',
-  'Cosmetic': 'assets/products/restorative.svg'
+  'Cosmetic': 'assets/products/cosmetic.svg'
 };
 
 function getProducts(callback) {
@@ -304,13 +304,22 @@ function getDefaultCms() {
     heroHeadline: 'Your Trusted Dental Supply Partner',
     heroSubtitle: 'Quality dental products for clinics, dentists, and students across the Philippines.',
     heroCta: 'Shop Now',
-    promoTtext: 'Free shipping on orders over ₱3,000',
+    promoText: 'Free shipping on orders over ₱3,000',
     promoBtn: 'View Deals',
     storeTagline: 'SmileHub Dental Supplies',
     faqs: [
       { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
+      { q: 'Are payments real?', a: 'No, this storefront runs in demonstration mode — checkout uses payment simulation and no real charge is made.' },
+      { q: 'Do you offer cash on delivery outside Metro Manila?', a: 'Cash on delivery is available within Metro Manila only. Provincial orders use GCash or bank transfer.' },
       { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
-      { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' }
+      { q: 'How much is delivery?', a: 'Standard delivery is ₱150. Orders over ₱3,000 ship free.' },
+      { q: 'How do I track my order?', a: 'Open the Orders page after signing in to see each order timeline and its current status.' },
+      { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' },
+      { q: 'What if my item arrives damaged or defective?', a: 'Send a message through the Contact page with your order number and a photo. We arrange a replacement or refund for verified defects.' },
+      { q: 'Can dental students create accounts?', a: 'Yes, the registration page includes a dental-student account type with student-friendly offers.' },
+      { q: 'I forgot my password. How do I reset it?', a: 'Use the Forgot password link on the login page. We email you a reset link valid for a limited time.' },
+      { q: 'Do I need an account to browse products?', a: 'No. Browsing, searching, and filtering are open to everyone. You only sign in to check out, save a wishlist, or track orders.' },
+      { q: 'How do I contact support?', a: 'Use the Contact page form, email support@smilehub.ph, or call +63 917 555 0142, Monday to Saturday, 8:00 AM to 6:00 PM.' }
     ]
   };
 }

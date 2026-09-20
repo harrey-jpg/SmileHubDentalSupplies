@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="SmileHub shipping information and delivery expectations."><title>Shipping Information | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"><link href="css/premium.css?v=5.0.0" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+<link href="css/style.css?v=6.3.0" rel="stylesheet"><link href="css/premium.css?v=6.3.0" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -9,6 +10,7 @@
 <script defer src="js/auth.js"></script>
 </head>
 <body>
+<div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
 <div class="topbar">
 <div class="container">
 <span>Free shipping on orders over ₱3,000</span>
@@ -18,18 +20,29 @@
 <header class="header">
 <div class="container header-main">
 <a class="logo" href="homepage.html"><img alt="SmileHub logo" src="assets/logo.svg"/><span>SmileHub<br/>Dental Supplies</span></a>
-<form action="products.html" class="search-bar"><input name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
+<form action="products.html" class="search-bar" role="search"><label class="sr-only" for="siteSearch-shipping">Search dental products</label><input id="siteSearch-shipping" name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">♡<span class="text-label">Wishlist</span><span class="cart-count wishlist-count">0</span></a>
-<a class="icon-link" href="cart.html">🛒<span class="text-label">Cart</span><span class="cart-count">0</span></a>
-<a class="icon-link" href="login.html">👤<span class="text-label">Login</span></a>
-<button class="menu-button" type="button">Menu</button>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="text-label">Wishlist</span>
+<span class="cart-count wishlist-count">0</span>
+</a>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+    <span class="text-label">Cart</span>
+<span class="cart-count">0</span>
+</a>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+    <span class="text-label">Login</span>
+</a>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li><a href="homepage.html">Home</a></li>
 <li><a href="products.html">Products</a></li>
 <li><a href="about.html">About</a></li>
@@ -40,13 +53,160 @@
 </div>
 </nav>
 </header>
-<main id="main-content"><section class="sh-premium-strip" style="padding-top:30px"><div class="sh-section-head"><div><span class="sh-chip">Delivery</span><h1>Shipping information</h1><p>Clear frontend guidance for customers before checkout.</p></div></div>
-<div class="sh-testimonial-grid">
-<section class="sh-testimonial"><h2>Metro Manila</h2><p>Standard and express delivery options appear during checkout. Delivery estimates are frontend demonstrations until a logistics backend is connected.</p></section>
-<section class="sh-testimonial"><h2>Provincial delivery</h2><p>Customers can choose supported shipping methods and review estimated costs before placing a demo order.</p></section>
-<section class="sh-testimonial"><h2>Free shipping</h2><p>The storefront highlights progress toward free shipping on qualifying orders over ₱3,000.</p></section>
-<section class="sh-testimonial"><h2>Order tracking</h2><p>The customer dashboard includes an order timeline ready for future courier integration.</p></section>
-</div></section></main>
+<section class="policy-hero" aria-labelledby="shippingTitle">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="homepage.html">Home</a> / <span aria-current="page">Shipping Information</span>
+    </nav>
+    <h1 id="shippingTitle">Shipping information</h1>
+    <p class="lede">Where we deliver, what it costs, and how tracking works — simulated for this academic demonstration.</p>
+    <div class="policy-meta">
+      <span class="meta-chip">Last updated: September 2026</span>
+      <span class="meta-chip">3 min read</span>
+      <span class="meta-chip">Metro Manila · Nationwide demo</span>
+    </div>
+    <div class="trust-row" role="list" aria-label="Trust signals">
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Free shipping over ₱3,000</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Delivery Mon–Sat</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Demo rates — no real courier</span>
+    </div>
+  </div>
+</section>
+<main id="main-content" class="section-sm">
+  <div class="container">
+    <ul class="policy-quick-links" aria-label="Shipping highlights">
+      <li><a href="#zones" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🗺️</span>
+        <span><strong>Delivery zones</strong><span>Manila and provincial timelines.</span></span>
+      </a></li>
+      <li><a href="#rates" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🏷️</span>
+        <span><strong>Rates</strong><span>Flat fee and free-shipping rule.</span></span>
+      </a></li>
+      <li><a href="#methods" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🚚</span>
+        <span><strong>Methods</strong><span>Standard vs express at checkout.</span></span>
+      </a></li>
+      <li><a href="#tracking" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">📦</span>
+        <span><strong>Tracking</strong><span>Follow demo orders live.</span></span>
+      </a></li>
+    </ul>
+
+    <button class="btn btn-light policy-toc-toggle" id="tocToggleShip" type="button" aria-expanded="false" aria-controls="shipToc">Browse contents</button>
+
+    <div class="policy-layout">
+      <aside class="policy-sidebar">
+        <nav class="toc-nav" id="shipToc" aria-label="Shipping information contents">
+          <p class="eyebrow">Table of Contents</p>
+          <ul class="toc-list">
+            <li><a href="#zones">Delivery zones</a></li>
+            <li><a href="#rates">Rates</a></li>
+            <li><a href="#methods">Delivery methods</a></li>
+            <li><a href="#cod">Cash on delivery</a></li>
+            <li><a href="#tracking">Order tracking</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+          <div class="toc-actions">
+            <button class="btn btn-light text-size-toggle" type="button" id="textSizeToggle" aria-pressed="false">Text size: Normal</button>
+            <button class="btn btn-light" type="button" data-print>Print / Save PDF</button>
+            <a class="btn btn-primary" href="products.html">Browse products</a>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="policy-content">
+        <div class="policy-card">
+          <div class="demo-note" role="note"><span aria-hidden="true">🎓</span><span><strong>Academic demonstration.</strong> Delivery estimates, fees, and tracking on this page simulate a checkout flow. No real courier is booked and no parcel moves.</span></div>
+
+          <section class="policy-section" id="zones" aria-labelledby="zones-h">
+            <h2 id="zones-h">Delivery zones</h2>
+            <div class="zone-grid">
+              <article class="zone-card"><strong>Metro Manila</strong><span>1–3 business days, Monday to Saturday.</span></article>
+              <article class="zone-card"><strong>Provincial</strong><span>3–7 business days, depending on the destination.</span></article>
+            </div>
+            <p>Timelines are estimates shown before checkout so demo customers know what to expect. A production store would confirm cut-off times and holiday schedules with its courier partners.</p>
+          </section>
+
+          <section class="policy-section" id="rates" aria-labelledby="rates-h">
+            <h2 id="rates-h">Rates</h2>
+            <p>The demo checkout applies one simple rule, identical to the cart totals:</p>
+            <table class="rate-table">
+              <caption>Simulated delivery fees</caption>
+              <thead><tr><th scope="col">Order subtotal</th><th scope="col">Delivery fee</th></tr></thead>
+              <tbody>
+                <tr><td>₱3,000 and above</td><td><strong>Free</strong></td></tr>
+                <tr><td>Below ₱3,000</td><td><strong>₱150</strong> flat</td></tr>
+              </tbody>
+            </table>
+            <div class="estimator" aria-labelledby="estimator-h">
+              <h3 id="estimator-h">Demo fee calculator</h3>
+              <p class="muted">Type an order total to preview the delivery fee used at checkout.</p>
+              <form id="shipEstimator" novalidate>
+                <label for="shipSubtotal">Order subtotal (₱)</label>
+                <input id="shipSubtotal" name="subtotal" type="number" min="0" step="0.01" value="1500" inputmode="decimal">
+                <button class="btn btn-primary" type="submit">Calculate fee</button>
+              </form>
+              <p class="estimator-result" id="shipResult" role="status" aria-live="polite"></p>
+              <div class="sh-progress" aria-hidden="true"><span id="shipBar"></span></div>
+            </div>
+          </section>
+
+          <section class="policy-section" id="methods" aria-labelledby="methods-h">
+            <h2 id="methods-h">Delivery methods</h2>
+            <p>At checkout, demo customers choose between two simulated methods:</p>
+            <ul>
+              <li><strong>Standard delivery</strong> — 1–3 business days, ₱150 or free over ₱3,000.</li>
+              <li><strong>Express delivery</strong> — same or next day where available; shown as a demo option only.</li>
+            </ul>
+          </section>
+
+          <section class="policy-section" id="cod" aria-labelledby="cod-h">
+            <h2 id="cod-h">Cash on delivery</h2>
+            <p>Cash on delivery is simulated for <strong>Metro Manila orders only</strong>. Provincial demo orders use GCash or bank transfer at the simulated checkout.</p>
+          </section>
+
+          <section class="policy-section" id="tracking" aria-labelledby="tracking-h">
+            <h2 id="tracking-h">Order tracking</h2>
+            <p>Every demo order appears with a status timeline on the <a href="orders.html">Orders page</a> — from placement through simulated shipment — ready for a future courier integration. Statuses are illustrative and update locally in your browser.</p>
+          </section>
+
+          <section class="policy-section" id="contact" aria-labelledby="contact-h">
+            <h2 id="contact-h">Contact Us</h2>
+            <p>Questions about delivery in this demo? Reach us through the <a href="contact.html">Contact Us</a> page. Support for this academic project is based in Quezon City, Metro Manila.</p>
+          </section>
+        </div>
+
+        <div class="related-policies">
+          <h2>Related policies</h2>
+          <div class="related-grid">
+            <a class="related-card" href="terms.html"><strong>Terms and Conditions</strong><span>The governing rules for this demonstration.</span></a>
+            <a class="related-card" href="return-policy.html"><strong>Return Policy</strong><span>Simulated eligibility and return steps.</span></a>
+            <a class="related-card" href="privacy.html"><strong>Privacy Policy</strong><span>How demo data is handled under the DPA.</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<section class="newsletter">
+<div class="container newsletter-box">
+<div>
+<h2>
+            Dental deals in your inbox
+          </h2>
+<p>
+            Receive product updates, clinic essentials, and student-friendly offers.
+          </p>
+</div>
+<form class="newsletter-form">
+<input placeholder="Your email address" required="" type="email"/>
+<button>
+            Subscribe
+          </button>
+</form>
+</div>
+</section>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
@@ -55,21 +215,21 @@
 <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
 </div>
 <div>
-<h4>Shop</h4>
+<h3>Shop</h3>
 <a href="products.html">All Products</a>
 <a href="wishlist.html">Wishlist</a>
 <a href="cart.html">Shopping Cart</a>
 <a href="orders.html">Orders</a>
 </div>
 <div>
-<h4>Company</h4>
+<h3>Company</h3>
 <a href="about.html">About SmileHub</a>
 <a href="developers.html">Developer Profiles</a>
 <a href="contact.html">Contact Us</a>
 <a href="faq.html">FAQs</a>
 </div>
 <div>
-<h4>Policies</h4>
+<h3>Policies</h3>
 <a href="privacy.html">Privacy Policy</a>
 <a href="terms.html">Terms and Conditions</a>
 <a href="profile.html">Customer Profile</a>
@@ -81,7 +241,76 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function(){
+  var nav=document.getElementById('shipToc');
+  if(nav){
+    var links=Array.prototype.slice.call(nav.querySelectorAll('.toc-list a[href^="#"]'));
+    var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));}).filter(Boolean);
+    function setActive(id){links.forEach(function(a){var on=a.getAttribute('href')==='#'+id;a.classList.toggle('active',on);if(on){a.setAttribute('aria-current','true');}else{a.removeAttribute('aria-current');}});}
+    if('IntersectionObserver' in window){
+      var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)setActive(e.target.id);});},{rootMargin:'-35% 0px -55% 0px'});
+      secs.forEach(function(s){obs.observe(s);});
+    }
+    var t=document.getElementById('tocToggleShip');
+    if(t){t.addEventListener('click',function(){var open=nav.classList.toggle('open');t.setAttribute('aria-expanded',open?'true':'false');});}
+    Array.prototype.forEach.call(document.querySelectorAll('[data-print]'),function(b){b.addEventListener('click',function(){window.print();});});
+  }
+  var form=document.getElementById('shipEstimator');
+  if(form){
+    var input=document.getElementById('shipSubtotal'),out=document.getElementById('shipResult'),bar=document.getElementById('shipBar');
+    function peso(n){return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function calc(){
+      var v=Number(input.value);
+      if(input.value===''||!isFinite(v)||v<0){
+        out.textContent='Enter an order total of ₱0 or more.';
+        out.classList.add('error');input.setAttribute('aria-invalid','true');
+        if(bar)bar.style.width='0%';return;
+      }
+      out.classList.remove('error');input.removeAttribute('aria-invalid');
+      var fee=(v>=3000||v===0)?0:150;
+      out.textContent=v===0?'Empty cart ships free in this demo.':(fee===0?'Free shipping unlocked! Fee: '+peso(0)+'.':'Delivery fee: '+peso(fee)+'. Add '+peso(3000-v)+' more for free shipping.');
+      if(bar)bar.style.width=Math.min(100,v/3000*100)+'%';
+    }
+    form.addEventListener('submit',function(e){e.preventDefault();calc();});
+    calc();
+  }
+  var bar2=document.getElementById('readingProgress');
+  if(bar2){
+    var tick2=function(){
+      var h2=document.documentElement;
+      var max2=h2.scrollHeight - h2.clientHeight;
+      var pct2=max2>0 ? (window.scrollY / max2 * 100) : 0;
+      bar2.style.transform='scaleX('+(pct2/100)+')';
+      bar2.setAttribute('aria-valuenow', String(Math.round(pct2)));
+    };
+    window.addEventListener('scroll', tick2, {passive:true});
+    window.addEventListener('resize', tick2);
+    tick2();
+  }
+  var btn2=document.getElementById('textSizeToggle');
+  var key2='smilehub_text_size';
+  try{
+    var saved2=localStorage.getItem(key2);
+    if(saved2==='large') document.body.classList.add('large-text');
+  }catch(e){}
+  if(btn2){
+    var sync2=function(){
+      var large2=document.body.classList.contains('large-text');
+      btn2.textContent='Text size: '+(large2?'Large':'Normal');
+      btn2.setAttribute('aria-pressed', large2?'true':'false');
+    };
+    sync2();
+    btn2.addEventListener('click', function(){
+      document.body.classList.toggle('large-text');
+      try{ localStorage.setItem(key2, document.body.classList.contains('large-text')?'large':'normal'); }catch(e){}
+      sync2();
+    });
+  }
+})();
+</script>
 </body></html>
+

@@ -8,14 +8,14 @@
 <title>
       FAQs | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -38,34 +38,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-faq">Search dental products</label>
+<input id="siteSearch-faq" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-    ♡
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-    🛒
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
     <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-    👤
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
     <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">Menu</button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -117,25 +118,175 @@
 </div>
 </section>
 <main class="section-sm">
-<div class="container grid grid-2" id="faqList"></div>
+<div class="container faq-wrap">
+<div class="faq-tools">
+<div class="form-group faq-search">
+<label class="sr-only" for="faqSearch">Search questions</label>
+<input id="faqSearch" type="search" placeholder="Search questions…" autocomplete="off"/>
+</div>
+<div class="faq-chips" role="group" aria-label="Filter by topic">
+<button class="chip is-active" data-topic="all" type="button" aria-pressed="true">All</button>
+<button class="chip" data-topic="Payments" type="button" aria-pressed="false">Payments</button>
+<button class="chip" data-topic="Shipping" type="button" aria-pressed="false">Shipping</button>
+<button class="chip" data-topic="Returns" type="button" aria-pressed="false">Returns</button>
+<button class="chip" data-topic="Accounts" type="button" aria-pressed="false">Accounts</button>
+</div>
+</div>
+<p class="muted" id="faqCount" role="status" style="margin:0 0 12px"></p>
+<div id="faqList" aria-busy="true">
+<article class="card form-card" aria-hidden="true"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></article>
+<article class="card form-card" aria-hidden="true"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></article>
+<article class="card form-card" aria-hidden="true"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></article>
+</div>
+<div class="card empty-state hidden" id="faqEmpty">
+<h2>No matching questions</h2>
+<p>Try different words or browse another topic.</p>
+</div>
+<div class="card empty-state hidden" id="faqError">
+<h2>Couldn't load questions</h2>
+<p>Check your connection and try again.</p>
+<button class="btn btn-primary" id="faqRetry" type="button">Retry</button>
+</div>
+<div class="faq-more card">
+<p><strong>Still stuck?</strong> <span class="muted">Send us a message and we'll help.</span></p>
+<a class="btn btn-light" href="contact.html">Contact support</a>
+</div>
+</div>
 </main>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-      SmileHubData.getCms(function(data) {
-        if (!data.faqs || data.faqs.length === 0) {
-        data = { faqs: [
-          { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
-          { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
-          { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' },
-          { q: 'Can dental students create accounts?', a: 'Yes, the registration page includes a dental-student account type.' },
-          { q: 'Are payments real?', a: 'No, this frontend uses payment simulation for academic demonstration.' }
-        ]};
-      }
       var list = document.getElementById('faqList');
-      list.innerHTML = data.faqs.map(function(f) {
-        return '<article class="card form-card"><h3>' + f.q.replace(/</g,'&lt;') + '</h3><p class="muted">' + f.a.replace(/</g,'&lt;') + '</p></article>';
-      }).join('');
+      var emptyBox = document.getElementById('faqEmpty');
+      var errorBox = document.getElementById('faqError');
+      var search = document.getElementById('faqSearch');
+      var chips = Array.prototype.slice.call(document.querySelectorAll('.faq-chips .chip'));
+      var items = [];
+      var activeTopic = 'all';
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function slugify(s) {
+        return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'question';
+      }
+      function topicOf(f) {
+        var t = (f.q + ' ' + f.a).toLowerCase();
+        if (/payment|gcash|cod|bank|checkout|real/.test(t)) return 'Payments';
+        if (/ship|deliver|manila|provinc|track/.test(t)) return 'Shipping';
+        if (/return|refund|exchange|defect/.test(t)) return 'Returns';
+        if (/account|student|regist|login|password|profile/.test(t)) return 'Accounts';
+        return 'General';
+      }
+      function fallbackFaqs() {
+        if (typeof getDefaultCms === 'function') return getDefaultCms().faqs || [];
+        return [
+          { q: 'What payment methods do you accept?', a: 'We accept GCash, bank transfer, and cash on delivery within Metro Manila.' },
+          { q: 'Are payments real?', a: 'No, this storefront runs in demonstration mode — checkout uses payment simulation and no real charge is made.' },
+          { q: 'Do you offer cash on delivery outside Metro Manila?', a: 'Cash on delivery is available within Metro Manila only. Provincial orders use GCash or bank transfer.' },
+          { q: 'How long does shipping take?', a: 'Metro Manila orders arrive within 1-3 business days. Provincial orders may take 3-7 business days.' },
+          { q: 'How much is delivery?', a: 'Standard delivery is ₱150. Orders over ₱3,000 ship free.' },
+          { q: 'How do I track my order?', a: 'Open the Orders page after signing in to see each order timeline and its current status.' },
+          { q: 'Can I return a product?', a: 'Yes, unopened items can be returned within 7 days of delivery. Contact support to initiate a return.' },
+          { q: 'What if my item arrives damaged or defective?', a: 'Send a message through the Contact page with your order number and a photo. We arrange a replacement or refund for verified defects.' },
+          { q: 'Can dental students create accounts?', a: 'Yes, the registration page includes a dental-student account type with student-friendly offers.' },
+          { q: 'I forgot my password. How do I reset it?', a: 'Use the Forgot password link on the login page. We email you a reset link valid for a limited time.' },
+          { q: 'Do I need an account to browse products?', a: 'No. Browsing, searching, and filtering are open to everyone. You only sign in to check out, save a wishlist, or track orders.' },
+          { q: 'How do I contact support?', a: 'Use the Contact page form, email support@smilehub.ph, or call +63 917 555 0142, Monday to Saturday, 8:00 AM to 6:00 PM.' }
+        ];
+      }
+      function render() {
+        var term = (search.value || '').trim().toLowerCase();
+        var visible = 0;
+        items.forEach(function(it) {
+          var matchTopic = activeTopic === 'all' || it.topic === activeTopic;
+          var matchTerm = !term || (it.q + ' ' + it.a).toLowerCase().indexOf(term) >= 0;
+          var show = matchTopic && matchTerm;
+          it.el.classList.toggle('hidden', !show);
+          if (show) visible++;
+        });
+        emptyBox.classList.toggle('hidden', visible !== 0);
+        var countEl = document.getElementById('faqCount');
+        if (countEl) countEl.textContent = visible === items.length
+          ? 'Showing all ' + items.length + ' questions'
+          : 'Showing ' + visible + ' of ' + items.length + ' questions';
+      }
+      function setOpen(article, open) {
+        var btn = article.querySelector('.faq-q');
+        var panel = article.querySelector('.faq-a');
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        panel.hidden = !open;
+      }
+      function build(faqs) {
+        items = faqs.map(function(f, i) {
+          var slug = 'faq-' + slugify(f.q);
+          var topic = topicOf(f);
+          var article = document.createElement('article');
+          article.className = 'card faq-item';
+          article.id = slug;
+          article.innerHTML =
+            '<h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="' + slug + '-a" id="' + slug + '-q">' +
+            '<span>' + esc(f.q) + '</span>' +
+            '<svg class="faq-chev" width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M64 104l64 64 64-64" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+            '</button></h3>' +
+            '<div class="faq-a" role="region" aria-labelledby="' + slug + '-q" id="' + slug + '-a" hidden><p class="muted">' + esc(f.a) + '</p></div>';
+          var btn = article.querySelector('.faq-q');
+          btn.addEventListener('click', function() {
+            setOpen(article, article.querySelector('.faq-a').hidden);
+          });
+          return { el: article, q: f.q, a: f.a, topic: topic };
+        });
+        list.innerHTML = '';
+        items.forEach(function(it) { list.appendChild(it.el); });
+        list.setAttribute('aria-busy', 'false');
+        var hash = (location.hash || '').replace('#', '');
+        var target = hash && document.getElementById(hash);
+        if (target && target.classList.contains('faq-item')) {
+          setOpen(target, true);
+          target.scrollIntoView({ block: 'start' });
+        }
+        render();
+      }
+      function load() {
+        errorBox.classList.add('hidden');
+        list.setAttribute('aria-busy', 'true');
+        try {
+          SmileHubData.getCms(function(data) {
+            list.setAttribute('aria-busy', 'false');
+            var faqs = (data && data.faqs && data.faqs.length) ? data.faqs : fallbackFaqs();
+            build(faqs);
+          });
+        } catch (e) {
+          list.setAttribute('aria-busy', 'false');
+          list.innerHTML = '';
+          errorBox.classList.remove('hidden');
+        }
+      }
+      var searchTimer;
+      search.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(render, 150);
       });
+      chips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          chips.forEach(function(c) { c.classList.remove('is-active'); c.setAttribute('aria-pressed', 'false'); });
+          chip.classList.add('is-active');
+          chip.setAttribute('aria-pressed', 'true');
+          activeTopic = chip.dataset.topic;
+          render();
+        });
+        chip.setAttribute('aria-pressed', chip.classList.contains('is-active') ? 'true' : 'false');
+      });
+      document.getElementById('faqRetry').addEventListener('click', load);
+      setTimeout(function() {
+        if (list.getAttribute('aria-busy') === 'true' && !items.length) {
+          list.setAttribute('aria-busy', 'false');
+          list.innerHTML = '';
+          errorBox.classList.remove('hidden');
+        }
+      }, 10000);
+      load();
     });
     </script>
 <section class="newsletter">
@@ -149,8 +300,9 @@
           </p>
 </div>
 <form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>
+<label class="sr-only" for="newsletterEmail-faq">Your email address</label>
+<input id="newsletterEmail-faq" placeholder="Your email address" required="" type="email"/>
+<button type="submit">
             Subscribe
           </button>
 </form>
@@ -168,9 +320,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -185,9 +335,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -202,9 +350,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -226,11 +372,14 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
 </body>
 </html>
+
+
+

@@ -6,15 +6,15 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Home | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.2.0">
-<link rel="stylesheet" href="css/final-polish.css?v=6.5.2">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -35,20 +35,20 @@
 <button type="submit">Search</button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-            ♡
-            <span class="text-label">Wishlist</span>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-            🛒
-            <span class="text-label">Cart</span>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+<span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-            👤
-            <span class="text-label">Login</span>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+<span class="text-label">Login</span>
 </a>
 <button class="menu-button" type="button">Menu</button>
 </div>
@@ -89,66 +89,112 @@
 <a class="btn btn-primary" href="products.html">Shop Products</a>
 <a class="btn btn-light" href="about.html">Learn About Us</a>
 </div>
-<div class="hero-badges">
-<div class="hero-badge">✓ Quality checked</div>
-<div class="hero-badge">✓ Secure checkout demo</div>
-<div class="hero-badge">✓ Local delivery</div>
+<div class="trust-strip" aria-label="Trust signals">
+<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="22"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="22" stroke-linecap="round"/></svg> Secure</strong><small>Encrypted checkout</small></div>
+<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="22"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="22"/></svg> Delivery</strong><small>Metro Manila Mon–Sat</small></div>
+<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M232 56 88 200l-56-56" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg> Quality</strong><small>Verified products</small></div>
+<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="22" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="22"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="22"/></svg> Support</strong><small>Responsive help</small></div>
 </div>
 </div>
 <div class="hero-card">
 <img alt="Dental equipment illustration" src="assets/products/equipment.svg"/>
-<h3>Clinic essentials, all in one hub</h3>
+<h2>Clinic essentials, all in one hub</h2>
 <p class="muted">From oral care and PPE to restorative materials and equipment.</p>
+</div>
+</div>
+</section>
+<section class="section-sm" style="background: var(--sky);">
+<div class="container">
+<div class="trust-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center;">
+<div class="stat">
+<div class="stat-value" data-count="32">0</div>
+<div class="stat-label muted">Products</div>
+</div>
+<div class="stat">
+<div class="stat-value" data-count="8">0</div>
+<div class="stat-label muted">Categories</div>
+</div>
+<div class="stat">
+<div class="stat-value" data-count="99">0</div>
+<div class="stat-label muted">% Satisfaction</div>
+</div>
+<div class="stat">
+<div class="stat-value" data-count="24">0</div>
+<div class="stat-label muted">Hour Support</div>
+</div>
 </div>
 </div>
 </section>
 <section class="section">
 <div class="container">
-<div class="text-center">
 <div class="eyebrow">Browse by category</div>
 <h2 class="section-title">Popular Dental Categories</h2>
 <p class="section-copy">Quick access to the products clinics and students use most.</p>
 </div>
-<div class="grid grid-4">
-<a class="card category-card" href="products.html?category=Oral%20Care">
-<div class="category-icon">🪥</div>
+<div class="category-grid">
+<a class="category-card cat-oral-care" href="products.html?category=Oral%20Care" data-category="Oral Care" data-count="6">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 40c-11 0-21.7 3.7-30.4 10.5C80 64.6 56 82.6 56 132c0 32.8 11.7 56.3 21.1 72.6 8.7 15.2 12.9 27.4 14.5 45.9 1.2 13.4 2.7 31.5 11.3 31.5 11.1 0 6.3-27.1 13.1-45 4-10.6 8-14.8 15-14.8s11 4.2 15 14.8c6.8 17.9 2 45 13.1 45 8.6 0 10.1-18.1 11.3-31.5 1.6-18.5 5.8-30.7 14.5-45.9C195.3 188.3 207 164.8 207 132c0-49.4-24-67.4-41.6-81.5C156.7 43.7 139 40 128 40Z" fill="currentColor" opacity=".9"/></svg></div>
+<div class="category-content">
 <h3>Oral Care</h3>
 <p>Toothbrushes, floss, toothpaste, mouthwash</p>
+</div>
+<span class="category-count">6 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Instruments">
-<div class="category-icon">🦷</div>
+<a class="category-card cat-instruments" href="products.html?category=Instruments" data-category="Instruments" data-count="4">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="96" cy="88" r="48" stroke="currentColor" stroke-width="18"/><path d="M130 122 200 208" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
+<div class="category-content">
 <h3>Instruments</h3>
 <p>Mirrors, explorers, scalers, forceps</p>
+</div>
+<span class="category-count">4 products</span>
 </a>
-<a class="card category-card" href="products.html?category=PPE">
-<div class="category-icon">🧤</div>
+<a class="category-card cat-ppe" href="products.html?category=PPE" data-category="PPE" data-count="5">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 24 200 56v72c0 48-30 84-72 104-42-20-72-56-72-104V56l72-32Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M104 128l18 18 32-36" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="category-content">
 <h3>PPE</h3>
 <p>Gloves, masks, and face shields</p>
+</div>
+<span class="category-count">5 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Restorative">
-<div class="category-icon">✨</div>
+<a class="category-card cat-restorative" href="products.html?category=Restorative" data-category="Restorative" data-count="3">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 24l16 72 72 16-72 16-16 72-16-72-72-16 72-16 16-72Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M200 176l7 30 30 7-30 7-7 30-7-30-30-7 30-7 7-30Z" fill="currentColor"/></svg></div>
+<div class="category-content">
 <h3>Restorative</h3>
 <p>Composite, bonding, etchant, cements</p>
+</div>
+<span class="category-count">3 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Disposables">
-<div class="category-icon">📦</div>
+<a class="category-card cat-disposables" href="products.html?category=Disposables" data-category="Disposables" data-count="6">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M32 96l96-48 96 48v80l-96 48-96-48V96Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M32 96l96 48 96-48M128 144v80" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/></svg></div>
+<div class="category-content">
 <h3>Disposables</h3>
 <p>Bibs, syringes, rolls, microbrushes</p>
+</div>
+<span class="category-count">6 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Impression">
-<div class="category-icon">🧪</div>
+<a class="category-card cat-impression" href="products.html?category=Impression" data-category="Impression" data-count="2">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M104 24h48M112 24v72l-64 112a24 24 0 0 0 21 36h118a24 24 0 0 0 21-36l-64-112V24" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/><path d="M84 160h88" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
+<div class="category-content">
 <h3>Impression</h3>
 <p>Alginate and VPS materials</p>
+</div>
+<span class="category-count">2 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Orthodontics">
-<div class="category-icon">😁</div>
+<a class="category-card cat-orthodontics" href="products.html?category=Orthodontics" data-category="Orthodontics" data-count="2">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="96" stroke="currentColor" stroke-width="18"/><path d="M72 150c14 26 34 40 56 40s42-14 56-40" stroke="currentColor" stroke-width="18" stroke-linecap="round"/><circle cx="96" cy="104" r="10" fill="currentColor"/><circle cx="160" cy="104" r="10" fill="currentColor"/></svg></div>
+<div class="category-content">
 <h3>Orthodontics</h3>
 <p>Wax, elastics, and accessories</p>
+</div>
+<span class="category-count">2 products</span>
 </a>
-<a class="card category-card" href="products.html?category=Equipment">
-<div class="category-icon">⚙️</div>
+<a class="category-card cat-equipment" href="products.html?category=Equipment" data-category="Equipment" data-count="4">
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="36" stroke="currentColor" stroke-width="18"/><path d="M128 32v32M128 192v32M32 128h32M192 128h32M60 60l23 23M173 173l23 23M196 60l-23 23M83 173l-23 23" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
+<div class="category-content">
 <h3>Equipment</h3>
 <p>Curing lights, scalers, autoclaves</p>
+</div>
+<span class="category-count">4 products</span>
 </a>
 </div>
 </div>
@@ -169,7 +215,7 @@
 <div class="eyebrow">Recommended</div>
 <h2 class="section-title">Featured Products</h2>
 <p class="section-copy">Popular choices for professional and everyday dental care.</p>
-<div class="grid grid-4" id="featuredProducts"></div>
+<div class="grid grid-4" id="featuredProducts" aria-busy="true"><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article></div>
 <div class="text-center section-sm">
 <a class="btn btn-primary" href="products.html">View All 32 Products</a>
 </div>
@@ -183,17 +229,17 @@
 </div>
 <div class="grid grid-3">
 <article class="card feature">
-<div class="category-icon">✅</div>
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="96" stroke="currentColor" stroke-width="18"/><path d="M88 130l28 28 52-60" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <h3>Practical Selection</h3>
 <p class="muted">A focused product catalog for clinics, practitioners, and students.</p>
 </article>
 <article class="card feature">
-<div class="category-icon">🚚</div>
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="14" stroke="currentColor" stroke-width="18"/><circle cx="184" cy="200" r="14" stroke="currentColor" stroke-width="18"/></svg></div>
 <h3>Philippine Delivery</h3>
 <p class="muted">Clear shipping fees and a frontend order-tracking demonstration.</p>
 </article>
 <article class="card feature">
-<div class="category-icon">💬</div>
+<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="18" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="18"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="18"/></svg></div>
 <h3>Helpful Support</h3>
 <p class="muted">Contact forms, FAQs, notifications, and account pages are included.</p>
 </article>
@@ -204,7 +250,15 @@
 <div class="container">
 <div class="eyebrow">Just arrived</div>
 <h2 class="section-title">Latest Products</h2>
-<div class="grid grid-4" id="latestProducts"></div>
+<div class="grid grid-4" id="latestProducts" aria-busy="true"><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article></div>
+</div>
+</section>
+<section class="section hidden" id="restockSection" aria-label="Out of stock products">
+<div class="container">
+<div class="eyebrow">Back soon</div>
+<h2 class="section-title">Out of stock right now</h2>
+<p class="section-copy">Tap Notify me and we'll flag it in your profile when it returns.</p>
+<div class="grid grid-4" id="restockRail"></div>
 </div>
 </section>
 <section class="section">
@@ -214,19 +268,19 @@
 </div>
 <div class="grid grid-3">
 <article class="card testimonial">
-<div class="stars">★★★★★</div>
+<div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
 <p>"The catalog is easy to browse and the checkout steps are clear."</p>
 <strong>Dr. Angela Reyes</strong>
 <div class="muted">General Dentist</div>
 </article>
 <article class="card testimonial">
-<div class="stars">★★★★★</div>
+<div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
 <p>"Useful product choices for our clinic and student requirements."</p>
 <strong>Mark Dela Cruz</strong>
 <div class="muted">Dental Student</div>
 </article>
 <article class="card testimonial">
-<div class="stars">★★★★☆</div>
+<div class="stars stars-svg" role="img" aria-label="Rated 4.5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
 <p>"The order timeline makes tracking simple and understandable."</p>
 <strong>SmileCare Clinic</strong>
 <div class="muted">Quezon City</div>
@@ -264,25 +318,25 @@
 <div class="container">
 <div class="footer-grid">
 <div>
-<h3>SmileHub Dental Supplies</h3>
+<h2>SmileHub Dental Supplies</h2>
 <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
 </div>
 <div>
-<h4>Shop</h4>
+<h3>Shop</h3>
 <a href="products.html">All Products</a>
 <a href="wishlist.html">Wishlist</a>
 <a href="cart.html">Shopping Cart</a>
 <a href="orders.html">Orders</a>
 </div>
 <div>
-<h4>Company</h4>
+<h3>Company</h3>
 <a href="about.html">About SmileHub</a>
 <a href="developers.html">Developer Profiles</a>
 <a href="contact.html">Contact Us</a>
 <a href="faq.html">FAQs</a>
 </div>
 <div>
-<h4>Policies</h4>
+<h3>Policies</h3>
 <a href="privacy.html">Privacy Policy</a>
 <a href="terms.html">Terms and Conditions</a>
 <a href="profile.html">Customer Profile</a>
@@ -294,8 +348,8 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script>
@@ -313,9 +367,9 @@
         var cta = document.querySelector('.hero-actions .btn-primary');
         if (cta) cta.textContent = cms.heroCta;
       }
-      if (cms.promoTtext) {
+      if (cms.promoText) {
         var promoP = document.querySelector('.promo p');
-        if (promoP) promoP.innerHTML = promoP.innerHTML.replace(/Free shipping[^<]*/, cms.promoTtext);
+        if (promoP) promoP.innerHTML = promoP.innerHTML.replace(/Free shipping[^<]*/, cms.promoText);
       }
 
       // --- DYNAMIC PRODUCTS ---
@@ -326,27 +380,35 @@
           'Oral Care': 'assets/products/oral-care.svg', 'Instruments': 'assets/products/instrument.svg',
           'PPE': 'assets/products/ppe.svg', 'Restorative': 'assets/products/restorative.svg',
           'Disposables': 'assets/products/disposable.svg', 'Impression': 'assets/products/impression.svg',
-          'Orthodontics': 'assets/products/orthodontic.svg', 'Rotary': 'assets/products/instrument.svg',
-          'Equipment': 'assets/products/equipment.svg', 'Cosmetic': 'assets/products/restorative.svg'
+          'Orthodontics': 'assets/products/orthodontic.svg', 'Rotary': 'assets/products/rotary.svg',
+          'Equipment': 'assets/products/equipment.svg', 'Cosmetic': 'assets/products/cosmetic.svg'
         };
+        var HEART_SVG_HOME = '<svg class="heart-icon" width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var BOLT_SVG_HOME = '<svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg>';
 
         function productCard(p, badge) {
           var img = p.image || categoryImages[p.category] || 'assets/products/default.svg';
-          var statusClass = p.stock === 0 ? 'low' : p.stock <= 10 ? 'low' : 'delivered';
-          var statusText = p.stock === 0 ? 'Out of stock' : p.stock + ' in stock';
+          var stockCount = Number(p.stock) || 0;
+          var inStock = stockCount > 0;
+          var statusClass = !inStock ? 'stock out' : (stockCount <= 5 ? 'stock low' : 'stock');
+          var statusText = !inStock ? 'Out of stock' : (stockCount <= 5 ? 'Only ' + stockCount + ' left' : stockCount + ' in stock');
+          var buyDisabled = inStock ? '' : ' disabled title="Out of stock"';
+          var alt = ((p.brand || 'SmileHub') + ' ' + p.name).replace(/"/g, '&quot;');
           return '<article class="card product-card">' +
             (badge ? '<span class="badge">' + badge + '</span>' : '') +
-            '<button class="wish-button add-wishlist" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" title="Add to wishlist">♡</button>' +
+            '<button class="wish-button add-wishlist" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" title="Add to wishlist" aria-label="Add ' + alt + ' to wishlist">' + HEART_SVG_HOME + '</button>' +
             '<a class="product-image" href="product.html?id=' + p.id + '" data-category="' + p.category + '">' +
-            '<img src="' + img + '" alt="' + p.name.replace(/"/g, '&quot;') + '"></a>' +
+            '<img src="' + img + '" alt="' + alt + '" loading="lazy" decoding="async" width="300" height="170"></a>' +
             '<div class="product-body">' +
             '<div class="product-category">' + p.category + '</div>' +
             '<a href="product.html?id=' + p.id + '"><h3>' + p.name + '</h3></a>' +
             '<div class="product-brand">' + (p.brand || 'SmileHub') + ' &middot; ' + p.sku + '</div>' +
-            '<div class="price-row"><span class="price">₱' + Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</span> <span class="stock ' + statusClass + '">' + statusText + '</span></div>' +
+            '<div class="price-row"><span class="price">₱' + Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</span> <span class="' + statusClass + '">' + statusText + '</span></div>' +
             '<div class="product-actions">' +
-            '<button class="btn btn-primary add-cart" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '">Add to Cart</button>' +
-            '<button class="btn btn-buy-now buy-now" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '">Buy Now</button>' +
+            (inStock
+              ? '<button class="btn btn-primary add-cart" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '">Add to Cart</button>' +
+                '<button class="btn buy-now btn-quiet" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '">' + BOLT_SVG_HOME + ' Buy Now</button>'
+              : '<button class="btn btn-light notify-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" type="button">Notify me when back</button>') +
             '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
             '</div></div></article>';
         }
@@ -359,21 +421,158 @@
 
         var latest = document.getElementById('latestProducts');
         if (latest) {
-          var newest = products.slice().reverse().slice(0, 4);
+          var newest = products.filter(function(p) { return p.stock > 0; }).slice().reverse().slice(0, 4);
           latest.innerHTML = newest.map(function(p) { return productCard(p, 'New'); }).join('');
+          latest.setAttribute('aria-busy', 'false');
+        }
+        if (featured) featured.setAttribute('aria-busy', 'false');
+
+        var rail = document.getElementById('restockRail');
+        var railSection = document.getElementById('restockSection');
+        if (rail && railSection) {
+          var oos = products.filter(function(p) { return !(Number(p.stock) > 0); }).slice(0, 4);
+          if (oos.length) {
+            rail.innerHTML = oos.map(function(p) { return productCard(p, 'Back soon'); }).join('');
+            railSection.classList.remove('hidden');
+          } else {
+            railSection.classList.add('hidden');
+          }
         }
 
+        var catCounts = {};
+        products.forEach(function(p) {
+          var c = p.category || 'General';
+          catCounts[c] = (catCounts[c] || 0) + 1;
+        });
+        document.querySelectorAll('.category-card[data-category]').forEach(function(card) {
+          var n = catCounts[card.dataset.category] || 0;
+          var badge = card.querySelector('.category-count');
+          if (badge) badge.textContent = n + (n === 1 ? ' product' : ' products');
+          card.dataset.count = n;
+        });
+        document.querySelectorAll('.stat-value[data-count]').forEach(function(el) {
+          if (el.nextElementSibling && /categories/i.test(el.nextElementSibling.textContent)) {
+            el.textContent = Object.keys(catCounts).length;
+            el.dataset.count = Object.keys(catCounts).length;
+          }
+          if (el.nextElementSibling && /products/i.test(el.nextElementSibling.textContent)) {
+            el.textContent = products.length;
+            el.dataset.count = products.length;
+          }
+        });
+
+        function restockIds(list) {
+          return list.map(function(entry) {
+            return (typeof entry === 'number') ? entry : Number(entry.id);
+          });
+        }
+        function toggleRestock(btn) {
+          var id = Number(btn.dataset.id);
+          var list = [];
+          try { list = JSON.parse(localStorage.getItem('smilehub_restock') || '[]'); } catch (e) {}
+          var ids = restockIds(list);
+          var i = ids.indexOf(id);
+          if (i >= 0) {
+            list = list.filter(function(entry) {
+              var entryId = (typeof entry === 'number') ? entry : Number(entry.id);
+              return entryId !== id;
+            });
+            btn.classList.remove('is-on'); btn.textContent = 'Notify me when back';
+          }
+          else {
+            list.push({ id: id, name: btn.dataset.name || ('Product #' + id) });
+            btn.classList.add('is-on'); btn.textContent = '✓ You\'re on the list';
+          }
+          try { localStorage.setItem('smilehub_restock', JSON.stringify(list)); } catch (e) {}
+          if (typeof showToast === 'function') showToast(i >= 0 ? 'Removed from restock alerts' : 'You\'re on the restock list for ' + (btn.dataset.name || 'this item'));
+        }
+        document.querySelectorAll('#featuredProducts .notify-btn, #latestProducts .notify-btn, #restockRail .notify-btn').forEach(function(b) {
+          var saved = [];
+          try { saved = JSON.parse(localStorage.getItem('smilehub_restock') || '[]'); } catch (e) {}
+          if (restockIds(saved).indexOf(Number(b.dataset.id)) >= 0) { b.classList.add('is-on'); b.textContent = '✓ You\'re on the list'; }
+          b.addEventListener('click', function() { toggleRestock(this); });
+        });
         document.querySelectorAll('#featuredProducts .add-cart, #latestProducts .add-cart').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); nb.addEventListener('click', function() { addToCart(this); }); });
         document.querySelectorAll('#featuredProducts .buy-now, #latestProducts .buy-now').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); nb.addEventListener('click', function() { buyNow(this); }); });
-        document.querySelectorAll('#featuredProducts .add-wishlist, #latestProducts .add-wishlist').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); var wl = getStoredList('smilehub_simple_wishlist'); nb.textContent = wl.some(function(i){return i.id===Number(nb.dataset.id)}) ? '\u2665' : '\u2661'; nb.classList.toggle('wished', wl.some(function(i){return i.id===Number(nb.dataset.id)})); nb.addEventListener('click', function() { toggleWishlist(this); }); });
+        document.querySelectorAll('#featuredProducts .add-wishlist, #latestProducts .add-wishlist').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); var wl = getStoredList('smilehub_simple_wishlist'); var wished = wl.some(function(i){return i.id===Number(nb.dataset.id)}); if (typeof paintHeart === 'function') { paintHeart(nb, wished); } else { nb.classList.toggle('wished', wished); } nb.setAttribute('aria-pressed', wished ? 'true' : 'false'); nb.addEventListener('click', function() { toggleWishlist(this); var list = getStoredList('smilehub_simple_wishlist'); var now = list.some(function(i){return i.id===Number(nb.dataset.id)}); if (typeof paintHeart === 'function') { paintHeart(nb, now); } nb.setAttribute('aria-pressed', now ? 'true' : 'false'); }); });
       });
       }
 
       renderHomeProducts();
     });
+
+    // --- Lively animations ---
+    (function() {
+      // Add reveal class to sections/cards FIRST
+      document.querySelectorAll('.section > .container, .category-card, .feature, .testimonial, .brand-pill, .stat, .trust-stats .stat').forEach(function(el, i) {
+        el.classList.add('reveal');
+        el.classList.add('reveal-delay-' + ((i % 4) + 1));
+      });
+
+      // Reveal on scroll
+      var revealEls = document.querySelectorAll('.reveal');
+      if (revealEls.length && 'IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        revealEls.forEach(function(el) { observer.observe(el); });
+      } else {
+        revealEls.forEach(function(el) { el.classList.add('visible'); });
+      }
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var statEls = document.querySelectorAll('.stat-value[data-count]');
+      function setStatFinal(el) {
+        el.textContent = parseInt(el.dataset.count, 10);
+      }
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        statEls.forEach(setStatFinal);
+      } else {
+        var statObserver = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              setStatFinal(entry.target);
+              statObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.5 });
+        statEls.forEach(function(el) { statObserver.observe(el); });
+      }
+
+      // Sticky header shadow
+      var header = document.querySelector('.header');
+      if (header) {
+        var lastY = 0;
+        window.addEventListener('scroll', function() {
+          var y = window.scrollY;
+          if (y > 16) header.classList.add('scrolled');
+          else header.classList.remove('scrolled');
+          lastY = y;
+        }, { passive: true });
+      }
+
+      // Back to top button — created site-wide by js/premium.js (single factory).
+
+      // Badge pulse on add to cart
+      window.addEventListener('cartUpdated', function() {
+        var badge = document.querySelector('.cart-count');
+        if (badge) { badge.classList.add('pulse'); setTimeout(function() { badge.classList.remove('pulse'); }, 400); }
+      });
+      window.addEventListener('wishlistUpdated', function() {
+        var badge = document.querySelector('.wishlist-count');
+        if (badge) { badge.classList.add('pulse'); setTimeout(function() { badge.classList.remove('pulse'); }, 400); }
+      });
+    })();
+    // --- End lively animations ---
+
     </script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
-<script src="js/final-polish.js?v=6.5.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script src="js/final-polish.js?v=6.3.0"></script>
 </body>
 </html>
+

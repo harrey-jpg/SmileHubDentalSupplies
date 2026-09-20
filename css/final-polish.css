@@ -51,25 +51,14 @@ body.dark input:disabled { background:#14212b !important; color:#b8c8d4 !importa
 body.dark .btn-light { background:#20313e !important; color:#f2f8fb !important; border-color:#415766 !important; }
 body.dark .btn-light:hover { background:#2a4050 !important; }
 
-.verification-stack { display:grid; gap:18px; }
-.verification-status-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:12px 0 16px; }
-.verification-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-weight:700; font-size:.86rem; }
-.verification-badge.is-verified { background:#dcfce7; color:#166534; border:1px solid #86efac; }
-.verification-badge.is-pending { background:#fff7ed; color:#9a3412; border:1px solid #fdba74; }
-body.dark .verification-badge.is-verified { background:#123b2b; color:#9cf0bd; border-color:#2f7455; }
-body.dark .verification-badge.is-pending { background:#3a2815; color:#ffd399; border-color:#80501d; }
+/* verification badges/status in css/release-hardening.css (single source) */
 
 .phone-verification-actions { display:flex; gap:10px; flex-wrap:wrap; }
 .profile-phone-editing { outline:3px solid rgba(15,157,154,.18); }
 .phone-edit-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
 .phone-edit-hint { font-size:.84rem; margin-top:6px; color:var(--muted); }
 
-.otp-modal[hidden] { display:none !important; }
-.otp-modal { position:fixed; inset:0; z-index:100000; display:grid; place-items:center; padding:18px; background:rgba(2,12,20,.68); backdrop-filter:blur(4px); }
-.otp-modal__panel { width:min(460px,100%); background:#fff; border:1px solid var(--border); border-radius:20px; padding:24px; box-shadow:0 28px 80px rgba(0,0,0,.3); }
-.otp-digit-group { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin:18px 0; }
-.otp-digit-group input { width:100%; min-width:0; text-align:center; font-size:1.4rem; font-weight:800; padding:12px 4px; }
-.otp-modal-actions { display:flex; gap:10px; flex-wrap:wrap; }
+/* otp digits canonical in css/release-hardening.css */
 body.otp-modal-open { overflow:hidden; }
 
 .profile-location-tools { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
@@ -86,6 +75,10 @@ body.otp-modal-open { overflow:hidden; }
   color:#fff !important;
   border-color:#f97316 !important;
   font-weight:800 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
 }
 .product-card .buy-now-btn:hover,
 .buy-now-btn:hover,
@@ -95,11 +88,7 @@ body.otp-modal-open { overflow:hidden; }
 .sh-toast, .toast { pointer-events:auto; }
 .smilehub-toast-routine { display:none !important; }
 
-#backToTop { right:20px !important; bottom:92px !important; }
-.chatbot-toggle, #chatbotToggle, .chat-toggle { right:20px !important; bottom:20px !important; }
 @media(max-width:700px){
-  #backToTop { right:14px !important; bottom:138px !important; }
-  .chatbot-toggle, #chatbotToggle, .chat-toggle { right:14px !important; bottom:72px !important; }
   .profile-hero-card { align-items:flex-start !important; }
   .otp-digit-group { gap:5px; }
   .product-card .product-actions, .product-actions-grid { grid-template-columns:1fr !important; }
@@ -110,8 +99,7 @@ body.otp-modal-open { overflow:hidden; }
    The live theme toggler applies body.dark, so these selectors intentionally
    target body.dark in addition to older theme aliases. */
 body.dark .ph-phone-field,
-body.dark-mode .ph-phone-field,
-[data-theme="dark"] .ph-phone-field {
+body.dark .ph-phone-field {
   display: flex;
   align-items: stretch;
   width: 100%;
@@ -123,15 +111,13 @@ body.dark-mode .ph-phone-field,
 }
 
 body.dark .ph-phone-field:focus-within,
-body.dark-mode .ph-phone-field:focus-within,
-[data-theme="dark"] .ph-phone-field:focus-within {
+body.dark .ph-phone-field:focus-within {
   border-color: #2dd4bf !important;
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16) !important;
 }
 
 body.dark .ph-phone-prefix,
-body.dark-mode .ph-phone-prefix,
-[data-theme="dark"] .ph-phone-prefix {
+body.dark .ph-phone-prefix {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
@@ -144,8 +130,7 @@ body.dark-mode .ph-phone-prefix,
 }
 
 body.dark .ph-phone-field input,
-body.dark-mode .ph-phone-field input,
-[data-theme="dark"] .ph-phone-field input {
+body.dark .ph-phone-field input {
   flex: 1;
   min-width: 0;
   background: #0d1820 !important;
@@ -156,24 +141,19 @@ body.dark-mode .ph-phone-field input,
 }
 
 body.dark .ph-phone-field input::placeholder,
-body.dark-mode .ph-phone-field input::placeholder,
-[data-theme="dark"] .ph-phone-field input::placeholder {
+body.dark .ph-phone-field input::placeholder {
   color: #78909c !important;
   opacity: 1;
 }
 
 body.dark #phoneHelp,
 body.dark .phone-help,
-body.dark-mode #phoneHelp,
-body.dark-mode .phone-help,
-[data-theme="dark"] #phoneHelp,
-[data-theme="dark"] .phone-help {
+body.dark #phoneHelp, body.dark .phone-help {
   color: #9fb8c6 !important;
 }
 
 body.dark .phone-status,
-body.dark-mode .phone-status,
-[data-theme="dark"] .phone-status {
+body.dark .phone-status {
   display: inline-flex;
   align-items: center;
   width: fit-content;
@@ -186,16 +166,14 @@ body.dark-mode .phone-status,
 }
 
 body.dark .phone-status.verified,
-body.dark-mode .phone-status.verified,
-[data-theme="dark"] .phone-status.verified {
+body.dark .phone-status.verified {
   background: rgba(34, 197, 94, 0.14) !important;
   color: #68e89a !important;
   border: 1px solid rgba(104, 232, 154, 0.38) !important;
 }
 
 body.dark .phone-status.unverified,
-body.dark-mode .phone-status.unverified,
-[data-theme="dark"] .phone-status.unverified {
+body.dark .phone-status.unverified {
   background: rgba(245, 158, 11, 0.13) !important;
   color: #f9c66b !important;
   border: 1px solid rgba(249, 198, 107, 0.36) !important;
@@ -267,19 +245,7 @@ body.dark .profile-photo-help {
   border-color: #125b8e !important;
 }
 
-.product-card .product-actions .btn-buy-now,
-.product-card .product-actions .buy-now {
-  background: #e86a20 !important;
-  border-color: #e86a20 !important;
-  color: #fff !important;
-}
-
-.product-card .product-actions .btn-buy-now:hover,
-.product-card .product-actions .buy-now:hover {
-  background: #cb5715 !important;
-  border-color: #cb5715 !important;
-}
-
+/* Card Buy Now stays quiet (btn-quiet in style.css) — solid orange lives on detail + sticky only. */
 .product-card .product-actions .btn-light {
   grid-column: 1 / -1;
   min-height: 38px;
@@ -309,12 +275,6 @@ body.dark .profile-photo-help {
 body.dark .product-card .product-actions .add-cart {
   background: #1d6f9f !important;
   border-color: #2c82b4 !important;
-}
-
-body.dark .product-card .product-actions .btn-buy-now,
-body.dark .product-card .product-actions .buy-now {
-  background: #b95621 !important;
-  border-color: #d66a2b !important;
 }
 
 body.dark .product-card .product-actions .btn-light {

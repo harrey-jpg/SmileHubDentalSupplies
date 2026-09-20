@@ -19,8 +19,38 @@
   var profileLocationCoords = null;
 
   function el(id) { return document.getElementById(id); }
-  function value(id) { return el(id) ? el(id).value.trim() : ''; }
-  function setValue(id, v) { if (el(id)) el(id).value = v || ''; }
+  function value(id) {
+    var e=el(id);
+    if(!e) return '';
+    var v=(e.value||'').trim();
+    if(v==='__other__'){
+      var o=el(id+'Other')||el(id+'_other');
+      return o? (o.value||'').trim() : '';
+    }
+    return v;
+  }
+  function setValue(id, v) {
+    var e=el(id);
+    if(!e) return;
+    v=v||'';
+    if(e.tagName==='SELECT'){
+      var opts=[].slice.call(e.options||[]);
+      var has=opts.some(function(o){return o.value===v;});
+      if(has){ e.value=v; return; }
+      if(!v){ e.value=''; return; }
+      // Unknown value: route to Other input if present, else keep as data-saved for cascade
+      var other=el(id+'Other')||el(id+'_other');
+      if(other){
+        var otherOpt=opts.find(function(o){return o.value==='__other__';});
+        if(otherOpt){ e.value='__other__'; other.value=v; other.classList.remove('hidden'); return; }
+      }
+      // No Other option yet (data not loaded): stash for PHAddress to pick up
+      e.setAttribute('data-saved', v);
+      e.value='';
+      return;
+    }
+    e.value=v;
+  }
 
   function showProfileMessage(message, isError) {
     var box = el('profileMessage');
@@ -30,6 +60,28 @@
     box.classList.toggle('error', Boolean(isError));
   }
   window.showProfileMessage = showProfileMessage;
+
+  // Inline field error: marks the input invalid, links it to its alert,
+  // announces via role="alert", and moves focus to the problem.
+  function setFieldError(inputId, errorId, message) {
+    var input = el(inputId);
+    var err = el(errorId);
+    var bad = Boolean(message);
+    if (input) {
+      input.setAttribute('aria-invalid', bad ? 'true' : 'false');
+      if (bad && errorId) {
+        var described = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+        if (described.indexOf(errorId) === -1) described.push(errorId);
+        input.setAttribute('aria-describedby', described.join(' '));
+      }
+    }
+    if (err) {
+      err.textContent = message || '';
+      err.classList.toggle('show', bad);
+    }
+    if (bad && input && typeof input.focus === 'function') input.focus();
+    return !bad;
+  }
 
   function normalizePhone(raw) {
     var formatted = window.SmileHubPhone ? window.SmileHubPhone.format(raw) : String(raw || '').trim();
@@ -136,10 +188,8 @@
     setValue('profileEmail', data.email || (user && user.email));
     if (window.SmileHubPhone) {
       window.SmileHubPhone.setValue('profilePhone', data.phoneE164 || data.phone || data.phoneLocal || '');
-      window.SmileHubPhone.setValue('verifyPhoneInput', data.phoneE164 || data.phone || data.phoneLocal || '');
     } else {
       setValue('profilePhone', data.phoneE164 || data.phone || data.phoneLocal || '');
-      setValue('verifyPhoneInput', data.phoneE164 || data.phone || data.phoneLocal || '');
     }
     setValue('profileBirthday', data.birthday || '');
     setValue('profileAddress', data.address && data.address.street ? data.address.street : (typeof data.address === 'string' ? data.address : ''));
@@ -148,6 +198,7 @@
     setValue('profileProvince', data.address && data.address.province);
     setValue('profilePostal', data.address && data.address.postal);
     setValue('profileDeliveryNotes', data.address && data.address.deliveryNotes);
+    if(window.PHAddress && window.PHAddress.prefill && data.address && typeof data.address === 'object') window.PHAddress.prefill('profile', data.address);
     if (data.address && data.address.latitude != null && data.address.longitude != null) setProfileMap(data.address.latitude, data.address.longitude);
     if (el('profileDefaultAddress')) el('profileDefaultAddress').checked = data.address ? data.address.isDefault !== false : true;
     var name = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.displayName || (user && user.displayName) || 'Customer';
@@ -195,8 +246,10 @@
     var phoneE164 = normalizePhoneE164(value('profilePhone'));
     var phoneLocal = normalizePhone(phoneE164);
     if (value('profilePhone') && value('profilePhone') !== '+63' && !phoneE164) {
+      setFieldError('profilePhone', 'profilePhoneError', 'Enter a valid 10-digit Philippine mobile number beginning with 9.');
       return showProfileMessage('Enter a valid 10-digit Philippine mobile number beginning with 9.', true);
     }
+    setFieldError('profilePhone', 'profilePhoneError', '');
     var verifiedPhone = currentProfile && currentProfile.phoneVerified ? normalizePhone(currentProfile.phoneLocal || currentProfile.phone) : '';
     var phoneChanged = phoneLocal !== verifiedPhone;
     var data = {
@@ -232,7 +285,20 @@
     var user = firebase.auth().currentUser;
     if (!user) return showProfileMessage('Please sign in again.', true);
     var postal = value('profilePostal');
-    if (!/^\d{4}$/.test(postal)) return showProfileMessage('Postal code must contain exactly 4 digits.', true);
+    ['profileAddress','profileBarangay','profileCity','profileProvince'].forEach(function(id) {
+      var label = { profileAddress:'Street Address', profileBarangay:'Barangay', profileCity:'City / Municipality', profileProvince:'Province' }[id];
+      var errorId = { profileAddress:'streetError', profileBarangay:'barangayError', profileCity:'cityError', profileProvince:'provinceError' }[id];
+      var empty = !value(id);
+      setFieldError(id, errorId, empty ? label + ' is required.' : '');
+    });
+    if (!value('profileAddress') || !value('profileBarangay') || !value('profileCity') || !value('profileProvince')) {
+      return showProfileMessage('Please complete all required address fields.', true);
+    }
+    if (!/^\d{4}$/.test(postal)) {
+      setFieldError('profilePostal', 'postalError', 'Postal code must contain exactly 4 digits.');
+      return showProfileMessage('Postal code must contain exactly 4 digits.', true);
+    }
+    setFieldError('profilePostal', 'postalError', '');
     var address = {
       street: value('profileAddress'),
       barangay: value('profileBarangay'),
@@ -244,9 +310,15 @@
       latitude: profileLocationCoords ? profileLocationCoords.lat : null,
       longitude: profileLocationCoords ? profileLocationCoords.lng : null
     };
-    if (!address.street || !address.barangay || !address.city || !address.province) {
+    var firstEmpty = !address.street ? 'profileAddress'
+      : !address.barangay ? 'profileBarangay'
+      : !address.city ? 'profileCity'
+      : !address.province ? 'profileProvince' : null;
+    if (firstEmpty) {
+      setFieldError(firstEmpty, 'addressFormError', 'Please complete all required address fields.');
       return showProfileMessage('Please complete all required address fields.', true);
     }
+    setFieldError('profilePostal', 'addressFormError', '');
     firebase.firestore().collection('users').doc(user.uid).set({
       address: address,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -262,8 +334,16 @@
     event.preventDefault();
     var newPassword = value('newPassword');
     var confirmPassword = value('confirmPassword');
-    if (newPassword.length < 6) return showProfileMessage('The new password must contain at least 6 characters.', true);
-    if (newPassword !== confirmPassword) return showProfileMessage('The new passwords do not match.', true);
+    if (newPassword.length < 6) {
+      setFieldError('newPassword', 'passwordFormError', 'The new password must contain at least 6 characters.');
+      return showProfileMessage('The new password must contain at least 6 characters.', true);
+    }
+    if (newPassword !== confirmPassword) {
+      setFieldError('confirmPassword', 'passwordFormError', 'The new passwords do not match.');
+      return showProfileMessage('The new passwords do not match.', true);
+    }
+    setFieldError('newPassword', 'passwordFormError', '');
+    setFieldError('confirmPassword', 'passwordFormError', '');
     var user = firebase.auth().currentUser;
     if (!user || !user.email) return showProfileMessage('Password changes are available for signed-in email accounts.', true);
     var hasPassword = (user.providerData || []).some(function (p) {
@@ -279,6 +359,7 @@
       showProfileMessage('Password changed successfully.');
     }).catch(function (error) {
       if (error.code === 'auth/wrong-password') {
+        setFieldError('currentPassword', 'passwordFormError', 'The current password is incorrect.');
         showProfileMessage('The current password is incorrect.', true);
       } else if (error.code === 'auth/requires-recent-login') {
         showProfileMessage('Your session is too old. Sign out and sign in again, then retry.', true);
@@ -359,41 +440,32 @@
   }
 
 
-  function loadNotificationSettings() {
-    var prefs = window.getNotificationPreferences ? window.getNotificationPreferences() : { importantOnly: true, orderUpdates: true };
-    if (el('importantAlertsOnly')) el('importantAlertsOnly').checked = prefs.importantOnly !== false;
-    if (el('orderNotifications')) el('orderNotifications').checked = prefs.orderUpdates !== false;
-  }
-
-  function saveNotificationSettings() {
-    var prefs = {
-      importantOnly: el('importantAlertsOnly') ? el('importantAlertsOnly').checked : true,
-      orderUpdates: el('orderNotifications') ? el('orderNotifications').checked : true,
-      cart: false,
-      wishlist: false,
-      routine: false
-    };
-    if (window.SmileHubStorage) window.SmileHubStorage.set('smilehub_notification_preferences', prefs);
-    showProfileMessage('Notification settings saved. Routine clicks will stay quiet.');
+  // In-page menu anchors: open enclosing <details>, then move focus.
+  function revealAnchorTarget(id) {
+    var target = id && document.getElementById(id);
+    if (!target) return false;
+    var details = target.closest ? target.closest('details') : null;
+    if (details && !details.open) details.open = true;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'start' });
+    return true;
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    loadNotificationSettings();
-
-    var profilePhoneField = el('profilePhone');
-    var verifyPhoneField = el('verifyPhoneInput');
-    if (profilePhoneField && verifyPhoneField) {
-      function syncPhone(source, target) {
-        if (!window.SmileHubPhone) return;
-        var digits = window.SmileHubPhone.subscriberDigits(source.value);
-        if (target.value !== digits) target.value = digits;
-      }
-      profilePhoneField.addEventListener('phphonechange', function () { syncPhone(profilePhoneField, verifyPhoneField); });
-      verifyPhoneField.addEventListener('phphonechange', function () { syncPhone(verifyPhoneField, profilePhoneField); });
+    document.querySelectorAll('.profile-menu a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        var id = (link.getAttribute('href') || '').slice(1);
+        // Let the browser jump first, then correct focus/expansion.
+        setTimeout(function () { revealAnchorTarget(id); }, 0);
+      });
+    });
+    if (location.hash) {
+      setTimeout(function () { revealAnchorTarget(location.hash.slice(1)); }, 300);
     }
-
-    var notificationButton = el('saveNotificationSettings');
-    if (notificationButton) notificationButton.addEventListener('click', saveNotificationSettings);
+    // NOTE: cross-field phone sync lives in js/account-verification.js, which
+    // owns both fields where they coexist. The legacy `verifyPhoneInput`
+    // element does not exist on this page, so no local sync is wired here.
     var profileForm = el('profileForm');
     if (!profileForm || !window.firebase) return;
     profileForm.addEventListener('submit', function(event) {

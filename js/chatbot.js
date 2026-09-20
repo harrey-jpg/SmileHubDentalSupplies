@@ -61,13 +61,27 @@ let chatVisible = false;
 let chatHistory = [];
 
 // --- INITIALIZATION ---
+function isChatUserLoggedIn() {
+  try {
+    return Boolean(sessionStorage.getItem('smilehub_logged_in_user'));
+  } catch (e) {
+    return false;
+  }
+}
+
+const CHAT_OPEN_SVG = '<svg width="24" height="24" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/></svg>';
+const CHAT_CLOSE_SVG = '<svg width="22" height="22" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M64 64l128 128M192 64 64 192" stroke="currentColor" stroke-width="22" stroke-linecap="round"/></svg>';
+const CHAT_BOT_SVG = '<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="88" width="160" height="120" rx="24" stroke="currentColor" stroke-width="20"/><path d="M96 88V56a32 32 0 0 1 64 0v32" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="100" cy="140" r="10" fill="currentColor"/><circle cx="156" cy="140" r="10" fill="currentColor"/><path d="M100 172h56" stroke="currentColor" stroke-width="14" stroke-linecap="round"/></svg>';
+
 function initChatbot() {
+  if (document.getElementById('chatbotWrapper')) return;
+  if (!isChatUserLoggedIn()) return;
   const chatHTML = `
-    <div class="chatbot-button" id="chatbotButton" title="Chat with SmileBot">💬</div>
+    <div class="chatbot-button" id="chatbotButton" title="Chat with SmileBot" aria-label="Chat with SmileBot">${CHAT_OPEN_SVG}</div>
     <div class="chatbot-panel hidden" id="chatbotPanel">
       <div class="chatbot-header">
-        <span>🤖 SmileBot</span>
-        <button class="chatbot-close" id="chatbotClose">✕</button>
+        <span>${CHAT_BOT_SVG} SmileBot</span>
+        <button class="chatbot-close" id="chatbotClose" aria-label="Close chat">✕</button>
       </div>
       <div class="chatbot-messages" id="chatbotMessages"></div>
       <div class="chatbot-input-row">
@@ -105,7 +119,7 @@ function toggleChat() {
   const panel = document.getElementById('chatbotPanel');
   const button = document.getElementById('chatbotButton');
   panel.classList.toggle('hidden', !chatVisible);
-  button.textContent = chatVisible ? '✕' : '💬';
+  button.innerHTML = chatVisible ? CHAT_CLOSE_SVG : CHAT_OPEN_SVG;
 
   if (chatVisible) {
     renderMessages();
@@ -136,9 +150,9 @@ async function sendMessage() {
     var cart = [];
     try {
       if (window.SmileHubStorage) {
-        cart = window.SmileHubStorage.get('smilehub_cart', []) || [];
+        cart = window.SmileHubStorage.get('smilehub_simple_cart', []) || [];
       } else {
-        cart = JSON.parse(localStorage.getItem('smilehub_cart') || '[]');
+        cart = JSON.parse(localStorage.getItem('smilehub_simple_cart') || '[]');
       }
     } catch (_error) {
       cart = [];
@@ -250,3 +264,6 @@ function saveHistory() {
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', initChatbot);
+document.addEventListener('authReady', function() {
+  if (isChatUserLoggedIn()) initChatbot();
+});

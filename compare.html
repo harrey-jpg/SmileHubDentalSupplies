@@ -6,14 +6,15 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Product Comparison | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -36,38 +37,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-compare">Search dental products</label>
+<input id="siteSearch-compare" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">
-            ◐
-          </button>
-<a class="icon-link" href="wishlist.html">
-            ♡
-            <span class="text-label">Wishlist</span>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-            🛒
-            <span class="text-label">Cart</span>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+    <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-            👤
-            <span class="text-label">Login</span>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+    <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">
-            Menu
-          </button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -102,27 +100,48 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
-<div class="container">
-<div class="breadcrumbs">
-<a href="homepage.html">
-            Home
-          </a>
-          / Customer Profile
-        </div>
-<h1>
-          Customer Profile
-        </h1>
-<p class="muted">
-          Edit your account information, delivery address, and password.
-        </p>
-</div>
+<section class="policy-hero" aria-labelledby="compareTitle">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="homepage.html">Home</a> / <span aria-current="page">Product Comparison</span>
+    </nav>
+    <h1 id="compareTitle">Product Comparison</h1>
+    <p class="lede">Make a more confident purchasing decision by comparing specs side-by-side — up to 4 products, saved in your browser.</p>
+  </div>
 </section>
-<section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Product Comparison</div><h1>Product Comparison</h1><p class="muted">Make a more confident purchasing decision.</p></div></section><main class="section-sm"><div class="container">
-<div class="section-heading-row"><div><h2>Side-by-side comparison</h2><p class="muted">Compare up to four saved products.</p></div><a class="btn btn-light" href="products.html">Add products</a></div>
-<div id="comparisonTable" class="table-wrap"></div>
-<div class="card empty-state hidden" id="compareEmpty"><h2>No products selected</h2><p>Choose products from the catalog to compare price, category, brand, stock and specifications.</p><a class="btn btn-primary" href="products.html">Browse products</a></div>
-</div></main><footer class="footer">
+
+<main class="section-sm">
+  <div class="container">
+    <div class="compare-toolbar" id="compareToolbar">
+      <span class="compare-count" id="compareCount" role="status">Loading comparison…</span>
+      <div class="compare-actions">
+        <button class="btn btn-light" id="clearCompare" type="button">Clear all</button>
+        <button class="btn btn-light" id="printCompare" type="button">Print comparison</button>
+        <button class="btn btn-secondary" id="shareCompare" type="button">Share comparison</button>
+      </div>
+    </div>
+    <div class="compare-error hidden" id="compareError" role="alert"></div>
+    <div id="comparisonTable" class="compare-grid-wrap" tabindex="0" aria-label="Product comparison. Scroll horizontally on small screens to see all products."></div>
+    <p class="compare-note" id="compareNote">Tip: add products to compare from any product page or your wishlist. Your list is stored only in this browser.</p>
+    <div class="card empty-state hidden" id="compareEmpty">
+      <div class="empty-state-content">
+        <svg width="64" height="64" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="40" y="40" width="100" height="160" rx="10"/><rect x="120" y="40" width="100" height="160" rx="10"/><path d="M128 80v120M80 120h96"/></svg>
+        <h2>No products selected</h2>
+        <p>Choose products from the catalog to compare price, brand, stock, and specifications.</p>
+        <ol class="empty-steps">
+          <li><span class="step-num" aria-hidden="true">1</span><span>Browse the catalog and open a dental product.</span></li>
+          <li><span class="step-num" aria-hidden="true">2</span><span>Choose “Add to compare” (up to 4 products).</span></li>
+          <li><span class="step-num" aria-hidden="true">3</span><span>Return here to review, print, or share your shortlist.</span></li>
+        </ol>
+        <a class="btn btn-primary" href="products.html">Browse products</a>
+      </div>
+    </div>
+  </div>
+</main>
+<div class="sticky-compare-bar" id="stickyBar" role="group" aria-label="Comparison actions">
+  <button class="btn btn-light" type="button" data-sticky="print">Print</button>
+  <button class="btn btn-secondary" type="button" data-sticky="share">Share</button>
+</div><footer class="footer">
 <div class="container">
 <div class="footer-grid">
 <div>
@@ -134,9 +153,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -151,9 +168,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -168,9 +183,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -192,19 +205,181 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/profile.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
 document.addEventListener('DOMContentLoaded',function(){
- var items=[];try{items=JSON.parse(localStorage.getItem('smilehub_compare')||'[]')}catch(e){}
- var wrap=document.getElementById('comparisonTable'),empty=document.getElementById('compareEmpty');
- if(!items.length){wrap.classList.add('hidden');empty.classList.remove('hidden');return;}
- var rows=[['Price',function(x){return '₱'+Number(x.price||0).toLocaleString('en-PH',{minimumFractionDigits:2})}],['Brand',function(x){return x.brand||'—'}],['Category',function(x){return x.category||'General'}],['Availability',function(){return 'Check product page'}]];
- wrap.innerHTML='<table class="comparison-table"><thead><tr><th>Feature</th>'+items.map(function(x){return '<th><strong>'+x.name+'</strong><br><a class="btn btn-primary" href="product.html?id='+x.id+'">View product</a></th>';}).join('')+'</tr></thead><tbody>'+rows.map(function(r){return '<tr><th>'+r[0]+'</th>'+items.map(function(x){return '<td>'+r[1](x)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+  var KEY='smilehub_compare', MAX=4, PLACEHOLDER='assets/product-placeholder.png';
+  var wrap=document.getElementById('comparisonTable'), empty=document.getElementById('compareEmpty'),
+      count=document.getElementById('compareCount'), err=document.getElementById('compareError'),
+      note=document.getElementById('compareNote'), toolbar=document.getElementById('compareToolbar'),
+      sticky=document.getElementById('stickyBar');
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function notify(msg,isErr){
+    try{ if(window.showToast){window.showToast(msg,!!isErr);return;} }catch(e){}
+    var t=document.querySelector('.mini-toast');
+    if(!t){t=document.createElement('div');t.className='mini-toast';t.setAttribute('role','status');document.body.appendChild(t);}
+    t.textContent=msg;t.classList.toggle('error',!!isErr);t.classList.add('show');
+    clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('show');},3200);
+  }
+  function showError(html){err.innerHTML=html;err.classList.remove('hidden');}
+  function hideError(){err.classList.add('hidden');err.innerHTML='';}
+  function load(){
+    var raw=null;
+    try{raw=JSON.parse(localStorage.getItem(KEY)||'[]');}
+    catch(e){showError('<span><strong>Your comparison list could not be read</strong> (stored data is corrupted). <button class="btn btn-light btn-sm" type="button" data-fix="reset">Start over</button></span>');return null;}
+    if(!Array.isArray(raw)){showError('<span><strong>Your comparison list has an unexpected format.</strong> <button class="btn btn-light btn-sm" type="button" data-fix="reset">Start over</button></span>');return null;}
+    var items=raw.filter(function(x){return x&&x.id!=null&&x.name;});
+    if(items.length>MAX){items=items.slice(0,MAX);try{localStorage.setItem(KEY,JSON.stringify(items));}catch(e2){}notify('Kept the first '+MAX+' products (limit is '+MAX+').');}
+    return items;
+  }
+  function save(items){try{localStorage.setItem(KEY,JSON.stringify(items));}catch(e){notify('Could not save: browser storage is unavailable.',true);}}
+  function ratingsById(){
+    var map={};
+    try{(JSON.parse(localStorage.getItem('smilehub_reviews')||'[]')).forEach(function(r){
+      if(!r||r.productId==null)return;
+      var k=String(r.productId);(map[k]=map[k]||[]).push(Number(r.rating)||5);
+    });}catch(e){}
+    return map;
+  }
+  function peso(v){var n=Number(v||0);if(!isFinite(n))n=0;return '₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function stockPill(x){
+    if(x.stock===undefined||x.stock===null||!isFinite(Number(x.stock)))return '<span class="stock-pill unknown">See product page</span>';
+    var n=Number(x.stock);
+    return n>0?'<span class="stock-pill">In Stock'+(n<=5?' - only '+n+' left':'')+'</span>':'<span class="stock-pill out">Out of Stock</span>';
+  }
+
+  function render(items){
+    hideError();
+    if(items===null){wrap.classList.add('hidden');empty.classList.remove('hidden');toolbar.classList.add('hidden');if(note)note.classList.add('hidden');sticky.classList.remove('has-items');count.textContent='Comparison unavailable';return;}
+    if(!items.length){
+      wrap.classList.add('hidden');empty.classList.remove('hidden');toolbar.classList.add('hidden');
+      if(note)note.classList.add('hidden');sticky.classList.remove('has-items');return;
+    }
+    empty.classList.add('hidden');wrap.classList.remove('hidden');toolbar.classList.remove('hidden');
+    if(note)note.classList.remove('hidden');sticky.classList.add('has-items');
+    count.textContent=items.length+' of '+MAX+' product'+(items.length>1?'s':'')+' selected';
+    var cols='cols-'+items.length;
+    var rmap=ratingsById();
+    var anyRating=items.some(function(x){return (rmap[String(x.id)]||[]).length>0;});
+    var anySku=items.some(function(x){return x.sku;});
+    function ratingCell(x){
+      var arr=rmap[String(x.id)]||[];
+      if(!arr.length)return 'No reviews yet';
+      var avg=Math.round(arr.reduce(function(a,b){return a+b;},0)/arr.length*10)/10;
+      return esc(avg)+' out of 5 ('+arr.length+')';
+    }
+    var rows=[
+      ['Price',function(x){return '<span class="value-cell price">'+esc(peso(x.price))+'</span>';},true],
+      ['Brand',function(x){return esc(x.brand||'-');}],
+      ['Category',function(x){return esc(x.category||'General');}],
+      ['Stock status',function(x){return stockPill(x);}],
+      ['Rating',ratingCell,false,anyRating],
+      ['SKU (reference)',function(x){return esc(x.sku||'-');},false,anySku]
+    ].filter(function(r){return r[3]===undefined||r[3];});
+    var html='<div class="compare-grid" role="table" aria-label="Side-by-side product comparison">';
+    html+='<div class="compare-grid-header '+cols+'" role="row"><div class="feature-cell"></div>'+items.map(function(x,i){
+      var img=esc(x.image||PLACEHOLDER);
+      var moveL=i>0?'<button class="move-compare" type="button" data-move="-1" data-id="'+esc(x.id)+'" aria-label="Move '+esc(x.name)+' left">&#8592;</button>':'';
+      var moveR=i<items.length-1?'<button class="move-compare" type="button" data-move="1" data-id="'+esc(x.id)+'" aria-label="Move '+esc(x.name)+' right">&#8594;</button>':'';
+      return '<div class="product-cell" role="columnheader"><img src="'+img+'" alt="'+esc(x.name)+'" loading="lazy"><strong>'+esc(x.name)+'</strong><span class="cell-actions"><a class="btn btn-primary btn-sm" href="product.html?id='+esc(x.id)+'">View product</a><button class="remove-compare" type="button" data-remove="'+esc(x.id)+'" aria-label="Remove '+esc(x.name)+' from comparison">Remove</button>'+moveL+moveR+'</span></div>';
+    }).join('')+'</div>';
+    rows.forEach(function(r){
+      html+='<div class="compare-grid-row '+cols+'" role="row"><div class="feature-cell" role="rowheader">'+esc(r[0])+'</div>'+items.map(function(x){return '<div class="value-cell" role="cell">'+r[1](x)+'</div>';}).join('')+'</div>';
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+  }
+
+  function mergeSharedLinks(items){
+    var ids=[];
+    try{(new URLSearchParams(location.search).get('compare')||'').split(',').forEach(function(s){
+      var n=Number(decodeURIComponent(s).trim());if(Number.isInteger(n)&&n>0&&ids.indexOf(n)<0)ids.push(n);
+    });}catch(e){}
+    if(!ids.length)return {items:items,added:0};
+    var have={};items.forEach(function(x){have[String(x.id)]=true;});
+    var added=0;
+    ids.forEach(function(id){
+      if(items.length>=MAX||have[String(id)])return;
+      items.push({id:id,name:'Product #'+id});have[String(id)]=true;added++;
+    });
+    if(added)save(items);
+    return {items:items,added:added};
+  }
+
+  function boot(){
+    var items=load();
+    if(items===null){render(null);return;}
+    var merged=mergeSharedLinks(items);
+    items=merged.items;
+    if(merged.added)notify(merged.added+' shared product'+(merged.added>1?'s':'')+' added to your comparison.');
+    render(items);
+    if(window.SmileHubCompare&&SmileHubCompare.hydrate){
+      SmileHubCompare.hydrate(items,function(fresh){
+        if(!items.length)return;
+        render(fresh);
+        if(merged.added)notify('Shared products loaded.');
+      });
+    }else if(merged.added){
+      notify('Could not look up shared product details on this page.',true);
+    }
+  }
+
+  wrap.addEventListener('click',function(e){
+    var rm=e.target.closest?e.target.closest('[data-remove]'):null;
+    var mv=e.target.closest?e.target.closest('[data-move]'):null;
+    var items=load()||[];
+    if(rm){
+      items=items.filter(function(x){return String(x.id)!==String(rm.getAttribute('data-remove'));});
+      save(items);render(items);notify('Product removed from comparison.');
+      return;
+    }
+    if(mv){
+      var i=items.findIndex(function(x){return String(x.id)===String(mv.getAttribute('data-move-id')||mv.getAttribute('data-id'));});
+      var d=Number(mv.getAttribute('data-move'));var j=i+d;
+      if(i<0||j<0||j>=items.length)return;
+      var tmp=items[i];items[i]=items[j];items[j]=tmp;
+      save(items);render(items);
+    }
+  });
+  err.addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('[data-fix="reset"]'):null;if(!b)return;
+    try{localStorage.removeItem(KEY);}catch(e2){}
+    hideError();boot();notify('Comparison list cleared. Add products to start over.');
+  });
+  document.getElementById('clearCompare').addEventListener('click',function(){
+    try{localStorage.removeItem(KEY);}catch(e){}
+    render([]);notify('Comparison cleared.');
+  });
+  document.getElementById('printCompare').addEventListener('click',function(){window.print();});
+  function share(){
+    var items=load()||[];
+    if(!items.length){notify('Add a product before sharing.',true);return;}
+    var url=location.origin+location.pathname+'?compare='+items.map(function(x){return encodeURIComponent(x.id);}).join(',');
+    function done(){notify('Comparison link copied to clipboard.');}
+    function fallback(){
+      var ta=document.createElement('textarea');ta.value=url;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();
+      try{var ok=document.execCommand('copy');document.body.removeChild(ta);if(ok){done();}else{notify('Copy this link: '+url,true);}}
+      catch(e){try{document.body.removeChild(ta);}catch(e2){}notify('Copy this link: '+url,true);}
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done,fallback);}else{fallback();}
+  }
+  document.getElementById('shareCompare').addEventListener('click',share);
+  sticky.addEventListener('click',function(e){
+    var b=e.target.closest?e.target.closest('[data-sticky]'):null;if(!b)return;
+    if(b.getAttribute('data-sticky')==='print'){window.print();}else{share();}
+  });
+  window.addEventListener('storage',function(e){if(e.key===KEY)render(load());});
+  boot();
 });
+
 </script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
 </body></html>
+
+

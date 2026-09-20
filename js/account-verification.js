@@ -99,12 +99,48 @@
     return flow.verifier;
   }
 
+  function focusablesIn(modal) {
+    return Array.prototype.slice.call(
+      modal.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), [href], [tabindex]:not([tabindex="-1"])')
+    ).filter(function(el) { return el.offsetParent !== null; });
+  }
+
+  function trapTab(modal, e) {
+    if (e.key !== 'Tab') return;
+    var focusables = focusablesIn(modal);
+    if (!focusables.length) {
+      e.preventDefault();
+      return;
+    }
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   function openModal(flow) {
     var modal = byId(flow.ids.modal);
     if (!modal) return;
+    flow.returnFocus = document.activeElement;
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('otp-modal-open');
+    if (!modal.dataset.trapBound) {
+      modal.dataset.trapBound = 'true';
+      modal.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal(flow);
+          return;
+        }
+        trapTab(modal, e);
+      });
+    }
     var masked = byId(flow.ids.masked);
     if (masked) masked.textContent = maskedPhone(flow.phone);
     clearOtpInputs(flow);
@@ -119,6 +155,10 @@
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('otp-modal-open');
     setText(flow.ids.modalStatus, '');
+    var target = flow.returnFocus && document.contains(flow.returnFocus)
+      ? flow.returnFocus
+      : byId(flow.ids.send);
+    if (target && typeof target.focus === 'function') target.focus();
   }
 
   function getOtpInputs(flow) {
@@ -259,7 +299,7 @@
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
 
-      ['profilePhone', 'verifyPhoneInput', 'checkoutPhone', 'billingPhone'].forEach(function (id) {
+      ['profilePhone', 'checkoutPhone', 'billingPhone'].forEach(function (id) {
         if (!byId(id)) return;
         if (window.SmileHubPhone) window.SmileHubPhone.setValue(id, flow.phone);
         else byId(id).value = flow.phone.slice(3);

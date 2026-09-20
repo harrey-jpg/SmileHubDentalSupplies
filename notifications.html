@@ -6,14 +6,14 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Notifications | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -119,23 +119,23 @@
 </div>
 </section>
 <section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Notifications</div><h1>Notifications</h1><p class="muted">Manage alerts and review recent activity.</p></div></section><main class="section-sm"><div class="container account-page-grid">
-<aside class="card form-card"><h3>Notification preferences</h3><label class="payment-option"><input id="notifyOrders" type="checkbox" checked><span><strong>Order updates</strong><br><small class="muted">Status and delivery progress</small></span></label><label class="payment-option"><input id="notifyStock" type="checkbox"><span><strong>Restock alerts</strong><br><small class="muted">Saved-product availability</small></span></label><label class="payment-option"><input id="notifyDeals" type="checkbox"><span><strong>Offers</strong><br><small class="muted">Relevant promotions</small></span></label></aside>
+<aside class="card form-card"><h2>Notification preferences</h2><label class="payment-option"><input id="notifyOrders" type="checkbox" checked><span><strong>Order updates</strong><br><small class="muted">Status and delivery progress</small></span></label><label class="payment-option"><input id="notifyStock" type="checkbox"><span><strong>Restock alerts</strong><br><small class="muted">Saved-product availability</small></span></label><label class="payment-option"><input id="notifyDeals" type="checkbox"><span><strong>Offers</strong><br><small class="muted">Relevant promotions</small></span></label></aside>
 <section><div class="section-heading-row"><h2>Notification center</h2><button class="btn btn-light" id="markAllRead">Mark all read</button></div><div id="notificationList" class="notification-list"></div></section>
 </div></main><footer class="footer">
 <div class="container">
 <div class="footer-grid">
 <div>
-<h3>
+<h2>
               SmileHub Dental Supplies
-            </h3>
+            </h2>
 <p>
               Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.
             </p>
 </div>
 <div>
-<h4>
+<h3>
               Shop
-            </h4>
+            </h3>
 <a href="products.html">
               All Products
             </a>
@@ -150,9 +150,9 @@
             </a>
 </div>
 <div>
-<h4>
+<h3>
               Company
-            </h4>
+            </h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -167,9 +167,9 @@
             </a>
 </div>
 <div>
-<h4>
+<h3>
               Policies
-            </h4>
+            </h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -191,11 +191,11 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/profile.js?v=5.0.0"></script>
+<script src="js/profile.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
 document.addEventListener('DOMContentLoaded',function(){
  var key='smilehub_notifications',items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
@@ -207,5 +207,6 @@ document.addEventListener('DOMContentLoaded',function(){
  ['notifyOrders','notifyStock','notifyDeals'].forEach(function(id){var e=document.getElementById(id);var k='pref_'+id;e.checked=localStorage.getItem(k)!=='false';e.onchange=function(){localStorage.setItem(k,e.checked);};});
 });
 </script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
 </body></html>
+

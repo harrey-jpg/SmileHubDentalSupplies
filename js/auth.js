@@ -20,6 +20,14 @@ const PUBLIC_PAGES = [
   'homepage.html',
   'login.html',
   'register.html',
+  'products.html',
+  'product.html',
+  'about.html',
+  'faq.html',
+  'contact.html',
+  'developers.html',
+  'brands.html',
+  'blog.html',
   '404.html',
   'offline.html',
   'maintenance.html'
@@ -378,11 +386,85 @@ function handleGoogleLogin() {
       showGoogleError(error);
     });
 }
+var PENDING_ACTION_KEY = 'smilehub_pending_action';
+var PENDING_TOAST_KEY = 'smilehub_pending_toast';
+
+function consumePendingAction() {
+  var pending = SmileHubStorage.get(PENDING_ACTION_KEY, null);
+  if (!pending || !pending.item || !pending.item.id) return null;
+  SmileHubStorage.remove(PENDING_ACTION_KEY);
+  return pending;
+}
+
+function restoreCartItem(item) {
+  try {
+    if (typeof getStoredList !== 'function' || typeof saveStoredList !== 'function') return false;
+    var cart = getStoredList('smilehub_simple_cart');
+    var existing = null;
+    for (var i = 0; i < cart.length; i++) {
+      if (Number(cart[i].id) === Number(item.id)) { existing = cart[i]; break; }
+    }
+    var qty = Math.floor(Number(item.quantity) || 1);
+    if (!Number.isFinite(qty) || qty < 1) qty = 1;
+    if (existing) {
+      existing.quantity = Math.min(999, (Number(existing.quantity) || 0) + qty);
+    } else {
+      cart.push({
+        id: Number(item.id),
+        name: item.name || 'Product',
+        price: Number(item.price) || 0,
+        image: item.image || 'assets/products/default.svg',
+        quantity: Math.min(qty, 999)
+      });
+    }
+    saveStoredList('smilehub_simple_cart', cart);
+    if (typeof updateCartCount === 'function') updateCartCount();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function redirectAfterLogin() {
+  // Restore anything the user tried to buy as a guest before the login gate.
+  var pending = consumePendingAction();
+  if (pending && pending.type === 'buy') {
+    try {
+      SmileHubStorage.set('smilehub_buy_now', [pending.item]);
+      sessionStorage.setItem(PENDING_TOAST_KEY, 'Your pick was saved — continue to checkout.');
+    } catch (e) {}
+    location.href = 'checkout.html?mode=buy-now';
+    return;
+  }
+
   // Send users back to the page they were on when login was requested.
   // Only relative .html paths are accepted to prevent open redirects.
   var returnPage = SmileHubStorage.get(RETURN_KEY, null);
   SmileHubStorage.remove(RETURN_KEY);
+  if (pending && pending.type === 'cart') {
+    if (restoreCartItem(pending.item)) {
+      try { sessionStorage.setItem(PENDING_TOAST_KEY, 'Welcome back — your pick was restored to your cart.'); } catch (e) {}
+    }
+  }
+  if (pending && pending.type === 'wish') {
+    try {
+      if (typeof getStoredList === 'function' && typeof saveStoredList === 'function') {
+        var wish = getStoredList('smilehub_simple_wishlist');
+        var dup = wish.some(function(w) { return Number(w.id) === Number(pending.item.id); });
+        if (!dup) {
+          wish.push({
+            id: Number(pending.item.id),
+            name: pending.item.name || 'Product',
+            price: Number(pending.item.price) || 0,
+            image: pending.item.image || 'assets/products/default.svg'
+          });
+          saveStoredList('smilehub_simple_wishlist', wish);
+          if (typeof updateWishlistCount === 'function') updateWishlistCount();
+        }
+        sessionStorage.setItem(PENDING_TOAST_KEY, 'Welcome back — your pick was restored to your wishlist.');
+      }
+    } catch (e) {}
+  }
   if (typeof returnPage === 'string' && returnPage) {
     var pathOnly = returnPage.split('?')[0].split('#')[0].split('/').pop();
     var isSafe = /^[A-Za-z0-9._-]+\.html$/.test(pathOnly)
@@ -397,10 +479,57 @@ function redirectAfterLogin() {
   location.href = 'homepage.html';
 }
 
+function setFieldState(input, errorEl, message) {
+  if (!input) return false;
+  var ok = !message;
+  input.classList.toggle('valid', ok && input.value.trim() !== '');
+  input.classList.toggle('invalid', !ok);
+  input.setAttribute('aria-invalid', ok ? 'false' : 'true');
+  if (errorEl) {
+    errorEl.textContent = message || '';
+    errorEl.classList.toggle('show', Boolean(message));
+  }
+  return ok;
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function setLoginLoading(isLoading) {
+  var btn = document.getElementById('loginSubmitBtn');
+  if (!btn) return null;
+  if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+  btn.disabled = isLoading;
+  btn.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+  btn.innerHTML = isLoading
+    ? '<span class="button-spinner" aria-hidden="true"></span> Signing in...'
+    : btn.dataset.label;
+  return btn;
+}
+
 function handleLogin(event) {
   event.preventDefault();
-  var email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  var password = document.getElementById('loginPassword').value;
+  var emailInput = document.getElementById('loginEmail');
+  var passwordInput = document.getElementById('loginPassword');
+  var emailError = document.getElementById('loginEmailError');
+  var passwordError = document.getElementById('loginPasswordError');
+  var email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+  var password = passwordInput ? passwordInput.value : '';
+
+  var emailOk = setFieldState(emailInput, emailError,
+    !email ? 'Email address is required.' : (!isValidEmail(email) ? 'Enter a valid email address.' : ''));
+  var passwordOk = setFieldState(passwordInput, passwordError,
+    !password ? 'Password is required.' : '');
+  if (!emailOk) { emailInput.focus(); return; }
+  if (!passwordOk) { passwordInput.focus(); return; }
+
+  setLoginLoading(true);
+  var remember = document.getElementById('rememberMe');
+  try {
+    if (remember && remember.checked) localStorage.setItem('smilehub_remember_email', email);
+    else localStorage.removeItem('smilehub_remember_email');
+  } catch (e) {}
 
   var currentUser = firebase.auth().currentUser;
   var alreadySignedIn = currentUser && currentUser.email && currentUser.email.toLowerCase() === email;
@@ -414,6 +543,7 @@ function handleLogin(event) {
     showAuthMessage('Login successful! Redirecting...');
     setTimeout(redirectAfterLogin, 300);
   }).catch(function(error) {
+    setLoginLoading(false);
     var message = 'Login failed. Please try again.';
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
       message = 'Incorrect email or password.';
@@ -607,13 +737,17 @@ function updateAccountLink() {
     if (link.id === 'logoutButton' || link.classList.contains('logout-link')) return;
     if (link.href && link.href.indexOf('login') !== -1) filtered.push(link);
   });
+  var GEAR_SVG = '<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="36" stroke="currentColor" stroke-width="20"/><path d="M128 32v32M128 192v32M32 128h32M192 128h32M60 60l23 23M173 173l23 23M196 60l-23 23M83 173l-23 23" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>';
+  var USER_SVG = '<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>';
   filtered.forEach(function(link) {
     if (['admin', 'staff', 'superadmin'].includes(user.role)) {
       link.href = 'admin.html';
-      link.innerHTML = '&#9881; <span class="text-label">Dashboard</span>';
+      link.setAttribute('aria-label', 'Dashboard');
+      link.innerHTML = GEAR_SVG + ' <span class="text-label">Dashboard</span>';
     } else {
       link.href = 'profile.html';
-      link.innerHTML = '&#128100; <span class="text-label">Profile</span>';
+      link.setAttribute('aria-label', 'Profile');
+      link.innerHTML = USER_SVG + ' <span class="text-label">Profile</span>';
     }
   });
 }
@@ -710,6 +844,17 @@ window.SmileHubAuth = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var pendingToast = sessionStorage.getItem(PENDING_TOAST_KEY);
+    if (pendingToast) {
+      sessionStorage.removeItem(PENDING_TOAST_KEY);
+      if (typeof showToast === 'function') {
+        setTimeout(function() { showToast(pendingToast); }, 600);
+      } else {
+        showAuthMessage(pendingToast);
+      }
+    }
+  } catch (e) {}
   if (getCachedUser()) updateAccountLink();
 
   var message = new URLSearchParams(location.search).get('message');
@@ -737,7 +882,40 @@ document.addEventListener('DOMContentLoaded', function() {
   var registerForm = document.getElementById('registerForm');
   if (registerForm) registerForm.addEventListener('submit', handleRegister);
 
-  // Forgot password toggle
+  // Login UX: remember-me prefill, inline validation, password rules
+  try {
+    var savedEmail = localStorage.getItem('smilehub_remember_email');
+    var loginEmailInput = document.getElementById('loginEmail');
+    if (savedEmail && loginEmailInput && !loginEmailInput.value) {
+      loginEmailInput.value = savedEmail;
+      loginEmailInput.classList.add('valid');
+    }
+  } catch (e) {}
+
+  var liveEmail = document.getElementById('loginEmail');
+  var liveEmailError = document.getElementById('loginEmailError');
+  if (liveEmail) {
+    liveEmail.addEventListener('input', function() {
+      var v = liveEmail.value.trim();
+      if (!v) { setFieldState(liveEmail, liveEmailError, ''); liveEmail.classList.remove('valid', 'invalid'); return; }
+      setFieldState(liveEmail, liveEmailError, isValidEmail(v.toLowerCase()) ? '' : 'Enter a valid email address.');
+    });
+    liveEmail.addEventListener('blur', function() {
+      var v = liveEmail.value.trim();
+      if (v && !isValidEmail(v.toLowerCase())) setFieldState(liveEmail, liveEmailError, 'Enter a valid email address.');
+    });
+  }
+
+  var livePw = document.getElementById('loginPassword');
+  var livePwError = document.getElementById('loginPasswordError');
+  if (livePw) {
+    livePw.addEventListener('input', function() {
+      if (!livePw.value) { setFieldState(livePw, livePwError, ''); livePw.classList.remove('valid', 'invalid'); return; }
+      setFieldState(livePw, livePwError, '');
+    });
+  }
+
+  // Forgot password cross-fade
   var forgotLink = document.getElementById('forgotPasswordLink');
   var forgotSection = document.getElementById('forgotPasswordSection');
   var loginCard = document.getElementById('loginForm');
@@ -745,56 +923,89 @@ document.addEventListener('DOMContentLoaded', function() {
   var resetBtn = document.getElementById('sendResetBtn');
   var resetEmail = document.getElementById('resetEmail');
   var resetMessage = document.getElementById('resetMessage');
+  var resetEmailError = document.getElementById('resetEmailError');
+
+  function switchAuthCard(showForgot) {
+    if (!forgotSection || !loginCard) return;
+    var hide = showForgot ? loginCard : forgotSection;
+    var show = showForgot ? forgotSection : loginCard;
+    hide.classList.add('is-leaving');
+    setTimeout(function() {
+      hide.classList.add('hidden');
+      hide.classList.remove('is-active', 'is-leaving');
+      hide.setAttribute('aria-hidden', 'true');
+      show.classList.remove('hidden');
+      show.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(function() { show.classList.add('is-active'); });
+      var focusTarget = showForgot ? resetEmail : document.getElementById('loginEmail');
+      if (focusTarget) focusTarget.focus();
+    }, 180);
+  }
 
   if (forgotLink && forgotSection && loginCard) {
     forgotLink.addEventListener('click', function() {
-      loginCard.style.display = 'none';
-      forgotSection.style.display = 'block';
-      resetMessage.style.display = 'none';
-      resetMessage.textContent = '';
-      resetMessage.className = 'auth-message';
-      resetEmail.value = '';
+      if (resetMessage) { resetMessage.textContent = ''; resetMessage.classList.add('hidden'); resetMessage.classList.remove('error'); }
+      if (resetEmail) { resetEmail.value = ''; resetEmail.classList.remove('valid', 'invalid'); }
+      if (resetEmailError) resetEmailError.classList.remove('show');
+      switchAuthCard(true);
     });
   }
 
   if (backLink && forgotSection && loginCard) {
     backLink.addEventListener('click', function() {
-      forgotSection.style.display = 'none';
-      loginCard.style.display = 'block';
-      resetMessage.style.display = 'none';
-      resetMessage.textContent = '';
-      resetMessage.className = 'auth-message';
-      resetEmail.value = '';
+      if (resetMessage) { resetMessage.textContent = ''; resetMessage.classList.add('hidden'); resetMessage.classList.remove('error'); }
+      if (resetEmail) { resetEmail.value = ''; resetEmail.classList.remove('valid', 'invalid'); }
+      switchAuthCard(false);
     });
   }
 
   if (resetBtn && resetEmail && resetMessage) {
+    if (!resetBtn.dataset.label) resetBtn.dataset.label = resetBtn.innerHTML;
+    resetEmail.addEventListener('input', function() {
+      var v = resetEmail.value.trim();
+      var bad = v && !isValidEmail(v.toLowerCase());
+      resetEmail.classList.toggle('valid', Boolean(v && !bad));
+      resetEmail.classList.toggle('invalid', Boolean(bad));
+      resetEmail.setAttribute('aria-invalid', bad ? 'true' : 'false');
+      if (resetEmailError) {
+        resetEmailError.textContent = bad ? 'Enter a valid email address.' : '';
+        resetEmailError.classList.toggle('show', Boolean(bad));
+      }
+    });
     resetBtn.addEventListener('click', function() {
       var email = resetEmail.value.trim();
       if (!email) {
-        resetMessage.textContent = 'Enter your email address.';
-        resetMessage.style.display = 'block';
-        resetMessage.className = 'auth-message error';
+        resetEmail.classList.add('invalid');
+        if (resetEmailError) { resetEmailError.textContent = 'Enter your email address.'; resetEmailError.classList.add('show'); }
+        resetEmail.focus();
+        return;
+      }
+      if (!isValidEmail(email.toLowerCase())) {
+        resetEmail.classList.add('invalid');
+        if (resetEmailError) { resetEmailError.textContent = 'Enter a valid email address.'; resetEmailError.classList.add('show'); }
+        resetEmail.focus();
         return;
       }
       resetBtn.disabled = true;
-      resetBtn.textContent = 'Sending...';
+      resetBtn.setAttribute('aria-busy', 'true');
+      resetBtn.innerHTML = '<span class="button-spinner" aria-hidden="true"></span> Sending...';
       firebase.auth().sendPasswordResetEmail(email).then(function() {
         resetMessage.textContent = 'Reset link sent! Check your email (including spam).';
-        resetMessage.style.display = 'block';
-        resetMessage.className = 'auth-message';
-        resetBtn.textContent = 'Send Reset Link';
+        resetMessage.classList.remove('hidden', 'error');
+        resetBtn.innerHTML = resetBtn.dataset.label;
         resetBtn.disabled = false;
+        resetBtn.removeAttribute('aria-busy');
       }).catch(function(error) {
         var msg = 'Failed to send reset email.';
         if (error.code === 'auth/user-not-found') msg = 'No account found with that email.';
         else if (error.code === 'auth/invalid-email') msg = 'Enter a valid email address.';
         else if (error.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
         resetMessage.textContent = msg;
-        resetMessage.style.display = 'block';
-        resetMessage.className = 'auth-message error';
-        resetBtn.textContent = 'Send Reset Link';
+        resetMessage.classList.remove('hidden');
+        resetMessage.classList.add('error');
+        resetBtn.innerHTML = resetBtn.dataset.label;
         resetBtn.disabled = false;
+        resetBtn.removeAttribute('aria-busy');
       });
     });
   }

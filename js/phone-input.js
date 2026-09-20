@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var IDS = ['profilePhone', 'verifyPhoneInput', 'checkoutPhone', 'billingPhone'];
+  var IDS = ['profilePhone', 'checkoutPhone', 'billingPhone'];
 
   function digitsOnly(value) {
     return String(value || '').replace(/\D/g, '');

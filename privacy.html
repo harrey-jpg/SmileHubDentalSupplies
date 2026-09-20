@@ -8,16 +8,19 @@
 <title>
       Privacy Policy | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
+<div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
 <div class="topbar">
 <div class="container">
 <span>
@@ -38,34 +41,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-privacy">Search dental products</label>
+<input id="siteSearch-privacy" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-    ♡
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-    🛒
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
     <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-    👤
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
     <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">Menu</button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -100,49 +104,138 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
-<div class="container">
-<div class="breadcrumbs">
-<a href="homepage.html">
-            Home
-          </a>
-          / Privacy Policy
-        </div>
-<h1>
-          Privacy Policy
-        </h1>
-<p class="muted">
-          How the academic frontend demonstrates customer-data handling.
-        </p>
-</div>
+<section class="policy-hero" aria-labelledby="privacyTitle">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="homepage.html">Home</a> / <span aria-current="page">Privacy Policy</span>
+    </nav>
+    <h1 id="privacyTitle">Privacy Policy</h1>
+    <p class="lede">How SmileHub handles your data with transparency and care — aligned with the Philippine Data Privacy Act of 2012.</p>
+    <div class="policy-meta">
+      <span class="meta-chip">Last updated: September 2026</span>
+      <span class="meta-chip">6 min read</span>
+      <span class="meta-chip">Philippines · DPA 2012 aligned</span>
+    </div>
+    <div class="trust-row" role="list" aria-label="Trust signals">
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>DPA 2012 aligned</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>No real payments processed</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Demo data stays in your browser</span>
+    </div>
+  </div>
 </section>
+
 <main class="section-sm">
-<div class="container card form-card">
-<h2>
-          Information Collection
-        </h2>
-<p>
-          SmileHub may collect account, address, cart, and order details required to demonstrate an e-commerce transaction.
-        </p>
-<h2>
-          Use of Information
-        </h2>
-<p>
-          Information is used only to show customer profiles, checkout, order history, and notifications in this frontend project.
-        </p>
-<h2>
-          Browser Storage
-        </h2>
-<p>
-          Cart, wishlist, theme, and demo orders are stored in your browser using localStorage. No data is sent to a server in this version.
-        </p>
-<h2>
-          Security
-        </h2>
-<p>
-          The later backend phase should add authentication, validation, secure password hashing, database protection, and role access.
-        </p>
-</div>
+  <div class="container">
+    <ul class="policy-quick-links" aria-label="Privacy highlights">
+      <li><a href="#collection" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">📋</span>
+        <span><strong>Information Collection</strong><span>What data we gather, and what we never ask for.</span></span>
+      </a></li>
+      <li><a href="#usage" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🎯</span>
+        <span><strong>Use of Information</strong><span>How your data powers profiles and checkout.</span></span>
+      </a></li>
+      <li><a href="#dpa" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">⚖️</span>
+        <span><strong>Your DPA Rights</strong><span>Philippine data privacy rights, plainly stated.</span></span>
+      </a></li>
+      <li><a href="#security" class="quick-link-card">
+        <span class="quick-link-icon" aria-hidden="true">🔒</span>
+        <span><strong>Security</strong><span>How we protect your information today.</span></span>
+      </a></li>
+    </ul>
+
+    <button class="btn btn-light policy-toc-toggle" id="tocToggle" type="button" aria-expanded="false" aria-controls="privacyToc">Browse contents</button>
+
+    <div class="policy-layout">
+      <aside class="policy-sidebar">
+        <nav class="toc-nav" id="privacyToc" aria-label="Privacy policy contents">
+          <p class="eyebrow">Table of Contents</p>
+          <ul class="toc-list">
+            <li><a href="#collection">Information Collection</a></li>
+            <li><a href="#usage">Use of Information</a></li>
+            <li><a href="#storage">Browser Storage</a></li>
+            <li><a href="#dpa">DPA Rights</a></li>
+            <li><a href="#processors">Data Processors</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+          <div class="toc-actions">
+            <button class="btn btn-light text-size-toggle" type="button" id="textSizeToggle" aria-pressed="false">Text size: Normal</button>
+            <button class="btn btn-light" type="button" data-print>Print / Save PDF</button>
+            <a class="btn btn-primary" href="terms.html">Read Terms</a>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="policy-content">
+        <div class="policy-card">
+          <div class="demo-note" role="note"><span aria-hidden="true">🎓</span><span><strong>Academic demonstration.</strong> SmileHub is a frontend class project, not a live store. No real transactions occur and no personal data is sent to a SmileHub server in this version.</span></div>
+
+          <section class="policy-section" id="collection" aria-labelledby="collection-h">
+            <h2 id="collection-h">Information Collection</h2>
+            <p>SmileHub collects only the details needed to demonstrate an e-commerce transaction: account names and email addresses, delivery addresses, cart contents, and order records you create while exploring the demo.</p>
+            <p>We never ask for real payment credentials, government IDs, or health records. Any checkout information you enter — including GCash numbers or card details — is treated as sample input and never transmitted or charged.</p>
+          </section>
+
+          <section class="policy-section" id="usage" aria-labelledby="usage-h">
+            <h2 id="usage-h">Use of Information</h2>
+            <p>Information is used solely inside this frontend project to render customer profiles, drive the checkout flow, display order history, and trigger on-screen notifications.</p>
+            <ul>
+              <li>Show your profile, wishlist, and cart across pages.</li>
+              <li>Simulate checkout totals, shipping estimates, and order confirmations.</li>
+              <li>Personalize demo content such as recently viewed products.</li>
+            </ul>
+          </section>
+
+          <section class="policy-section" id="storage" aria-labelledby="storage-h">
+            <h2 id="storage-h">Browser Storage</h2>
+            <p>Cart, wishlist, theme preference, and demo orders are stored in your own browser using <code class="code-inline">localStorage</code>. No data is sent to a SmileHub server in this version.</p>
+            <p>Clearing your browser's site data removes everything the demo saved. If you use Firebase login, authentication tokens are managed by Google Firebase under its own policies (see Data Processors).</p>
+          </section>
+
+          <section class="policy-section" id="dpa" aria-labelledby="dpa-h">
+            <div class="callout-box law">
+              <h2 id="dpa-h"><span class="callout-icon" aria-hidden="true">⚖️</span>Data Privacy Act (DPA) Rights</h2>
+              <p>In accordance with the <strong class="highlight"><span class="glossary-term" tabindex="0">Philippine Data Privacy Act of 2012 (RA 10173)<span class="glossary-tooltip" role="tooltip">Philippine law protecting personal information (RA 10173).</span></span></strong>, you have the following rights over your personal information:</p>
+              <div class="rights-grid">
+                <span class="right-chip">Right to be informed</span>
+                <span class="right-chip">Right to access</span>
+                <span class="right-chip">Right to object to processing</span>
+                <span class="right-chip glossary-term" tabindex="0">Right to rectification<span class="glossary-tooltip" role="tooltip">Right to correct inaccurate personal data.</span></span>
+                <span class="right-chip glossary-term" tabindex="0">Right to erasure or blocking<span class="glossary-tooltip" role="tooltip">Right to request deletion or blocking of personal data.</span></span>
+                <span class="right-chip">Right to data portability</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="policy-section" id="processors" aria-labelledby="processors-h">
+            <h2 id="processors-h">Data Processors</h2>
+            <p>This academic project uses Google Firebase for authentication and cloud storage. When you sign in with Firebase, Google processes your credentials under the Google Privacy Policy. All other data handling in the demo is simulated locally in your browser.</p>
+          </section>
+
+          <section class="policy-section" id="security" aria-labelledby="security-h">
+            <h2 id="security-h">Security</h2>
+            <p>Because this is a frontend demonstration, protections are limited to browser-level storage and Firebase's built-in authentication safeguards. The planned backend phase will add server-side authentication, input validation, secure password hashing, database access controls, and role-based permissions before any real customer data is handled.</p>
+          </section>
+
+          <section class="policy-section" id="contact" aria-labelledby="contact-h">
+            <h2 id="contact-h">Contact Us</h2>
+            <p>Questions about this policy or requests to review, correct, or delete demo data? Reach us through the <a href="contact.html">Contact Us</a> page. Support for this academic project is based in Quezon City, Metro Manila.</p>
+          </section>
+        </div>
+
+        <div class="related-policies">
+          <h2>Related policies</h2>
+          <div class="related-grid">
+            <a class="related-card" href="terms.html"><strong>Terms and Conditions</strong><span>The governing rules for this demonstration.</span></a>
+            <a class="related-card" href="shipping.html"><strong>Shipping Information</strong><span>How delivery estimates work in the demo.</span></a>
+            <a class="related-card" href="return-policy.html"><strong>Return Policy</strong><span>Simulated eligibility and return steps.</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
 <section class="newsletter">
 <div class="container newsletter-box">
@@ -174,9 +267,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -191,9 +282,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -208,9 +297,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -232,11 +319,65 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function(){
+  var nav=document.getElementById('privacyToc'); if(!nav) return;
+  var links=Array.prototype.slice.call(nav.querySelectorAll('.toc-list a[href^="#"]'));
+  function setActive(id){ links.forEach(function(a){ var on=a.getAttribute('href')==='#'+id; a.classList.toggle('active',on); if(on){a.setAttribute('aria-current','true');}else{a.removeAttribute('aria-current');} }); }
+  if('IntersectionObserver' in window){
+    var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));}).filter(Boolean);
+    var obs=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting) setActive(e.target.id); }); },{rootMargin:'-35% 0px -55% 0px'});
+    secs.forEach(function(s){obs.observe(s);});
+  }
+  var t=document.getElementById('tocToggle');
+  if(t){ t.addEventListener('click',function(){ var open=nav.classList.toggle('open'); t.setAttribute('aria-expanded',open?'true':'false'); }); }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-print]'),function(b){ b.addEventListener('click',function(){ window.print(); }); });
+})();
+</script>
+<script>
+(function(){
+  var bar=document.getElementById('readingProgress');
+  if(bar){
+    var tick=function(){
+      var h=document.documentElement;
+      var max=h.scrollHeight - h.clientHeight;
+      var pct=max>0 ? (window.scrollY / max * 100) : 0;
+      bar.style.transform='scaleX('+(pct/100)+')';
+      bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    };
+    window.addEventListener('scroll', tick, {passive:true});
+    window.addEventListener('resize', tick);
+    tick();
+  }
+  var btn=document.getElementById('textSizeToggle');
+  var key='smilehub_text_size';
+  try{
+    var saved=localStorage.getItem(key);
+    if(saved==='large') document.body.classList.add('large-text');
+  }catch(e){}
+  if(btn){
+    var sync=function(){
+      var large=document.body.classList.contains('large-text');
+      btn.textContent='Text size: '+(large?'Large':'Normal');
+      btn.setAttribute('aria-pressed', large?'true':'false');
+    };
+    sync();
+    btn.addEventListener('click', function(){
+      document.body.classList.toggle('large-text');
+      try{ localStorage.setItem(key, document.body.classList.contains('large-text')?'large':'normal'); }catch(e){}
+      sync();
+    });
+  }
+})();
+</script>
 </body>
 </html>
+
+
+

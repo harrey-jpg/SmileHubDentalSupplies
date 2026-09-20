@@ -26,24 +26,32 @@
   function setupPhoneEdit(){
     var btn=byId('changePhoneButton'), input=byId('profilePhone');
     if(!btn||!input) return;
+    // Editable by default. The button explicitly discards unsaved edits —
+    // never silently: it is disabled while pristine and toasts on revert.
     var originalValue=input.value;
-    var editing=false;
+    var userTouched=false;
+    function isDirty(){ return input.value !== originalValue; }
     function render(){
-      input.readOnly=!editing;
-      input.disabled=!editing;
-      input.classList.toggle('profile-phone-editing',editing);
-      btn.textContent=editing?'Cancel editing':'Edit phone number';
-      if(editing){ input.focus(); input.select(); }
+      // Profile data fills in async after load; adopt it as the baseline
+      // until the user types (programmatic fills fire no input event).
+      if(!userTouched && input.value) originalValue=input.value;
+      input.readOnly=false;
+      input.disabled=false;
+      input.classList.toggle('profile-phone-editing',isDirty());
+      btn.disabled=!isDirty();
+      btn.textContent='Discard phone changes';
+      btn.setAttribute('aria-label','Discard unsaved phone changes');
     }
     btn.addEventListener('click',function(){
-      editing=!editing;
-      if(!editing) input.value=originalValue;
+      input.value=originalValue;
       render();
+      input.focus();
+      if(window.showToast) showToast('Phone changes discarded');
     });
+    input.addEventListener('input',function(){ userTouched=true; render(); });
     var form=byId('profileForm');
     if(form) form.addEventListener('submit',function(){
       originalValue=input.value;
-      editing=false;
       render();
       var old=byId('verificationPhoneStatus');
       if(old && old.classList.contains('is-verified')){
@@ -68,7 +76,7 @@
     });
   }
   function quietRoutineToasts(){
-    var routine=/added to cart|removed from cart|added to wishlist|removed from wishlist|button clicked|opened/i;
+    var routine=/button clicked|^opened$/i;
     var observer=new MutationObserver(function(records){
       records.forEach(function(r){ r.addedNodes.forEach(function(node){
         if(node.nodeType!==1) return;
@@ -93,7 +101,7 @@
       b.type='button'; b.className='btn buy-now-btn'; b.dataset.buyNow=id;
       b.dataset.id=id; b.dataset.name=card.dataset.name||'Product'; b.dataset.price=price;
       b.dataset.image=card.dataset.image||'assets/products/default.svg';
-      b.textContent='⚡ Buy Now';
+      b.innerHTML='<svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg> Buy Now';
       b.addEventListener('click',function(){ if(window.buyNow) window.buyNow(b); });
       actions.appendChild(b);
     });

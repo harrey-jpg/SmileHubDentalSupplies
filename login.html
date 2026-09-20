@@ -8,14 +8,14 @@
 <title>
       Login | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -38,45 +38,35 @@
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-login">Search dental products</label>
+<input id="siteSearch-login" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">
-            ◐
-          </button>
-<a class="icon-link" href="wishlist.html">
-            ♡
-            <span class="text-label">
-              Wishlist
-            </span>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="text-label">Wishlist</span>
+<span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-            🛒
-            <span class="text-label">
-              Cart
-            </span>
-<span class="cart-count">
-              0
-            </span>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+    <span class="text-label">Cart</span>
+<span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-            👤
-            <span class="text-label">
-              Login
-            </span>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+    <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">
-            Menu
-          </button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -111,70 +101,95 @@
 </div>
 </nav>
 </header>
-<main class="auth-wrap auth-experience"><section aria-label="SmileHub account benefits" class="auth-visual">
+<main class="auth-wrap auth-experience"><section aria-label="SmileHub account benefits" class="auth-visual reveal reveal-delay-1">
+<div class="auth-visual-bg" aria-hidden="true"></div>
 <div>
-<span class="auth-kicker">Trusted dental supply partner</span>
+<span class="auth-kicker"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24c-9.4 0-18.5 3.2-25.9 9C86 45.2 64 61.5 64 104c0 28 10 48 18 62 7.4 13 11 23.4 12.4 39.2 1 11.4 2.3 26.8 9.6 26.8 9.5 0 5.4-23.1 11.2-38.4 3.4-9 6.8-12.6 12.8-12.6s9.4 3.6 12.8 12.6c5.8 15.3 1.7 38.4 11.2 38.4 7.3 0 8.6-15.4 9.6-26.8C163 189.4 166.6 179 174 166c8-14 18-34 18-62 0-42.5-22-58.8-38.1-71-7.4-5.8-16.5-9-25.9-9Z" fill="currentColor" opacity=".95"/></svg>Trusted dental supply partner</span>
 <h2>Everything your practice needs, in one place.</h2>
 <p>Sign in to continue shopping, track orders, save products, and manage your SmileHub account.</p>
+<div class="auth-medical-art" aria-hidden="true">
+<svg viewBox="0 0 420 168" role="img" aria-label="Medical dental illustration">
+<defs>
+<linearGradient id="medCard" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".28"/><stop offset="1" stop-color="#ffffff" stop-opacity=".08"/></linearGradient>
+</defs>
+<rect x="8" y="18" width="250" height="132" rx="20" fill="url(#medCard)" stroke="rgba(255,255,255,.35)"/>
+<circle cx="70" cy="84" r="34" fill="rgba(255,255,255,.22)" stroke="rgba(255,255,255,.5)"/>
+<path d="M70 62c-6 0-11.8 2-16.5 5.7C43.4 75.5 30 86 30 113c0 17.8 6.4 30.6 11.5 39.5 4.7 8.3 7 14.9 7.9 25 1.4-9.6 1.5-19.8 5.2-29.4 2.2-5.7 4.3-8 8.1-8h14.6c3.8 0 5.9 2.3 8.1 8 3.7 9.6 3.8 19.8 5.2 29.4.9-10.1 3.2-16.7 7.9-25C102.6 143.6 109 130.8 109 113c0-27-13.4-37.5-23.5-45.3C80.8 64 75 62 70 62Z" transform="translate(0,-8) scale(.92)" fill="#fff"/>
+<path d="M62 78h16M62 88h12" stroke="#005F8A" stroke-width="5" stroke-linecap="round"/>
+<rect x="282" y="30" width="126" height="44" rx="14" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.35)"/>
+<rect x="282" y="84" width="126" height="54" rx="14" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.3)"/>
+<circle cx="302" cy="52" r="10" fill="#34D399"/>
+<path d="M297.5 52l3.2 3.2 5.8-6.4" stroke="#064E3B" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="318" y="45" width="70" height="8" rx="4" fill="rgba(255,255,255,.75)"/>
+<rect x="318" y="57" width="48" height="6" rx="3" fill="rgba(255,255,255,.5)"/>
+<path d="M302 99v14M295 106h14" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<rect x="318" y="94" width="70" height="8" rx="4" fill="rgba(255,255,255,.7)"/>
+<rect x="318" y="106" width="56" height="6" rx="3" fill="rgba(255,255,255,.45)"/>
+<circle cx="360" cy="132" r="16" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.4)"/>
+<path d="M360 124v16M352 132h16" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+</svg>
+</div>
 <div class="auth-benefits">
-<div class="auth-benefit"><span>✓</span><span><strong>Faster checkout</strong><small>Saved details and smoother ordering</small></span></div>
-<div class="auth-benefit"><span>♡</span><span><strong>Personal wishlist</strong><small>Keep your essential supplies together</small></span></div>
-<div class="auth-benefit"><span>↻</span><span><strong>Order visibility</strong><small>Review and track previous purchases</small></span></div>
+<div class="auth-benefit"><span class="auth-benefit-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 256 256" fill="none"><path d="M232 56 88 200l-56-56" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Faster checkout</strong><small>Saved details and smoother ordering</small></span></div>
+<div class="auth-benefit"><span class="auth-benefit-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 256 256" fill="none"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Personal wishlist</strong><small>Keep your essential supplies together</small></span></div>
+<div class="auth-benefit"><span class="auth-benefit-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 256 256" fill="none"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Order visibility</strong><small>Review and track previous purchases</small></span></div>
 </div>
 </div>
-<small>Secure access powered by Firebase Authentication.</small>
-</section><section class="auth-panel">
-<form class="card auth-card" id="loginForm">
-<h1>
-          Customer Login
-        </h1>
-<p class="muted">
-          Access your profile, wishlist, and orders. Admins can use the same form.
-        </p>
-<div class="auth-message hidden" id="authMessage"></div>
-<div class="form-group">
-<label for="loginEmail">
-            Email Address
-          </label>
-<input autocomplete="email" id="loginEmail" name="email" required="" type="email"/>
+<div>
+<div class="auth-trust-strip" aria-label="Why shop with SmileHub">
+<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="128" cy="168" r="12" fill="currentColor"/></svg><span><strong>Secure</strong><small>Firebase auth</small></span></div>
+<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg><span><strong>Fast delivery</strong><small>Metro Manila</small></span></div>
+<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24l38 32 50-8 8 50 42 18-22 38 22 38-42 18-8 50-50-8-38 32-38-32-50 8-8-50-42-18 22-38-22-38 42-18 8-50 50 8Z" stroke="currentColor" stroke-width="16" stroke-linejoin="round"/><path d="M96 128l24 24 40-48" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>Quality</strong><small>Genuine supplies</small></span></div>
+<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/></svg><span><strong>Support</strong><small>Mon–Sat help</small></span></div>
 </div>
-<div class="form-group">
-<label for="loginPassword">
-            Password
-          </label>
+<small class="auth-secure-note">Secure access powered by Firebase Authentication.</small>
+</div>
+</section><section class="auth-panel reveal reveal-delay-2">
+<div class="auth-form-viewport">
+<form class="card auth-card auth-fade is-active" id="loginForm" novalidate="">
+<h1>Customer Login</h1>
+<p class="muted">Access your profile, wishlist, and orders. Admins can use the same form.</p>
+<div class="auth-message hidden" id="authMessage" role="status" aria-live="polite"></div>
+<div class="form-group float-field">
+<input autocomplete="email" id="loginEmail" name="email" required="" type="email" placeholder=" " aria-describedby="loginEmailError" aria-invalid="false"/>
+<label for="loginEmail">Email Address</label>
+<span class="field-state" aria-hidden="true"><svg class="icon-valid" width="18" height="18" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="112" fill="#047857"/><path d="M176 104l-56 56-32-32" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="icon-invalid" width="18" height="18" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="112" fill="#DC2626"/><path d="M128 80v72M128 184v8" stroke="#fff" stroke-width="22" stroke-linecap="round"/></svg></span>
+<span class="field-error" id="loginEmailError" role="alert"></span>
+</div>
+<div class="form-group float-field">
 <div class="password-wrap">
-<input autocomplete="current-password" id="loginPassword" name="password" required="" type="password"/>
-<button class="password-toggle" onclick="togglePassword(this)" type="button">👁</button>
+<input autocomplete="current-password" id="loginPassword" name="password" required="" type="password" placeholder=" " aria-describedby="loginPasswordError" aria-invalid="false"/>
+<label for="loginPassword">Password</label>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password" aria-pressed="false">
+<svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+<svg class="eye-closed hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+</button>
 </div>
+<span class="field-error" id="loginPasswordError" role="alert"></span>
 </div>
-<button class="btn btn-primary btn-block" type="submit">
-          Login
-        </button>
+<div class="auth-options-row">
+<label class="remember-me" for="rememberMe"><input id="rememberMe" type="checkbox" checked=""/> <span>Remember me</span></label>
+<a href="javascript:void(0)" id="forgotPasswordLink">Forgot password?</a>
+</div>
+<button class="btn btn-primary btn-block" id="loginSubmitBtn" type="submit"><span class="btn-label">Login</span></button>
 <div class="auth-divider">or continue with</div>
 <button class="btn btn-block google-btn" id="googleSignInBtn" type="button">
-<svg height="18" viewbox="0 0 48 48" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"></path><path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"></path><path d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z" fill="#FBBC05"></path><path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z" fill="#34A853"></path></svg>
-          Sign in with Google
-        </button>
-<div class="auth-links">
-<a href="javascript:void(0)" id="forgotPasswordLink">
-            Forgot password?
-          </a>
-<a href="register.html">
-            Create account
-          </a>
-</div>
+<span class="google-badge" aria-hidden="true"><svg class="google-icon" viewBox="0 0 24 24" width="20" height="20"><path fill="#EA4335" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path><path fill="#4285F4" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23c4.42 0 7.99-2.93 9.17-7h-11.17z"></path><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path><path fill="#34A853" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path></svg></span>
+<span>Sign in with Google</span>
+</button>
+<div class="auth-links auth-links-center"><span class="muted">New here?</span><a href="register.html">Create account</a></div>
 </form>
-<div class="card auth-card" id="forgotPasswordSection" style="display:none;">
+<div class="card auth-card auth-fade hidden" id="forgotPasswordSection" aria-hidden="true">
 <h1>Reset Password</h1>
 <p class="muted">Enter your email and we'll send you a password reset link.</p>
-<div class="auth-message" id="resetMessage" style="display:none;"></div>
-<div class="form-group">
+<div class="auth-message hidden" id="resetMessage" role="status" aria-live="polite"></div>
+<div class="form-group float-field">
+<input autocomplete="email" id="resetEmail" name="email" required="" type="email" placeholder=" " aria-describedby="resetEmailError" aria-invalid="false"/>
 <label for="resetEmail">Email Address</label>
-<input autocomplete="email" id="resetEmail" name="email" required="" type="email"/>
+<span class="field-error" id="resetEmailError" role="alert"></span>
 </div>
-<button class="btn btn-primary btn-block" id="sendResetBtn" type="button">Send Reset Link</button>
-<div class="auth-links">
-<a href="javascript:void(0)" id="backToLoginLink">Back to Login</a>
+<button class="btn btn-primary btn-block" id="sendResetBtn" type="button"><span class="btn-label">Send Reset Link</span></button>
+<div class="auth-links"><a href="javascript:void(0)" id="backToLoginLink">← Back to Login</a></div>
 </div>
 </div>
 </section></main>
@@ -208,9 +223,7 @@
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -225,9 +238,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -242,9 +253,7 @@
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -266,11 +275,33 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script>
+(function() {
+  // Reveal on scroll
+  var revealEls = document.querySelectorAll('.reveal');
+  if (revealEls.length && 'IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function(el) { observer.observe(el); });
+  } else {
+    revealEls.forEach(function(el) { el.classList.add('visible'); });
+  }
+})();
+</script>
 </body>
 </html>
+
+
+

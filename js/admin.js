@@ -975,7 +975,7 @@ document.addEventListener('DOMContentLoaded', function() {
       heroHeadline: 'Your Trusted Dental Supply Partner',
       heroSubtitle: 'Quality dental products for clinics, dentists, and students across the Philippines.',
       heroCta: 'Shop Now',
-      promoTtext: 'Free shipping on orders over ₱3,000',
+      promoText: 'Free shipping on orders over ₱3,000',
       promoBtn: 'View Deals',
       storeTagline: 'SmileHub Dental Supplies',
       faqs: [
@@ -1015,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (headline) headline.value = data.heroHeadline;
     if (subtitle) subtitle.value = data.heroSubtitle;
     if (cta) cta.value = data.heroCta;
-    if (promoText) promoText.value = data.promoTtext;
+    if (promoText) promoText.value = data.promoText;
     if (promoBtn) promoBtn.value = data.promoBtn;
     if (tagline) tagline.value = data.storeTagline;
 
@@ -1086,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (headline) data.heroHeadline = headline.value;
       if (subtitle) data.heroSubtitle = subtitle.value;
       if (cta) data.heroCta = cta.value;
-      if (promoText) data.promoTtext = promoText.value;
+      if (promoText) data.promoText = promoText.value;
       if (promoBtn) data.promoBtn = promoBtn.value;
       if (tagline) data.storeTagline = tagline.value;
 
@@ -1428,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var win = window.open('', '_blank');
     win.document.write('<html><head><title>Sales Report - ' + label + '</title>' +
-      '<style>body{font-family:Arial,sans-serif;padding:30px;color:#203047;}' +
+      '<style>body{font-family:"DM Sans",system-ui,sans-serif;padding:30px;color:#203047;}' +
       'table{width:100%;border-collapse:collapse;margin:16px 0;}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #dce5ec;}' +
       'th{background:#e9f7fb;font-size:0.85rem;text-transform:uppercase;}' +
       '.print-hide{display:none!important;}' +
@@ -1456,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var win = window.open('', '_blank');
     win.document.write('<html><head><title>Order Slip - ' + order.number + '</title>' +
       '<style>' +
-      'body{font-family:Arial,sans-serif;padding:40px;color:#203047;max-width:700px;margin:auto;}' +
+      'body{font-family:"DM Sans",system-ui,sans-serif;padding:40px;color:#203047;max-width:700px;margin:auto;}' +
       '.header{text-align:center;border-bottom:2px solid #1261a0;padding-bottom:20px;margin-bottom:24px;}' +
       '.header h1{margin:0;color:#1261a0;}.header p{margin:4px 0 0;color:#6b7a8c;}' +
       '.info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}' +

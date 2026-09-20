@@ -6,15 +6,15 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Product Details | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=5.2.0">
-<link rel="stylesheet" href="css/final-polish.css?v=6.5.2">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -35,20 +35,20 @@
 <button type="submit">Search</button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-            ♡
-            <span class="text-label">Wishlist</span>
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-            🛒
-            <span class="text-label">Cart</span>
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
+<span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-            👤
-            <span class="text-label">Login</span>
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
+<span class="text-label">Login</span>
 </a>
 <button class="menu-button" type="button">Menu</button>
 </div>
@@ -90,78 +90,87 @@
 </section>
 <main class="section-sm">
 <div class="container">
-<div class="product-detail">
-<section class="product-gallery">
+<div class="product-detail is-loading" id="productDetail" aria-busy="true">
+<section class="product-gallery" aria-label="Product image">
 <div class="product-gallery-main">
+<span class="gallery-chip" id="detailGalleryChip">Oral Care</span>
 <img alt="Product image" id="detailImage" src="assets/products/oral-care.svg"/>
 </div>
-<div class="thumbnails">
-<button class="thumbnail">
-<img alt="Front view" src="assets/products/oral-care.svg"/>
-</button>
-<button class="thumbnail">
-<img alt="Side view" src="assets/products/oral-care.svg"/>
-</button>
-<button class="thumbnail">
-<img alt="Package view" src="assets/products/oral-care.svg"/>
-</button>
-<button class="thumbnail">
-<img alt="Detail view" src="assets/products/oral-care.svg"/>
-</button>
-</div>
+<p class="gallery-note muted">Catalog image shown. Actual packaging may vary.</p>
 </section>
-<section class="product-info">
+<section class="product-info" aria-label="Product information">
 <div class="eyebrow" id="detailCategory">Oral Care</div>
-<h1 id="detailName">ProClean Soft Toothbrush 4-Pack</h1>
-<div class="rating-line"><span class="stars">★★★★★</span> <span class="muted">4.8 rating • 42 reviews</span></div>
-<p class="muted">Brand: <strong id="detailBrand">SmilePro</strong> • SKU: <strong id="detailSku">SH-OC-001</strong></p>
-<div class="big-price" id="detailPrice">₱189.00</div>
-<span class="stock-box" id="detailStock">86 pieces available</span>
-<p id="detailDescription">Soft rounded bristles for gentle daily plaque removal and comfortable gum care.</p>
-<h3>Specifications</h3>
+<h1 id="detailName">Loading product…</h1>
+<div class="rating-line"><span class="stars stars-svg" id="detailStars" role="img" aria-label="Loading rating"></span> <span class="muted" id="detailRatingText">Loading reviews…</span> <span class="sample-note hidden" id="detailSampleNote">Sample data for demonstration</span></div>
+<p class="muted">Brand: <strong id="detailBrand">…</strong> • SKU: <strong id="detailSku">…</strong></p>
+<div class="big-price" id="detailPrice">₱0.00</div>
+<span class="stock-box is-in" id="detailStock">Checking stock…</span>
+<p id="detailDescription">Loading description…</p>
+<h2>Specifications</h2>
 <ul class="spec-list" id="detailSpecs">
-<li>4 toothbrushes</li>
-<li>Soft nylon bristles</li>
-<li>Ergonomic handle</li>
+<li>Loading…</li>
 </ul>
 <div class="buy-row">
-<input class="qty-input" id="detailQuantity" min="1" type="number" value="1"/>
-<button class="btn btn-primary" id="detailAddCart">Add to Cart</button>
-<button class="btn btn-buy-now" id="detailBuyNow" type="button">Buy Now</button>
-<button class="btn btn-light" id="detailWishlist">♡ <span style="font-weight:700;">Wishlist</span></button>
+<div class="qty-stepper">
+<button class="qty-btn" id="qtyMinus" type="button" aria-label="Decrease quantity">−</button>
+<input class="qty-input" id="detailQuantity" min="1" step="1" type="number" value="1" aria-label="Quantity" inputmode="numeric"/>
+<button class="qty-btn" id="qtyPlus" type="button" aria-label="Increase quantity">+</button>
 </div>
+<button class="btn btn-primary" id="detailAddCart"><svg width="17" height="17" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg> <span class="btn-label">Add to Cart</span></button>
+<button class="btn btn-buy-now" id="detailBuyNow" type="button"><svg width="17" height="17" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg> <span class="btn-label">Buy Now</span></button>
+<button class="btn btn-light" id="detailWishlist" aria-pressed="false"><svg class="heart-icon" width="17" height="17" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> <span style="font-weight:700;">Wishlist</span></button>
+</div>
+<p class="qty-help muted" id="qtyHelp"></p>
+<ul class="buy-assurance">
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg> Secure checkout</li>
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg> Ships in 1–3 days • Free over ₱3,000</li>
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> Clinic invoice + 7-day returns</li>
+</ul>
+<p class="buy-explainer muted">Add to Cart keeps shopping. Buy Now jumps straight to checkout without clearing your cart.</p>
 </section>
 </div>
-<section class="tabs">
-<div class="tab-buttons">
-<button class="tab-button active" data-tab="descriptionTab">Description</button>
-<button class="tab-button" data-tab="reviewsTab">Reviews</button>
-<button class="tab-button" data-tab="shippingTab">Shipping</button>
+<div class="card not-found-card hidden" id="productNotFound">
+<div class="not-found-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="104" stroke="currentColor" stroke-width="16"/><path d="M96 96l64 64M160 96l-64 64" stroke="currentColor" stroke-width="16" stroke-linecap="round"/></svg></div>
+<div>
+<h2 id="notFoundTitle">Product not found</h2>
+<p class="muted" id="notFoundText">This product does not exist or is no longer available.</p>
+<a class="btn btn-primary" id="notFoundAction" href="products.html">Browse the catalog</a>
 </div>
-<div class="tab-panel" id="descriptionTab">
+</div>
+<section class="tabs" id="productTabs">
+<div class="tab-buttons" role="tablist" aria-label="Product details">
+<button class="tab-button active" data-tab="descriptionTab" role="tab" id="tab-description" aria-controls="descriptionTab" aria-selected="true">Description</button>
+<button class="tab-button" data-tab="reviewsTab" role="tab" id="tab-reviews" aria-controls="reviewsTab" aria-selected="false" tabindex="-1">Reviews</button>
+<button class="tab-button" data-tab="shippingTab" role="tab" id="tab-shipping" aria-controls="shippingTab" aria-selected="false" tabindex="-1">Shipping</button>
+</div>
+<div class="tab-panel" id="descriptionTab" role="tabpanel" aria-labelledby="tab-description">
 <h3>Product Information</h3>
-<p>This product page contains a full HTML layout. JavaScript only changes the displayed product when an ID appears in the URL.</p>
+<p id="descriptionTabText">Full specifications and usage details for this product.</p>
 </div>
-<div class="tab-panel hidden" id="reviewsTab">
+<div class="tab-panel hidden" id="reviewsTab" role="tabpanel" aria-labelledby="tab-reviews">
 <h3>Customer Reviews</h3>
-<p><span class="stars">★★★★★</span> Comfortable, practical, and arrived in good condition.</p>
-<form class="demo-form form-card card">
+<div id="myReviews"></div>
+<p class="sample-review"><span class="stars stars-svg" role="img" aria-label="Sample rating: 5 out of 5 stars"></span> <span class="sample-note">Sample review:</span> Comfortable, practical, and arrived in good condition.</p>
+<form class="form-card card" id="reviewForm" novalidate="">
 <div class="form-group">
-<label>Your rating</label>
-<select>
-<option>5 Stars</option>
-<option>4 Stars</option>
-<option>3 Stars</option>
+<label for="reviewRating">Your rating</label>
+<select id="reviewRating">
+<option value="5">5 Stars</option>
+<option value="4">4 Stars</option>
+<option value="3">3 Stars</option>
+<option value="2">2 Stars</option>
+<option value="1">1 Star</option>
 </select>
 </div>
 <div class="form-group">
-<label>Review</label>
-<textarea required=""></textarea>
+<label for="reviewText">Review</label>
+<textarea id="reviewText" required="" minlength="4" maxlength="500" aria-describedby="reviewError"></textarea>
+<span class="field-error" id="reviewError" role="alert"></span>
 </div>
-<button class="btn btn-primary">Submit Review</button>
+<button class="btn btn-primary" type="submit">Submit Review</button>
 </form>
 </div>
-<div class="tab-panel hidden" id="shippingTab">
+<div class="tab-panel hidden" id="shippingTab" role="tabpanel" aria-labelledby="tab-shipping">
 <h3>Delivery Information</h3>
 <p>Metro Manila orders normally arrive in 1–3 business days in this frontend demonstration.</p>
 </div>
@@ -190,25 +199,25 @@
 <div class="container">
 <div class="footer-grid">
 <div>
-<h3>SmileHub Dental Supplies</h3>
+<h2>SmileHub Dental Supplies</h2>
 <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
 </div>
 <div>
-<h4>Shop</h4>
+<h3>Shop</h3>
 <a href="products.html">All Products</a>
 <a href="wishlist.html">Wishlist</a>
 <a href="cart.html">Shopping Cart</a>
 <a href="orders.html">Orders</a>
 </div>
 <div>
-<h4>Company</h4>
+<h3>Company</h3>
 <a href="about.html">About SmileHub</a>
 <a href="developers.html">Developer Profiles</a>
 <a href="contact.html">Contact Us</a>
 <a href="faq.html">FAQs</a>
 </div>
 <div>
-<h4>Policies</h4>
+<h3>Policies</h3>
 <a href="privacy.html">Privacy Policy</a>
 <a href="terms.html">Terms and Conditions</a>
 <a href="profile.html">Customer Profile</a>
@@ -220,22 +229,23 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/common.js?v=6.3.0"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/product.js?v=5.2.0"></script>
+<script src="js/product.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=5.0.0"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
 
-<div id="stickyBuyNowBar" class="sticky-buy-now-bar" aria-label="Quick purchase actions">
+<div id="stickyBuyNowBar" class="sticky-buy-now-bar hidden" hidden aria-hidden="true" aria-label="Quick purchase actions">
   <div>
     <strong id="stickyBuyNowName">Ready to order?</strong>
     <span>Buy this item directly without clearing your cart.</span>
   </div>
-  <button class="btn btn-buy-now" id="stickyBuyNowButton" type="button">⚡ Buy Now</button>
+  <button class="btn btn-buy-now" id="stickyBuyNowButton" type="button"><svg width="17" height="17" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg> <span class="btn-label">Buy Now</span></button>
 </div>
 
-<script src="js/final-polish.js?v=6.5.0"></script>
+<script src="js/final-polish.js?v=6.3.0"></script>
 </body>
 </html>
+

@@ -8,14 +8,15 @@
 <title>
       Checkout | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=5.0.0" rel="stylesheet"/>
-<link href="css/premium.css?v=5.0.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=63">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 <style>
 .checkout-phone-verify-card{margin:1rem 0;padding:1rem;border:1px solid var(--border,#dbe4ee);border-radius:14px;background:var(--surface,#fff)}
 .checkout-phone-verify-card.is-complete{border-color:#16a34a}
@@ -24,7 +25,7 @@
 @media(max-width:700px){.checkout-otp-actions{grid-template-columns:1fr}.checkout-otp-actions .btn{width:100%}}
 html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{background:#12202b;border-color:#334155;color:#e5eef7}
 </style>
-<link rel="stylesheet" href="css/final-polish.css?v=6.5.2">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -47,34 +48,35 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
             Dental Supplies
           </span>
 </a>
-<form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<form action="products.html" class="search-bar" role="search">
+<label class="sr-only" for="siteSearch-checkout">Search dental products</label>
+<input id="siteSearch-checkout" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
 </form>
 <div class="header-actions">
-<button class="theme-button" title="Dark mode" type="button">◐</button>
-<a class="icon-link" href="wishlist.html">
-    ♡
+<button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
+<a class="icon-link" href="wishlist.html" aria-label="Wishlist">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="text-label">Wishlist</span>
 <span class="cart-count wishlist-count">0</span>
 </a>
-<a class="icon-link" href="cart.html">
-    🛒
+<a class="icon-link" href="cart.html" aria-label="Cart">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M24 48h32l24 120h120l28-80H72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="208" r="16" fill="currentColor"/><circle cx="184" cy="208" r="16" fill="currentColor"/></svg>
     <span class="text-label">Cart</span>
 <span class="cart-count">0</span>
 </a>
-<a class="icon-link" href="login.html">
-    👤
+<a class="icon-link" href="login.html" aria-label="Login">
+<svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="88" r="48" stroke="currentColor" stroke-width="20"/><path d="M40 216c16-40 52-60 88-60s72 20 88 60" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg>
     <span class="text-label">Login</span>
 </a>
-<button class="menu-button" type="button">Menu</button>
+<button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
 <nav class="nav">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="siteNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -127,7 +129,15 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 </section>
 <main class="section-sm">
 <div class="container checkout-layout">
-<form class="card form-card" id="checkoutForm" novalidate="">
+<form id="checkoutForm" novalidate="">
+<div class="checkout-steps-indicator" role="tablist" aria-label="Checkout steps">
+<button type="button" role="tab" aria-selected="true" data-step="1" id="tab1"><span class="step-num">1</span> Details</button>
+<button type="button" role="tab" aria-selected="false" data-step="2" id="tab2"><span class="step-num">2</span> Payment</button>
+<button type="button" role="tab" aria-selected="false" data-step="3" id="tab3"><span class="step-num">3</span> Review</button>
+</div>
+<section class="checkout-step is-active" data-step="1" id="step1" aria-labelledby="step1Title">
+<div class="step-header"><h2 id="step1Title">1 Details</h2><span class="step-summary" id="step1Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="1">Edit</button></div>
+<div class="step-body">
 <h2>Shipping Information</h2>
 <div id="checkoutPhoneVerification" class="checkout-verified-note is-warning">Phone verification is recommended. Checkout will still work if SMS is unavailable.</div>
 <div class="form-grid">
@@ -156,8 +166,15 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
   <div id="checkoutRecaptcha" class="recaptcha-host" aria-hidden="true"></div>
 </section>
 <div class="form-group">
-<label for="checkoutAddress">Complete Address</label>
-<textarea id="checkoutAddress" name="address" placeholder="House number, street, barangay, city, province" required=""></textarea>
+<label for="checkoutAddress">Street Address</label>
+<textarea id="checkoutAddress" name="address" placeholder="House number and street" required=""></textarea>
+</div>
+<div class="form-grid">
+<div class="form-group"><label for="checkoutProvince">Province</label><select id="checkoutProvince" required><option value="">Select province</option></select><input id="checkoutProvinceOther" class="hidden" placeholder="Enter province"></div>
+<div class="form-group"><label for="checkoutCity">City / Municipality</label><select id="checkoutCity" required><option value="">Select city / municipality</option></select><input id="checkoutCityOther" class="hidden" placeholder="Enter city / municipality"></div>
+<div class="form-group"><label for="checkoutBarangay">Barangay</label><select id="checkoutBarangay" required><option value="">Select barangay</option></select><input id="checkoutBarangayOther" class="hidden" placeholder="Enter barangay"></div>
+<div class="form-group"><label for="checkoutPostal">Postal Code</label><select id="checkoutPostal" required><option value="">Select postal code</option></select><input id="checkoutPostal_other" class="hidden" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit code"></div>
+</div>
 <div class="address-map-tools">
   <button class="btn btn-light" id="useCurrentLocation" type="button">Use current location</button>
   <a class="btn btn-light" id="openAddressInMaps" href="https://www.google.com/maps" target="_blank" rel="noopener">Open Google Maps</a>
@@ -166,31 +183,47 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
   <iframe id="addressMapFrame" title="Selected delivery location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=120.85%2C14.45%2C121.15%2C14.75&amp;layer=mapnik"></iframe>
   <p class="muted" id="addressMapStatus">Use current location to preview the delivery area.</p>
 </div>
-</div>
-<div class="form-grid">
-<div class="form-group">
-<label for="checkoutPostal">Postal Code</label>
-<input id="checkoutPostal" name="postal" required=""/>
-</div>
-<div class="form-group">
-<label for="checkoutCity">City</label>
-<input id="checkoutCity" name="city" required=""/>
-</div>
-</div>
 <label style="display:flex;gap:9px;align-items:flex-start;margin:12px 0 20px"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
+<section class="form-card" id="deliverySection" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px">
+<h2>Delivery Method</h2>
+<p class="muted" style="font-size:.88rem;margin:0 0 12px">Choose how your order arrives. Fees update live from your cart.</p>
+<div class="delivery-cards">
+<label class="delivery-card is-selected" data-delivery="Standard">
+<input type="radio" name="shippingMethod" value="Standard" checked>
+<div><strong>Standard delivery</strong><br><small class="muted">1–3 business days</small></div>
+<span class="delivery-fee" id="deliveryFeeStandard">₱150</span>
+</label>
+<label class="delivery-card" data-delivery="Express">
+<input type="radio" name="shippingMethod" value="Express">
+<div><strong>Express delivery</strong><br><small class="muted">Same/next day where available</small></div>
+<span class="delivery-fee" id="deliveryFeeExpress">₱150</span>
+</label>
+</div>
+<p class="muted" id="deliveryHint" style="font-size:.82rem;margin-top:8px"></p>
+</section>
+</div>
+<button type="button" class="btn btn-primary" data-next="2">Continue to Payment</button>
+</section>
+<section class="checkout-step" data-step="2" id="step2" aria-labelledby="step2Title">
+<div class="step-header"><h2 id="step2Title">2 Payment</h2><span class="step-summary" id="step2Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="2">Edit</button></div>
+<div class="step-body">
 <h2>Payment Method</h2>
-<div class="payment-options">
-<label class="payment-option">
+<p class="muted" style="font-size:.88rem;margin:-6px 0 12px">Demo — no real charge. Choose how you’d pay in production.</p>
+<div class="payment-options payment-cards">
+<label class="payment-card is-selected" data-payment="GCash">
 <input checked="" name="payment" type="radio" value="GCash"/>
-<span><strong>GCash</strong><br/><small class="muted">Pay via GCash mobile wallet</small></span>
+<span class="payment-card-icon" aria-hidden="true">G</span>
+<span class="payment-card-body"><strong>GCash <span class="payment-badge">Most popular</span></strong><br/><small class="muted">Pay via GCash mobile wallet</small><br/><small class="payment-helper">No card needed • Instant confirmation</small></span>
 </label>
-<label class="payment-option">
+<label class="payment-card" data-payment="Credit Card">
 <input name="payment" type="radio" value="Credit Card"/>
-<span><strong>Credit Card</strong><br/><small class="muted">Visa, Mastercard, JCB</small></span>
+<span class="payment-card-icon" aria-hidden="true">◰</span>
+<span class="payment-card-body"><strong>Credit Card</strong><br/><small class="muted">Visa, Mastercard, JCB</small><br/><small class="payment-helper">Secure via PayMongo • 3D Secure</small></span>
 </label>
-<label class="payment-option">
+<label class="payment-card" data-payment="Cash on Delivery" id="codPaymentCard">
 <input name="payment" type="radio" value="Cash on Delivery"/>
-<span><strong>Cash on Delivery</strong><br/><small class="muted">Pay when the order arrives</small></span>
+<span class="payment-card-icon" aria-hidden="true">⛟</span>
+<span class="payment-card-body"><strong>Cash on Delivery</strong><br/><small class="muted">Pay when the order arrives</small><br/><small class="payment-helper" id="codHelper">Metro Manila only • Pay to rider</small></span>
 </label>
 </div>
 <div id="billingSection" style="display:none;margin-top:16px;">
@@ -218,19 +251,38 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 </div>
 </div>
 <div class="form-group">
-<label for="billingAddress">Billing Address</label>
-<textarea id="billingAddress" name="billingAddress" placeholder="House number, street, city, province"></textarea>
+<label for="billingStreet">Street Address</label>
+<textarea id="billingStreet" name="billingStreet" placeholder="House number and street"></textarea>
+</div>
+<div class="form-grid">
+<div class="form-group"><label for="billingProvince">Province</label><select id="billingProvince"><option value="">Select province</option></select><input id="billingProvinceOther" class="hidden" placeholder="Enter province"></div>
+<div class="form-group"><label for="billingCity">City / Municipality</label><select id="billingCity"><option value="">Select city / municipality</option></select><input id="billingCityOther" class="hidden" placeholder="Enter city / municipality"></div>
+<div class="form-group"><label for="billingBarangay">Barangay</label><select id="billingBarangay"><option value="">Select barangay</option></select><input id="billingBarangayOther" class="hidden" placeholder="Enter barangay"></div>
+<div class="form-group"><label for="billingPostal">Postal Code</label><select id="billingPostal"><option value="">Select postal code</option></select><input id="billingPostal_other" class="hidden" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit code"></div>
 </div>
 <p class="muted" style="font-size:0.85rem;">Payment is processed securely via PayMongo.</p>
 </div>
-<button class="btn btn-primary btn-block" style="margin-top:20px" type="submit">Place Order</button>
+</div>
+<div style="display:flex;gap:12px;margin-top:16px"><button type="button" class="btn btn-light" data-prev="1">Back</button><button type="button" class="btn btn-primary" data-next="3">Continue to Review</button></div>
+</section>
+<section class="checkout-step" data-step="3" id="step3" aria-labelledby="step3Title">
+<div class="step-header"><h2 id="step3Title">3 Review & Place Order</h2></div>
+<div class="step-body">
+<div id="reviewSummary" style="margin-bottom:16px"></div>
+<p class="muted" style="font-size:.88rem;margin-bottom:16px">Review your details above. By placing your order you agree to the demo terms.</p>
+<button class="btn btn-primary btn-block" type="submit">Place Order</button>
+<div style="display:flex;gap:12px;margin-top:12px"><button type="button" class="btn btn-light" data-prev="2">Back</button></div>
+</div>
+</section>
+<!-- hidden fallback submit for non-JS -->
+<button class="btn btn-primary btn-block hidden" type="submit">Place Order</button>
 </form>
 <aside class="card summary-card">
 <h2>Order Review</h2>
 <div id="checkoutItems"></div>
 <div class="summary-row"><span>Subtotal</span><strong id="checkoutSubtotal">₱0.00</strong></div>
 <div class="summary-row"><span>Shipping</span><strong id="checkoutShipping">₱0.00</strong></div>
-<div class="summary-row" id="checkoutDiscountRow" style="display:none;"><span>Coupon (SMILE10)</span><strong id="checkoutDiscount">−₱0.00</strong></div>
+<div class="summary-row" id="checkoutDiscountRow" style="display:none;"><span>Coupon</span><strong id="checkoutDiscount">−₱0.00</strong></div>
 <div class="summary-row"><span>VAT (12%)</span><strong id="checkoutTax">₱0.00</strong></div>
 <div class="summary-row summary-total"><span>Total</span><strong id="checkoutTotal">₱0.00</strong></div>
 <div class="form-group">
@@ -266,8 +318,7 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
   <div class="otp-modal__backdrop" data-otp-close></div>
   <section class="otp-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="checkoutOtpModalTitle">
     <button class="otp-modal__close" type="button" aria-label="Close verification dialog" data-otp-close>×</button>
-    <div class="otp-modal__icon">📱</div>
-    <h2 id="checkoutOtpModalTitle">Verify your phone number</h2>
+    <h2 id="checkoutOtpModalTitle"><span aria-hidden="true">📱</span> Verify your phone number</h2>
     <p class="muted">Enter the 6-digit code sent to <strong id="checkoutOtpMaskedNumber">your number</strong>.</p>
     <div class="otp-digit-group" id="checkoutOtpDigits" aria-label="6-digit verification code">
       <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1">
@@ -318,9 +369,7 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
             </p>
 </div>
 <div>
-<h4>
-              Shop
-            </h4>
+<h3>Shop</h3>
 <a href="products.html">
               All Products
             </a>
@@ -335,9 +384,7 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
             </a>
 </div>
 <div>
-<h4>
-              Company
-            </h4>
+<h3>Company</h3>
 <a href="about.html">
               About SmileHub
             </a>
@@ -352,9 +399,7 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
             </a>
 </div>
 <div>
-<h4>
-              Policies
-            </h4>
+<h3>Policies</h3>
 <a href="privacy.html">
               Privacy Policy
             </a>
@@ -376,19 +421,366 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=5.0.0">
+<script src="js/common.js?v=6.3.0">
 </script>
-<script src="js/firebase-sync.js?v=6.5.3"></script>
+<script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="https://js.paymongo.com/v1/paymongo.js">
 </script>
-<script src="js/phone-input.js?v=6.2.0"></script>
-<script src="js/account-verification.js?v=6.4.0"></script>
-<script src="js/checkout.js?v=6.5.2">
+<script src="js/ph-address.js?v=6.3.0"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  if(window.PHAddress) PHAddress.setup({
+    provinceId:'checkoutProvince',
+    cityId:'checkoutCity',
+    barangayId:'checkoutBarangay',
+    postalId:'checkoutPostal',
+    barangayOtherId:'checkoutBarangayOther',
+    cityOtherId:'checkoutCityOther',
+    provinceOtherId:'checkoutProvinceOther'
+  });
+});
 </script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
-  <script src="js/release-hardening.js?v=6.2.0"></script>
-<script src="js/final-polish.js?v=6.5.0"></script>
+<script src="js/phone-input.js?v=6.3.0"></script>
+<script src="js/account-verification.js?v=6.3.0"></script>
+<script src="js/checkout.js?v=6.3.0">
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Payment cards: selection + billing disclosure
+  var cards=document.querySelectorAll('.payment-card');
+  var billingSection=document.getElementById('billingSection');
+  function syncPayment(){
+    var checked=document.querySelector('input[name="payment"]:checked');
+    var val=checked ? checked.value : '';
+    cards.forEach(function(c){ c.classList.toggle('is-selected', c.getAttribute('data-payment')===val); });
+    if(billingSection) billingSection.style.display = (val==='Credit Card') ? '' : 'none';
+  }
+  cards.forEach(function(card){
+    card.addEventListener('click', function(e){
+      var input=card.querySelector('input[name="payment"]');
+      if(!input || input.disabled) return;
+      input.checked=true;
+      input.dispatchEvent(new Event('change', {bubbles:true}));
+      syncPayment();
+    });
+  });
+  document.querySelectorAll('input[name="payment"]').forEach(function(r){ r.addEventListener('change', syncPayment); });
+  syncPayment();
+
+  // Delivery fees live from cart subtotal
+  function getCartSubtotal(){
+    try{
+      var cart=JSON.parse(localStorage.getItem('smilehub_cart')||'[]');
+      if(!Array.isArray(cart)) return 0;
+      return cart.reduce(function(s,it){ return s + Number(it.price||0)*Number(it.quantity||1); }, 0);
+    }catch(e){ return 0; }
+  }
+  function updateDeliveryFees(){
+    var subtotal=getCartSubtotal();
+    var fee=subtotal>=3000||subtotal===0?0:150;
+    var fmt=function(n){ return '₱'+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2}); };
+    var std=document.getElementById('deliveryFeeStandard');
+    var exp=document.getElementById('deliveryFeeExpress');
+    if(std) std.textContent=fee===0?'Free':fmt(fee);
+    if(exp) exp.textContent=fee===0?'Free':fmt(fee);
+    var hint=document.getElementById('deliveryHint');
+    if(hint){
+      if(subtotal===0) hint.textContent='Add items to see delivery fee.';
+      else if(fee===0) hint.textContent='Free shipping unlocked — Standard & Express ship free.';
+      else hint.textContent='Add '+fmt(3000-subtotal)+' more for free shipping.';
+    }
+  }
+  updateDeliveryFees();
+  window.addEventListener('storage', function(e){ if(e.key==='smilehub_cart') updateDeliveryFees(); });
+  setInterval(updateDeliveryFees, 2000);
+
+  // COD gate: block outside Metro Manila
+  var provSel=document.getElementById('checkoutProvince');
+  var codCard=document.getElementById('codPaymentCard');
+  var codInput=codCard ? codCard.querySelector('input[value="Cash on Delivery"]') : null;
+  var codHelper=document.getElementById('codHelper');
+  function isMetroManila(name){
+    if(!name) return true;
+    var n=name.toLowerCase();
+    return n==='metro manila' || n==='national capital region' || n.indexOf('metro manila')!==-1;
+  }
+  function syncCod(){
+    var prov=provSel ? (provSel.value || '') : '';
+    // If province is Other with free text, check that text
+    if(prov==='__other__'){
+      var other=document.getElementById('checkoutProvinceOther');
+      prov=other ? other.value : '';
+    }
+    var allow=isMetroManila(prov) || !prov;
+    if(codInput){
+      if(!allow && codInput.checked){
+        var gcash=document.querySelector('input[name="payment"][value="GCash"]');
+        if(gcash){ gcash.checked=true; gcash.dispatchEvent(new Event('change',{bubbles:true})); syncPayment(); }
+      }
+      codInput.disabled=!allow;
+    }
+    if(codCard) codCard.classList.toggle('is-disabled', !allow);
+    if(codHelper) codHelper.textContent = allow ? 'Metro Manila only • Pay to rider' : 'Not available outside Metro Manila — choose GCash or card';
+    if(codHelper) codHelper.style.color = allow ? '' : 'var(--danger)';
+  }
+  if(provSel){
+    provSel.addEventListener('change', syncCod);
+    var provOther=document.getElementById('checkoutProvinceOther');
+    if(provOther) provOther.addEventListener('input', syncCod);
+    syncCod();
+  }
+
+  // Billing PH cascade
+  if(window.PHAddress){
+    PHAddress.setup({
+      provinceId:'billingProvince',
+      cityId:'billingCity',
+      barangayId:'billingBarangay',
+      postalId:'billingPostal',
+      barangayOtherId:'billingBarangayOther',
+      cityOtherId:'billingCityOther',
+      provinceOtherId:'billingProvinceOther'
+    });
+  }
+  // Same-as-shipping toggle
+  var sameBox=document.getElementById('sameAsShipping');
+  var billingStreet=document.getElementById('billingStreet');
+  function copyShippingToBilling(){
+    if(!sameBox || !sameBox.checked) return;
+    var map=[['checkoutAddress','billingStreet'],['checkoutProvince','billingProvince'],['checkoutCity','billingCity'],['checkoutBarangay','billingBarangay'],['checkoutPostal','billingPostal']];
+    map.forEach(function(pair){
+      var src=document.getElementById(pair[0]), dst=document.getElementById(pair[1]);
+      if(src && dst){
+        if(dst.tagName==='SELECT'){
+          var otherSrc=document.getElementById(pair[0]+'Other')||document.getElementById(pair[0]+'_other');
+          var otherDst=document.getElementById(pair[1]+'Other')||document.getElementById(pair[1]+'_other');
+          // If src is Other, copy other text
+          if(src.value==='__other__' && otherSrc){
+            dst.value='__other__';
+            if(otherDst){ otherDst.value=otherSrc.value; otherDst.classList.remove('hidden'); }
+          } else {
+            dst.value=src.value;
+            // Trigger change to populate dependent selects
+            dst.dispatchEvent(new Event('change',{bubbles:true}));
+          }
+        } else {
+          dst.value=src.value;
+        }
+      }
+    });
+    var srcFirst=document.getElementById('checkoutFirstName'), dstFirst=document.getElementById('billingFirstName');
+    var srcLast=document.getElementById('checkoutLastName'), dstLast=document.getElementById('billingLastName');
+    var srcEmail=document.getElementById('checkoutEmail'), dstEmail=document.getElementById('billingEmail');
+    var srcPhone=document.getElementById('checkoutPhone'), dstPhone=document.getElementById('billingPhone');
+    if(srcFirst && dstFirst) dstFirst.value=srcFirst.value;
+    if(srcLast && dstLast) dstLast.value=srcLast.value;
+    if(srcEmail && dstEmail) dstEmail.value=srcEmail.value;
+    if(srcPhone && dstPhone) dstPhone.value=srcPhone.value;
+  }
+  if(sameBox){
+    sameBox.addEventListener('change', function(){
+      var billing=document.getElementById('billingSection');
+      if(billing) billing.style.display = (document.querySelector('input[name="payment"]:checked')||{}).value==='Credit Card' ? '' : 'none';
+      if(sameBox.checked) copyShippingToBilling();
+    });
+  }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var steps=document.querySelectorAll('.checkout-step');
+  var tabs=document.querySelectorAll('.checkout-steps-indicator button');
+  var form=document.getElementById('checkoutForm');
+  var reviewSummary=document.getElementById('reviewSummary');
+  function getStep(n){ return document.getElementById('step'+n); }
+  function updateIndicator(active){
+    tabs.forEach(function(btn){
+      var stepNum=Number(btn.getAttribute('data-step'));
+      var isActive=stepNum===active;
+      var isComplete=stepNum < active;
+      btn.setAttribute('aria-selected', isActive?'true':'false');
+      btn.classList.toggle('is-complete', isComplete);
+      btn.disabled=false;
+    });
+  }
+  function isStepValid(n){
+    if(n===1){
+      var fields=['checkoutFirstName','checkoutLastName','checkoutEmail','checkoutPhone','checkoutAddress','checkoutProvince','checkoutCity','checkoutBarangay','checkoutPostal'];
+      for(var i=0;i<fields.length;i++){
+        var el=document.getElementById(fields[i]);
+        if(!el) continue;
+        var val=el.value.trim();
+        if(el.tagName==='SELECT' && val==='__other__'){
+          var other=document.getElementById(fields[i]+'Other')||document.getElementById(fields[i]+'_other');
+          val=other?other.value.trim():'';
+        }
+        if(!val) return false;
+        if(el.hasAttribute('required') && !el.checkValidity()) return false;
+      }
+      // also check phone validity if needed
+      return true;
+    }
+    if(n===2){
+      var payment=document.querySelector('input[name="payment"]:checked');
+      if(!payment) return false;
+      if(payment.value==='Credit Card'){
+        var sameBox=document.getElementById('sameAsShipping');
+        var isSame=sameBox && sameBox.checked;
+        if(isSame) return true;
+        var bFields=['billingFirstName','billingLastName','billingEmail','billingPhone','billingStreet','billingProvince','billingCity','billingBarangay','billingPostal'];
+        for(var j=0;j<bFields.length;j++){
+          var e2=document.getElementById(bFields[j]);
+          if(!e2) continue;
+          var v2=e2.value.trim();
+          if(e2.tagName==='SELECT' && v2==='__other__'){
+            var o2=document.getElementById(bFields[j]+'Other')||document.getElementById(bFields[j]+'_other');
+            v2=o2?o2.value.trim():'';
+          }
+          if(!v2) return false;
+        }
+      }
+      return true;
+    }
+    return true;
+  }
+  function updateSummaries(){
+    var s1=document.getElementById('step1Summary');
+    if(s1){
+      var prov=document.getElementById('checkoutProvince');
+      var city=document.getElementById('checkoutCity');
+      var provVal=prov?prov.value:'';
+      if(provVal==='__other__'){ var po=document.getElementById('checkoutProvinceOther'); provVal=po?po.value:''; }
+      var cityVal=city?city.value:'';
+      if(cityVal==='__other__'){ var co=document.getElementById('checkoutCityOther'); cityVal=co?co.value:''; }
+      var street=document.getElementById('checkoutAddress');
+      var streetVal=street?street.value.trim():'';
+      if(streetVal && provVal && cityVal) s1.textContent=cityVal + (provVal? ', '+provVal:'') ;
+      else s1.textContent='';
+    }
+    var s2=document.getElementById('step2Summary');
+    if(s2){
+      var pay=document.querySelector('input[name="payment"]:checked');
+      var ship=document.querySelector('input[name="shippingMethod"]:checked');
+      var payVal=pay?pay.value:'';
+      var shipVal=ship?ship.value:'';
+      s2.textContent=(shipVal?shipVal:'') + (payVal?' • '+payVal:'');
+    }
+    if(reviewSummary){
+      var subtotalEl=document.getElementById('checkoutSubtotal');
+      var shippingEl=document.getElementById('checkoutShipping');
+      var totalEl=document.getElementById('checkoutTotal');
+      var addr=document.getElementById('checkoutAddress');
+      var provR=document.getElementById('checkoutProvince');
+      var cityR=document.getElementById('checkoutCity');
+      var brgyR=document.getElementById('checkoutBarangay');
+      var postalR=document.getElementById('checkoutPostal');
+      var provRv=provR?provR.value:'';
+      if(provRv==='__other__'){ var por=document.getElementById('checkoutProvinceOther'); provRv=por?por.value:''; }
+      var cityRv=cityR?cityR.value:'';
+      if(cityRv==='__other__'){ var cor=document.getElementById('checkoutCityOther'); cityRv=cor?cor.value:''; }
+      var brgyRv=brgyR?brgyR.value:'';
+      if(brgyRv==='__other__'){ var bor=document.getElementById('checkoutBarangayOther'); brgyRv=bor?bor.value:''; }
+      var postalRv=postalR?postalR.value:'';
+      if(postalRv==='__other__'){ var por2=document.getElementById('checkoutPostal_other'); postalRv=por2?por2.value:''; }
+      var fullAddr=[addr?addr.value.trim():'', brgyRv, cityRv, provRv].filter(Boolean).join(', ') + (postalRv?' '+postalRv:'');
+      var payR=document.querySelector('input[name="payment"]:checked');
+      var shipR=document.querySelector('input[name="shippingMethod"]:checked');
+      reviewSummary.innerHTML='<p><strong>Ship to:</strong> '+(fullAddr||'—')+'</p><p><strong>Delivery:</strong> '+(shipR?shipR.value:'Standard')+' • <strong>Payment:</strong> '+(payR?payR.value:'GCash')+'</p><p><strong>Total:</strong> '+(totalEl?totalEl.textContent:'—')+'</p>';
+    }
+  }
+  function goToStep(n, opts){
+    opts=opts||{};
+    steps.forEach(function(s){ s.classList.remove('is-active','is-collapsed'); });
+    var target=getStep(n);
+    if(target) target.classList.add('is-active');
+    // collapse previous completed steps
+    for(var i=1;i<n;i++){
+      var s=getStep(i);
+      if(s && isStepValid(i)){
+        s.classList.add('is-collapsed');
+        s.classList.remove('is-active');
+      }
+    }
+    updateIndicator(n);
+    updateSummaries();
+    if(!opts.silent){
+      target.scrollIntoView({behavior:'smooth',block:'start'});
+      var heading=target.querySelector('h2');
+      if(heading) heading.focus();
+    }
+  }
+  // Next/prev/edit handlers
+  document.querySelectorAll('[data-next]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var next=Number(btn.getAttribute('data-next'));
+      var current=next-1;
+      if(!isStepValid(current)){
+        // trigger native validation
+        var firstInvalid=document.querySelector('#step'+current+' :invalid');
+        if(firstInvalid){ firstInvalid.focus(); firstInvalid.reportValidity && firstInvalid.reportValidity(); }
+        if(typeof showToast==='function') showToast('Please complete all required fields', true);
+        return;
+      }
+      goToStep(next);
+    });
+  });
+  document.querySelectorAll('[data-prev]').forEach(function(btn){
+    btn.addEventListener('click', function(){ goToStep(Number(btn.getAttribute('data-prev'))); });
+  });
+  document.querySelectorAll('[data-edit]').forEach(function(btn){
+    btn.addEventListener('click', function(){ goToStep(Number(btn.getAttribute('data-edit'))); });
+  });
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var n=Number(btn.getAttribute('data-step'));
+      // allow jumping to completed steps only
+      var canJump=true;
+      for(var i=1;i<n;i++){ if(!isStepValid(i)) canJump=false; }
+      if(canJump) goToStep(n);
+    });
+  });
+  // Express for returning customers: if step1 prefilled and valid, collapse and go to next incomplete
+  function initExpress(){
+    // wait a bit for profile prefill
+    setTimeout(function(){
+      updateSummaries();
+      var step1Valid=isStepValid(1);
+      var step2Valid=isStepValid(2);
+      if(step1Valid && step2Valid){
+        // returning with everything prefilled: go to review
+        goToStep(3, {silent:true});
+        // mark step1 and 2 as collapsed complete
+        getStep(1).classList.add('is-collapsed');
+        getStep(2).classList.add('is-collapsed');
+        getStep(1).classList.remove('is-active');
+        getStep(2).classList.remove('is-active');
+        updateIndicator(3);
+      } else if(step1Valid){
+        goToStep(2, {silent:true});
+        getStep(1).classList.add('is-collapsed');
+        getStep(1).classList.remove('is-active');
+        updateIndicator(2);
+      }
+      // update summaries after collapsing
+      updateSummaries();
+    }, 900);
+  }
+  initExpress();
+  // keep summaries live
+  form.addEventListener('input', updateSummaries);
+  form.addEventListener('change', updateSummaries);
+  // initial
+  updateSummaries();
+  updateIndicator(1);
+});
+</script>
+<script src="js/frontend-enhancements.js"></script>
+  <script src="js/release-hardening.js?v=6.3.0"></script>
+<script src="js/final-polish.js?v=6.3.0"></script>
 </body>
 </html>
+
+
+

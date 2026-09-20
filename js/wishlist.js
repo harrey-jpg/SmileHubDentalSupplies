@@ -1,76 +1,232 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const grid = document.getElementById('wishlistGrid');
-  const wishlist = getStoredList(WISH_KEY);
-  
-  // Update wishlist count on page load (hides if empty)
+var wishlistLive = {};
+var wishlistUndoTimer = null;
+
+function readRestockList() {
+  try {
+    var raw = JSON.parse(localStorage.getItem('smilehub_restock') || '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function restockIds(list) {
+  return list.map(function(entry) {
+    return (typeof entry === 'number') ? entry : Number(entry.id);
+  });
+}
+
+function toggleRestockWish(button) {
+  var id = Number(button.dataset.id);
+  var list = readRestockList();
+  var ids = restockIds(list);
+  var i = ids.indexOf(id);
+  if (i >= 0) {
+    list = list.filter(function(entry) {
+      var entryId = (typeof entry === 'number') ? entry : Number(entry.id);
+      return entryId !== id;
+    });
+    button.classList.remove('is-on');
+    button.textContent = 'Notify me when back';
+    showToast('Removed from restock alerts');
+  } else {
+    list.push({ id: id, name: button.dataset.name || ('Product #' + id) });
+    button.classList.add('is-on');
+    button.textContent = "✓ You're on the list";
+    showToast("You're on the restock list — see Profile › Restock alerts");
+  }
+  try {
+    localStorage.setItem('smilehub_restock', JSON.stringify(list));
+  } catch (e) {}
+}
+
+function escHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function safeImageLocal(value) {
+  var src = escHtml(value);
+  return /^(https?:|data:|assets\/)/.test(src) ? src : 'assets/products/default.svg';
+}
+
+var HEART_FILL_SVG = '<svg class="heart-icon" width="18" height="18" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function wishlistStockChip(id) {
+  if (!(Number(id) in wishlistLive)) return '';
+  var stock = wishlistLive[Number(id)];
+  if (stock <= 0) return ' <span class="stock out">Out of stock</span>';
+  if (stock <= 5) return ' <span class="stock low">Only ' + stock + ' left</span>';
+  return ' <span class="stock">' + stock + ' in stock</span>';
+}
+
+function renderWishlist() {
+  var grid = document.getElementById('wishlistGrid');
+  if (!grid) return;
+  // Clear any pending undo bar when re-rendering from a fresh state.
+  var oldUndo = document.getElementById('wishlistUndo');
+  if (oldUndo) oldUndo.remove();
+  clearTimeout(wishlistUndoTimer);
+
+  var wishlist = getStoredList(WISH_KEY);
   updateWishlistCount();
-  
+
   if (!wishlist.length) {
-    grid.innerHTML = '<div class="card empty-state"><h3>No saved products yet</h3><p>Use the heart buttons in the catalog.</p><a class="btn btn-primary" href="products.html">Browse Products</a></div>';
+    grid.innerHTML = '<div class="card empty-state"><h3>No saved products yet</h3><p>Use the heart buttons in the catalog. Out-of-stock picks can wait on your <a href="profile.html">restock alerts</a>.</p><a class="btn btn-primary" href="products.html">Browse Products</a></div>';
     return;
   }
-  
-  grid.innerHTML = wishlist.map(function(item, index) {
-    return `
-      <article class="card product-card">
-        <button class="wish-button remove-wishlist" data-index="${index}" data-id="${item.id}" title="Remove from wishlist">♥</button>
-        <a class="product-image" href="product.html?id=${item.id}"><img src="${item.image}" alt="${item.name}"></a>
-        <div class="product-body">
-          <a href="product.html?id=${item.id}"><h3>${item.name}</h3></a>
-          <div class="price-row"><span class="price">${money(item.price)}</span></div>
-          <button class="btn btn-primary btn-block add-cart" data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-image="${item.image}">Add to Cart</button>
-        </div>
-      </article>
-    `;
+
+  grid.innerHTML = wishlist.map(function(item) {
+    var id = Number(item.id);
+    var name = escHtml(item.name || 'Product');
+    var price = Number(item.price) || 0;
+    var img = safeImageLocal(item.image);
+    var stockKnown = id in wishlistLive;
+    var inStock = stockKnown ? wishlistLive[id] > 0 : true;
+    var actions = (stockKnown && !inStock)
+      ? '<button class="btn btn-light notify-btn" data-id="' + id + '" data-name="' + name + '" type="button">Notify me when back</button>' +
+        '<a class="btn btn-light" href="profile.html">Restock alerts</a>'
+      : '<button class="btn btn-primary add-cart" data-id="' + id + '" data-name="' + name + '" data-price="' + price + '" data-image="' + img + '">Add to Cart</button>' +
+        '<button class="btn btn-light move-cart" data-id="' + id + '">Move to Cart</button>';
+    return '' +
+      '<article class="card product-card" data-wish-id="' + id + '">' +
+        '<button class="wish-button remove-wishlist wished" data-id="' + id + '" title="Remove from wishlist" aria-label="Remove ' + name + ' from wishlist">' + HEART_FILL_SVG + '</button>' +
+        '<a class="product-image" href="product.html?id=' + id + '"><img src="' + img + '" alt="' + name + '" loading="lazy" decoding="async" width="300" height="170"></a>' +
+        '<div class="product-body">' +
+          '<a href="product.html?id=' + id + '"><h3>' + name + '</h3></a>' +
+          '<div class="price-row"><span class="price">' + money(price) + '</span>' + wishlistStockChip(id) + '</div>' +
+          '<div class="product-actions">' + actions + '</div>' +
+        '</div>' +
+      '</article>';
   }).join('');
-  
-  // Add to cart buttons
-  document.querySelectorAll('.add-cart').forEach(function(button) {
+
+  grid.querySelectorAll('.notify-btn').forEach(function(button) {
+    var saved = readRestockList();
+    if (restockIds(saved).indexOf(Number(button.dataset.id)) >= 0) {
+      button.classList.add('is-on');
+      button.textContent = "✓ You're on the list";
+    }
+    button.addEventListener('click', function() { toggleRestockWish(this); });
+  });
+
+  grid.querySelectorAll('.add-cart').forEach(function(button) {
     button.addEventListener('click', function() {
+      var id = Number(button.dataset.id);
+      if (id in wishlistLive) button.dataset.stock = wishlistLive[id];
       addToCart(button);
     });
   });
-  
-  // Remove from wishlist buttons (unwish)
-  document.querySelectorAll('.remove-wishlist').forEach(function(button) {
+
+  grid.querySelectorAll('.move-cart').forEach(function(button) {
     button.addEventListener('click', function() {
-      const id = Number(button.dataset.id);
-      let wishlist = getStoredList(WISH_KEY);
-      const productName = wishlist.find(function(item) {
-        return item.id === id;
-      })?.name || 'Product';
-      
-      wishlist = wishlist.filter(function(item) {
-        return item.id !== id;
-      });
-      
-      var synced = saveStoredList(WISH_KEY, wishlist);
-      updateWishlistCount();
-
-      // Also update heart icons on product pages/catalog
-      document.querySelectorAll('.add-wishlist').forEach(function(wishBtn) {
-        if (Number(wishBtn.dataset.id) === id) {
-          wishBtn.textContent = '♡';
-          wishBtn.classList.remove('wished');
+      var id = Number(button.dataset.id);
+      // Guests are routed through login first; removal happens after restore.
+      if (!customerIsLoggedIn()) {
+        var guestItem = null;
+        getStoredList(WISH_KEY).forEach(function(entry) { if (Number(entry.id) === id) guestItem = entry; });
+        if (guestItem) {
+          var guestProxy = document.createElement('button');
+          guestProxy.dataset.id = guestItem.id;
+          guestProxy.dataset.name = guestItem.name || 'Product';
+          guestProxy.dataset.price = guestItem.price || 0;
+          guestProxy.dataset.image = guestItem.image || 'assets/products/default.svg';
+          guestProxy.dataset.quantity = 1;
+          addToCart(guestProxy);
         }
+        return;
+      }
+      var list = getStoredList(WISH_KEY);
+      var item = null;
+      list.forEach(function(entry) { if (Number(entry.id) === id) item = entry; });
+      if (!item) return;
+      var proxy = document.createElement('button');
+      proxy.dataset.id = item.id;
+      proxy.dataset.name = item.name || 'Product';
+      proxy.dataset.price = item.price || 0;
+      proxy.dataset.image = item.image || 'assets/products/default.svg';
+      proxy.dataset.quantity = 1;
+      if (id in wishlistLive) proxy.dataset.stock = wishlistLive[id];
+      var before = getStoredList(CART_KEY).length;
+      addToCart(proxy);
+      var after = getStoredList(CART_KEY);
+      // Only remove from wishlist if the cart add actually went through
+      // (guests are redirected, out-of-stock is blocked).
+      var added = after.length > before || after.some(function(entry) {
+        return Number(entry.id) === id;
       });
-
-      // Re-render wishlist page only after the cloud sync settles,
-      // otherwise the reload cancels the Firestore write and the
-      // stale cloud list restores the removed item.
-      var reloaded = false;
-      var finishReload = function() {
-        if (!reloaded) { reloaded = true; location.reload(); }
-      };
-      Promise.resolve(synced).then(finishReload, finishReload);
-      setTimeout(finishReload, 2500);
+      if (added && customerIsLoggedIn()) {
+        removeWishlistItem(id, true);
+        showToast((item.name || 'Item') + ' moved to cart');
+      }
     });
   });
+
+  grid.querySelectorAll('.remove-wishlist').forEach(function(button) {
+    button.addEventListener('click', function() {
+      removeWishlistItem(Number(button.dataset.id), false);
+    });
+  });
+}
+
+function removeWishlistItem(id, silent) {
+  var list = getStoredList(WISH_KEY);
+  var removed = null;
+  var kept = [];
+  list.forEach(function(entry) {
+    if (Number(entry.id) === id && !removed) removed = entry;
+    else kept.push(entry);
+  });
+  if (!removed) return;
+  saveStoredList(WISH_KEY, kept);
+  updateWishlistCount();
+  renderWishlist();
+
+  if (silent) return;
+  var grid = document.getElementById('wishlistGrid');
+  var bar = document.createElement('div');
+  bar.className = 'undo-bar';
+  bar.id = 'wishlistUndo';
+  bar.innerHTML = '<span>Removed ' + escHtml(removed.name || 'item') + '.</span>';
+  var undoBtn = document.createElement('button');
+  undoBtn.className = 'btn btn-light';
+  undoBtn.type = 'button';
+  undoBtn.textContent = 'Undo';
+  undoBtn.addEventListener('click', function() {
+    var current = getStoredList(WISH_KEY);
+    var exists = current.some(function(entry) { return Number(entry.id) === id; });
+    if (!exists) {
+      current.push(removed);
+      saveStoredList(WISH_KEY, current);
+    }
+    updateWishlistCount();
+    renderWishlist();
+    showToast('Restored to wishlist');
+  });
+  bar.appendChild(undoBtn);
+  grid.parentNode.insertBefore(bar, grid);
+  clearTimeout(wishlistUndoTimer);
+  wishlistUndoTimer = setTimeout(function() {
+    if (bar.parentNode) bar.parentNode.removeChild(bar);
+  }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateWishlistCount();
+  renderWishlist();
+  // Enrich with live stock (chips + guards) once the catalog resolves.
+  try {
+    if (window.SmileHubData && typeof SmileHubData.getProducts === 'function') {
+      SmileHubData.getProducts(function(products) {
+        (products || []).forEach(function(p) {
+          wishlistLive[Number(p.id)] = Number(p.stock) || 0;
+        });
+        renderWishlist();
+      });
+    }
+  } catch (e) {}
 });
-document.addEventListener('smilehub:data-synced', function (event) {
-  var key = 'smilehub_wishlist_synced_reload_' + (event.detail && event.detail.uid ? event.detail.uid : 'user');
-  if (sessionStorage.getItem(key) !== '1') {
-    sessionStorage.setItem(key, '1');
-    location.reload();
-  }
+
+document.addEventListener('smilehub:data-synced', function() {
+  if (typeof renderWishlist === 'function') renderWishlist();
 });
