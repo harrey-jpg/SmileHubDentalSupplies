@@ -41,17 +41,19 @@
 </nav>
 </aside>
 <main class="admin-main">
-<div class="admin-top">
+<div class="admin-top admin-dash-top">
 <div>
+<p class="eyebrow">SmileHub Admin &middot; Web</p>
 <h1>Administration Dashboard</h1>
+<p class="muted admin-subtitle" id="adminDateSubtitle">Overview of sales, stock and orders</p>
 </div>
-<div style="display:flex; align-items:center; gap:12px;">
-<button class="theme-button">◐</button>
+<div class="admin-top-actions">
+<button aria-label="Toggle dark mode" class="theme-button" title="Toggle dark mode" type="button">◐</button>
 <span class="admin-user-badge">
 <span class="admin-avatar" id="adminAvatar">A</span>
 <span>
 <span class="admin-username" id="adminUsername">Admin User</span>
-<span id="adminRoleBadge" style="display:block;font-size:0.7rem;opacity:0.6;font-weight:500;">admin</span>
+<span class="admin-role-badge" id="adminRoleBadge">admin</span>
 </span>
 </span>
 <button class="btn btn-light" id="logoutButton" type="button">Logout</button>
@@ -59,63 +61,64 @@
 </div>
 <!-- ===== DASHBOARD SECTION ===== -->
 <section data-role="all" id="dashboard">
-<div class="kpi-grid">
-<article class="card kpi-card clickable" data-target="#orders">
-<span class="muted">Today's Sales</span>
+<div class="kpi-grid admin-kpi-grid">
+<a class="card kpi-card clickable" data-target="#orders" href="#orders">
+<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">₱</span><span class="muted kpi-label">Today's Sales</span></span>
 <strong id="kpiTodaySales">₱0</strong>
-<small id="kpiTodayOrders">0 orders today</small>
-</article>
-<article class="card kpi-card clickable" data-target="#products">
-<span class="muted">Total Revenue</span>
+<small class="kpi-sub" id="kpiTodayOrders">0 orders today</small>
+</a>
+<a class="card kpi-card clickable" data-target="#reports" href="#reports">
+<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">◈</span><span class="muted kpi-label">Inventory Value</span></span>
 <strong id="kpiTotalRevenue">₱0</strong>
-<small id="kpiRevenuePeriod">This month</small>
-</article>
-<article class="card kpi-card clickable" data-target="#customers">
-<span class="muted">Total Products</span>
+<small class="kpi-sub" id="kpiRevenuePeriod">Across all stock</small>
+</a>
+<a class="card kpi-card clickable" data-target="#products" href="#products">
+<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">▦</span><span class="muted kpi-label">Total Products</span></span>
 <strong id="kpiTotalProducts">0</strong>
-<small id="kpiActiveProducts">0 active</small>
-</article>
-<article class="card kpi-card clickable" data-target="#inventory">
-<span class="muted">Low Stock</span>
+<small class="kpi-sub" id="kpiActiveProducts">0 active</small>
+</a>
+<a class="card kpi-card clickable" data-target="#inventory" href="#inventory">
+<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">⚠</span><span class="muted kpi-label">Needs Attention</span></span>
 <strong id="kpiLowStock">0</strong>
-<small id="kpiLowStockDetail">Needs attention</small>
-</article>
+<small class="kpi-sub" id="kpiLowStockDetail">Needs attention</small>
+</a>
 </div>
 <div class="grid grid-2 admin-section">
-<article class="card form-card">
-<h2>Monthly Sales</h2>
-<div class="chart-placeholder" id="salesChart">
-<div class="bar" data-month="Jan" style="height:35%"></div>
-<div class="bar" data-month="Feb" style="height:48%"></div>
-<div class="bar" data-month="Mar" style="height:42%"></div>
-<div class="bar" data-month="Apr" style="height:62%"></div>
-<div class="bar" data-month="May" style="height:75%"></div>
-<div class="bar" data-month="Jun" style="height:88%"></div>
+<article class="card form-card dash-card">
+<div class="dash-card-head">
+<div>
+<h2>Sales Performance</h2>
+<p class="muted dash-card-sub">Real revenue from orders &middot; Last 6 months</p>
 </div>
-<div class="chart-labels" style="display:flex;gap:14px;margin-top:6px;padding:0 24px;">
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jan</span>
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Feb</span>
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Mar</span>
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Apr</span>
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">May</span>
-<span style="flex:1;text-align:center;font-size:0.7rem;color:var(--muted);">Jun</span>
+<span class="chip-live">Live</span>
 </div>
+<div class="dash-chart-wrap">
+<canvas aria-label="Monthly sales chart" id="salesChartReal" role="img"></canvas>
+</div>
+<p class="muted dash-empty hidden" id="salesChartEmpty">No sales data yet &mdash; new orders will appear here.</p>
 </article>
-<article class="card form-card">
+<article class="card form-card dash-card">
 <h2>Quick Actions</h2>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-<button class="btn btn-primary" onclick="window.navigateTo('#orders')" style="padding:16px;font-size:0.9rem;">View Orders</button>
-<button class="btn btn-secondary" onclick="window.navigateTo('#inventory')" style="padding:16px;font-size:0.9rem;">Manage Stock</button>
-<button class="btn btn-light" data-role-btn="admin,superadmin" onclick="window.navigateTo('#products')" style="padding:16px;font-size:0.9rem;">Add Product</button>
-<button class="btn btn-light" onclick="window.location.href='homepage.html'" style="padding:16px;font-size:0.9rem;">View Store</button>
+<p class="muted dash-card-sub">Common tasks</p>
+<div class="quick-grid">
+<button class="btn btn-light quick-btn" onclick="window.navigateTo('#orders')" type="button"><span aria-hidden="true" class="quick-icon">▤</span><span class="quick-text"><strong>View Orders</strong><small>Process &amp; track</small></span></button>
+<button class="btn btn-light quick-btn" onclick="window.navigateTo('#inventory')" type="button"><span aria-hidden="true" class="quick-icon">◫</span><span class="quick-text"><strong>Manage Stock</strong><small>Update levels</small></span></button>
+<button class="btn btn-light quick-btn" data-role-btn="admin,superadmin" onclick="window.openProductModal &amp;&amp; window.openProductModal()" type="button"><span aria-hidden="true" class="quick-icon">＋</span><span class="quick-text"><strong>Add Product</strong><small>New item</small></span></button>
+<button class="btn btn-light quick-btn" onclick="window.location.href='homepage.html'" type="button"><span aria-hidden="true" class="quick-icon">○</span><span class="quick-text"><strong>View Store</strong><small>Storefront</small></span></button>
 </div>
 </article>
 </div>
 <div class="grid grid-2 admin-section">
-<article class="card form-card">
+<article class="card form-card dash-card">
+<div class="dash-card-head">
+<div>
 <h2>Recent Orders</h2>
-<div class="table-wrap" style="box-shadow:none;border:none;border-radius:0;">
-<table>
+<p class="muted dash-card-sub">Latest 5 orders</p>
+</div>
+<button class="dash-link" onclick="window.navigateTo('#orders')" type="button">View all &rarr;</button>
+</div>
+<div class="table-wrap dash-table-wrap">
+<table class="dash-table">
 <thead>
 <tr>
 <th>Order</th>
@@ -125,29 +128,45 @@
 </tr>
 </thead>
 <tbody id="dashRecentOrders">
-<tr><td class="text-center muted" colspan="4" style="padding:30px;">No orders yet</td></tr>
+<tr><td class="text-center muted" colspan="4">No orders yet</td></tr>
 </tbody>
 </table>
 </div>
 </article>
-<article class="card form-card">
+<article class="card form-card dash-card">
+<div class="dash-card-head">
+<div>
 <h2>Inventory Alerts</h2>
-<div id="dashInventoryAlerts">
-<p class="muted" style="text-align:center;padding:20px;">All items well-stocked</p>
+<p class="muted dash-card-sub">Low &amp; out of stock</p>
+</div>
+<button class="dash-link" onclick="window.navigateTo('#inventory')" type="button">Manage &rarr;</button>
+</div>
+<div class="dash-alerts" id="dashInventoryAlerts">
+<p class="muted dash-empty">All items well-stocked</p>
 </div>
 </article>
 </div>
 <div class="grid grid-2 admin-section">
-<article class="card form-card">
+<article class="card form-card dash-card">
+<div class="dash-card-head">
+<div>
 <h2>Stock Status</h2>
-<div style="position:relative;height:220px;">
-<canvas id="chartStockStatus"></canvas>
+<p class="muted dash-card-sub">Share of catalogue</p>
+</div>
+</div>
+<div class="dash-chart-wrap dash-chart-sm">
+<canvas aria-label="Stock status chart" id="chartStockStatus" role="img"></canvas>
 </div>
 </article>
-<article class="card form-card">
+<article class="card form-card dash-card">
+<div class="dash-card-head">
+<div>
 <h2>Inventory by Category</h2>
-<div style="position:relative;height:220px;">
-<canvas id="chartCategoryValue"></canvas>
+<p class="muted dash-card-sub">Value per category</p>
+</div>
+</div>
+<div class="dash-chart-wrap dash-chart-sm">
+<canvas aria-label="Inventory value by category chart" id="chartCategoryValue" role="img"></canvas>
 </div>
 </article>
 </div>

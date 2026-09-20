@@ -437,21 +437,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const total = products.length;
     const low = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const out = products.filter(function(p) { return p.stock === 0; }).length;
-    const revenue = products.reduce(function(sum, p) { return sum + (p.price * p.stock); }, 0);
+    const inventoryValue = products.reduce(function(sum, p) { return sum + (p.price * p.stock); }, 0);
     const totalStock = products.reduce(function(sum, p) { return sum + p.stock; }, 0);
-    const todaySales = Math.round(revenue * 0.05);
 
     const orders = getOrders();
-    const todayOrders = orders.filter(function(o) { return o.date === new Date().toLocaleDateString(); }).length;
+    const todayStr = new Date().toLocaleDateString();
+    const todayList = orders.filter(function(o) { return o.date === todayStr; });
+    const todayOrders = todayList.length;
+    const todaySales = todayList.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
-    setText('kpiTodaySales', '₱' + todaySales.toLocaleString());
+    setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
     setText('kpiTodayOrders', todayOrders + ' orders today');
-    setText('kpiTotalRevenue', '₱' + revenue.toLocaleString());
-    setText('kpiRevenuePeriod', 'From ' + totalStock + ' units in stock');
+    setText('kpiTotalRevenue', '₱' + inventoryValue.toLocaleString('en-PH', {maximumFractionDigits: 0}));
+    setText('kpiRevenuePeriod', 'From ' + totalStock.toLocaleString() + ' units in stock');
     setText('kpiTotalProducts', total);
     setText('kpiActiveProducts', (total - out) + ' in stock');
     setText('kpiLowStock', low + out);
     setText('kpiLowStockDetail', low + ' low, ' + out + ' out of stock');
+    var sub = document.getElementById('adminDateSubtitle');
+    if (sub) {
+      var pending = orders.filter(function(o) { return o.status === 'Pending'; }).length;
+      sub.textContent = new Date().toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' }) + ' • ' + pending + ' pending orders • ' + totalStock.toLocaleString() + ' units in stock';
+    }
     updateInventoryStats();
   }
 
@@ -465,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!body) return;
     var orders = getOrders();
     if (!orders || orders.length === 0) {
-      body.innerHTML = '<tr><td colspan="4" class="text-center muted" style="padding:30px;">No orders yet</td></tr>';
+      body.innerHTML = '<tr><td colspan="4" class="text-center muted">No orders yet</td></tr>';
       return;
     }
     var sorted = orders.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
@@ -488,15 +495,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const alerts = products.filter(function(p) { return p.stock <= 10; }).sort(function(a, b) { return a.stock - b.stock; });
 
     if (alerts.length === 0) {
-      container.innerHTML = '<p class="muted" style="text-align:center;padding:20px;">All items well-stocked</p>';
+      container.innerHTML = '<p class="muted dash-empty">All items well-stocked</p>';
       return;
     }
 
-    container.innerHTML = alerts.map(function(p) {
+    container.innerHTML = alerts.slice(0, 6).map(function(p) {
       const label = p.stock === 0 ? 'Out of stock' : p.stock + ' left';
       const cls = p.stock === 0 ? 'low' : p.stock <= 5 ? 'low' : 'processing';
-      return '<div class="inventory-alert-item" data-product="' + p.name + '">' +
-        '<span class="status ' + cls + '">' + label + '</span> ' + p.name +
+      return '<div class="inventory-alert-item" data-product="' + p.name + '" role="button" tabindex="0" title="Open in inventory">' +
+        '<span class="status ' + cls + '">' + label + '</span><span>' + p.name + '</span>' +
         '</div>';
     }).join('');
   }
@@ -504,8 +511,41 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- CHARTS ---
   let chartStockStatus = null;
   let chartCategoryValue = null;
+  let chartSales = null;
+
+  function cssVar(name, fallback) {
+    try {
+      var v = getComputedStyle(document.body).getPropertyValue(name);
+      v = (v || '').trim();
+      return v || fallback;
+    } catch (e) { return fallback; }
+  }
+
+  function orderTime(o) {
+    if (o.sortTs) return o.sortTs;
+    var t = o.date ? Date.parse(o.date) : NaN;
+    return isNaN(t) ? Date.now() : t;
+  }
 
   function renderCharts() {
+    var teal = cssVar('--teal', '#047857');
+    var blue = cssVar('--blue', '#005F8A');
+    var success = cssVar('--success', '#047857');
+    var warning = cssVar('--warning', '#D97706');
+    var danger = cssVar('--danger', '#DC2626');
+    var muted = cssVar('--muted', '#475569');
+    var isDark = document.body.classList.contains('dark');
+    var gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+    if (typeof Chart !== 'undefined') {
+      try {
+        Chart.defaults.font.family = '"DM Sans", -apple-system, "Segoe UI", sans-serif';
+        Chart.defaults.color = muted;
+      } catch (e) {}
+    }
+
+    renderSalesChart({ blue: blue, teal: teal, muted: muted, gridColor: gridColor });
+
     const inStock = products.filter(function(p) { return p.stock > 10; }).length;
     const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= 10; }).length;
     const outStock = products.filter(function(p) { return p.stock === 0; }).length;
@@ -533,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
           labels: ['In Stock', 'Low Stock', 'Out of Stock'],
           datasets: [{
             data: [inStock, lowStock, outStock],
-            backgroundColor: ['#1e9b61', '#f0a320', '#d64545'],
+            backgroundColor: [success, warning, danger],
             borderWidth: 0
           }]
         },
@@ -557,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
           datasets: [{
             label: 'Inventory Value (₱)',
             data: catValues,
-            backgroundColor: ['#1261a0', '#0f9d9a', '#7b61ff', '#f0a320', '#d64545', '#1e9b61'],
+            backgroundColor: [blue, teal, success, warning, danger, muted],
             borderRadius: 6
           }]
         },
@@ -571,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function() {
             y: {
               beginAtZero: true,
               ticks: { callback: function(v) { return '₱' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v); }, font: { size: 10 } },
-              grid: { color: 'rgba(0,0,0,0.06)' }
+              grid: { color: gridColor }
             },
             x: {
               ticks: { font: { size: 9 } },
@@ -581,6 +621,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
+  }
+
+  function renderSalesChart(theme) {
+    var canvas = document.getElementById('salesChartReal');
+    var empty = document.getElementById('salesChartEmpty');
+    if (!canvas) return;
+    if (typeof Chart === 'undefined') return;
+    if (chartSales) { chartSales.destroy(); chartSales = null; }
+
+    var now = new Date();
+    var months = [];
+    var totals = [0, 0, 0, 0, 0, 0];
+    for (var i = 5; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(d.toLocaleDateString('en-PH', { month: 'short' }));
+    }
+    var orders = getOrders() || [];
+    var hasData = false;
+    orders.forEach(function(o) {
+      if (o.status === 'Cancelled') return;
+      var t = orderTime(o);
+      var dt = new Date(t);
+      var diff = (now.getFullYear() - dt.getFullYear()) * 12 + (now.getMonth() - dt.getMonth());
+      if (diff >= 0 && diff < 6) {
+        var idx = 5 - diff;
+        totals[idx] += Number(o.total) || 0;
+        if (Number(o.total) > 0) hasData = true;
+      }
+    });
+
+    if (empty) empty.classList.toggle('hidden', hasData);
+    canvas.style.display = hasData ? '' : 'none';
+    if (!hasData) return;
+
+    chartSales = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Revenue (₱)',
+          data: totals,
+          backgroundColor: theme.blue,
+          hoverBackgroundColor: theme.teal,
+          borderRadius: 8,
+          maxBarThickness: 42
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(c) { return ' ₱' + Number(c.parsed.y).toLocaleString('en-PH', {minimumFractionDigits: 2}); }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: function(v) { return '₱' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v); }, font: { size: 10 } },
+            grid: { color: theme.gridColor }
+          },
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
   }
 
   function updateInventoryStats() {
@@ -817,7 +925,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- MAKE DASHBOARD CLICKABLE ---
   function makeDashboardClickable() {
     document.querySelectorAll('.kpi-card.clickable').forEach(function(card) {
-      card.addEventListener('click', function() {
+      card.addEventListener('click', function(e) {
+        if (e && e.preventDefault && card.tagName === 'A') e.preventDefault();
         const target = this.dataset.target;
         if (target) navigateTo(target);
       });
@@ -840,7 +949,21 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }, 300);
       });
+      alertsContainer.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var item = e.target.closest ? e.target.closest('.inventory-alert-item') : null;
+        if (!item) return;
+        e.preventDefault();
+        item.click();
+      });
     }
+    document.querySelectorAll('.theme-button').forEach(function(btn) {
+      if (btn.dataset.dashChartsBound) return;
+      btn.dataset.dashChartsBound = '1';
+      btn.addEventListener('click', function() {
+        setTimeout(function() { try { renderCharts(); } catch (e) {} }, 80);
+      });
+    });
   }
 
   // --- SIDEBAR NAVIGATION ---
@@ -2328,6 +2451,14 @@ window.refreshOrders = function() {
 window.closeOrderModal = function() {
   const modal = document.getElementById('orderModal');
   if (modal) modal.style.display = 'none';
+};
+
+window.openProductModal = function() {
+  window.navigateTo('#products');
+  setTimeout(function() {
+    var btn = document.getElementById('showProductForm');
+    if (btn) btn.click();
+  }, 60);
 };
 
 window.showToast = function(msg, isError, isSuccess) {
