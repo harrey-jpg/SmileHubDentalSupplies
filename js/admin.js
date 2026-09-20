@@ -158,6 +158,9 @@ document.addEventListener('DOMContentLoaded', function() {
         renderAuditLogs();
       }
     }
+    if (sectionId === '#messages') {
+      fetchMessages();
+    }
   }
 
   // --- RENDER PRODUCTS ---
@@ -925,9 +928,109 @@ document.addEventListener('DOMContentLoaded', function() {
       return user ? user.role : null;
     } catch(e) { return null; }
   }
-
-  function applyRoleVisibility() {
-    const role = getCurrentUserRole();
+  async function getCurrentUserRoleFresh() {
+    try {
+      const fbUser = firebase.auth().currentUser;
+      if (fbUser) {
+        const snap = await firebase.firestore().collection('users').doc(fbUser.uid).get();
+        if (snap.exists) {
+          const r = snap.data().role;
+          if (r) {
+            // Keep cache in sync so other pages see the correct role without extra fetch
+            try {
+              const cached = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+              if (cached && cached.role !== r) {
+                cached.role = r;
+                sessionStorage.setItem('smilehub_logged_in_user', JSON.stringify(cached));
+              }
+            } catch(e){}
+            return r;
+          }
+        }
+      }
+    } catch(e){}
+    return getCurrentUserRole();
+  }
+  function getCachedRoleTTL(){
+    try{
+      var raw=localStorage.getItem('smilehub_role_cache');
+      if(!raw) return null;
+      var obj=JSON.parse(raw);
+      if(!obj.role || !obj.ts) return null;
+      if(Date.now()-obj.ts > 5*60*1000) return null;
+      return obj.role;
+    }catch(e){ return null; }
+  }
+  function setCachedRoleTTL(role){
+    try{ localStorage.setItem('smilehub_role_cache', JSON.stringify({role:role, ts:Date.now()})); }catch(e){}
+  }
+  function paintRole(role){
+    var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+    if (user) {
+      var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
+      if (av) av.textContent = user.name.charAt(0).toUpperCase();
+      if (nm) nm.textContent = user.name;
+      if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[role]||role; }
+    }
+    document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link){
+      var allowed=link.getAttribute('data-role').split(',');
+      link.style.display = (!allowed.includes(role) && !allowed.includes('all')) ? 'none' : '';
+    });
+    document.querySelectorAll('[data-role]').forEach(function(sec){
+      var allowed=sec.getAttribute('data-role').split(',');
+      sec.style.display = (!allowed.includes(role) && !allowed.includes('all')) ? 'none' : '';
+    });
+    document.querySelectorAll('[data-role-btn]').forEach(function(el){
+      var allowed=el.getAttribute('data-role-btn').split(',');
+      el.style.display = (!allowed.includes(role)) ? 'none' : '';
+    });
+  }
+  async function applyRoleVisibility() {
+    // Option B: instant paint from TTL cache, then background re-validate
+    var cachedTTL = getCachedRoleTTL();
+    if (cachedTTL) {
+      var loadingTTL = document.getElementById('adminLoading');
+      var layoutTTL = document.querySelector('.admin-layout');
+      if (layoutTTL) layoutTTL.style.visibility = 'visible';
+      if (loadingTTL) loadingTTL.style.display = 'none';
+      // Paint cached role immediately (0ms), then refresh in background
+      (function paintCached(r){
+        var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+        if (user) {
+          var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
+          if (av) av.textContent = user.name.charAt(0).toUpperCase();
+          if (nm) nm.textContent = user.name;
+          if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[r]||r; }
+        }
+        document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link){
+          var allowed=link.getAttribute('data-role').split(',');
+          link.style.display = (!allowed.includes(r) && !allowed.includes('all')) ? 'none' : '';
+        });
+        document.querySelectorAll('[data-role]').forEach(function(sec){
+          var allowed=sec.getAttribute('data-role').split(',');
+          sec.style.display = (!allowed.includes(r) && !allowed.includes('all')) ? 'none' : '';
+        });
+        document.querySelectorAll('[data-role-btn]').forEach(function(el){
+          var allowed=el.getAttribute('data-role-btn').split(',');
+          el.style.display = (!allowed.includes(r)) ? 'none' : '';
+        });
+      })(cachedTTL);
+      // Background fresh fetch — correct if role changed
+      getCurrentUserRoleFresh().then(function(fresh){
+        if (fresh && fresh !== cachedTTL) {
+          setCachedRoleTTL(fresh);
+          paintRole(fresh);
+        }
+      });
+      return;
+    }
+    const role = await getCurrentUserRoleFresh();
+    if (role) setCachedRoleTTL(role);
+    // Reveal layout once role is known — prevents flash of wrong role (customer -> superadmin)
+    var loading = document.getElementById('adminLoading');
+    var layout = document.querySelector('.admin-layout');
+    if (layout) layout.style.visibility = 'visible';
+    if (loading) loading.style.display = 'none';
     if (!role) return;
 
     // Update top bar with user info
@@ -949,6 +1052,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = link.getAttribute('data-role').split(',');
       if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
         link.style.display = 'none';
+      } else {
+        link.style.display = '';
       }
     });
 
@@ -957,6 +1062,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = section.getAttribute('data-role').split(',');
       if (!allowedRoles.includes(role) && !allowedRoles.includes('all')) {
         section.style.display = 'none';
+      } else {
+        section.style.display = '';
       }
     });
 
@@ -965,6 +1072,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const allowedRoles = el.getAttribute('data-role-btn').split(',');
       if (!allowedRoles.includes(role)) {
         el.style.display = 'none';
+      } else {
+        el.style.display = '';
       }
     });
   }
@@ -1205,9 +1314,38 @@ document.addEventListener('DOMContentLoaded', function() {
           var name = accounts[idx].name;
           accounts.splice(idx, 1);
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast('Update failed: ' + (error.code || error.message || 'check console'), true); });
+          var lowerEmail = email.toLowerCase();
+          // Tombstone so getAccounts() never re-merges this email from users.
+          firebase.firestore().collection('deleted_accounts').doc(lowerEmail).set({
+            email: lowerEmail,
+            originalEmail: email,
+            deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deletedBy: (window.SmileHubAuth.getLoggedInUser() || {}).email || ''
+          }).catch(function() {});
           // Remove the Firestore doc too, otherwise getAccounts() restores it on reload.
           firebase.firestore().collection('accounts').doc(email).delete()
             .catch(function(error) { console.warn('Could not delete account from Firestore:', error); });
+          firebase.firestore().collection('accounts').doc(lowerEmail).delete().catch(function() {});
+          // Also delete matching users/{uid} profile(s) — getAccounts() merges
+          // users collection, so a lingering users doc resurrects the account.
+          firebase.firestore().collection('users').where('email', '==', email).get()
+            .then(function(snap) {
+              snap.forEach(function(doc) {
+                doc.ref.delete().catch(function() {});
+              });
+              if (snap.empty && email !== lowerEmail) {
+                return firebase.firestore().collection('users').where('email', '==', lowerEmail).get();
+              }
+            })
+            .then(function(snap2) {
+              if (snap2 && !snap2.empty) {
+                snap2.forEach(function(doc) { doc.ref.delete().catch(function() {}); });
+              }
+            })
+            .catch(function() {});
+          // Also clean up any pending invitation.
+          firebase.firestore().collection('user_registrations').doc(email).delete().catch(function() {});
+          firebase.firestore().collection('user_registrations').doc(lowerEmail).delete().catch(function() {});
           addAuditLog('Deleted account: ' + email + ' (' + name + ')');
           showToast('Account deleted: ' + email, false, false);
         }
@@ -1274,39 +1412,146 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
-        showToast('Pre-registering account...');
+        showToast('Creating account...');
 
-        var newAccount = {
-          firstName: firstName,
-          lastName: lastName,
-          name: firstName + ' ' + lastName,
-          email: email,
-          phone: '',
-          address: '',
-          role: role,
-          status: 'pending'
-        };
+        // Use a secondary app so creating the new Auth user doesn't sign out the current admin
+        var secondaryApp;
+        try { secondaryApp = firebase.app('Secondary'); } catch (e) { secondaryApp = firebase.initializeApp(firebaseConfig, 'Secondary'); }
 
-        accounts.push(newAccount);
+        // Allow re-creating a previously deleted email — clear its tombstone first
+        firebase.firestore().collection('deleted_accounts').doc(email.toLowerCase()).delete().catch(function() {});
+        firebase.firestore().collection('deleted_accounts').doc(email).delete().catch(function() {});
 
-        Promise.all([
-          window.SmileHubAuth.saveAccounts(accounts),
-          firebase.firestore().collection('user_registrations').doc(email).set({
+        secondaryApp.auth().createUserWithEmailAndPassword(email, password).then(function(cred) {
+          var newUid = cred.user.uid;
+          var displayName = firstName + ' ' + lastName;
+          // Firestore rules require an unclaimed invitation for elevated roles:
+          // 1) create invitation with claimed:false, 2) create users/{uid} (invitedRole check), 3) mark claimed:true
+          return firebase.firestore().collection('user_registrations').doc(email).set({
             firstName: firstName,
             lastName: lastName,
-            displayName: firstName + ' ' + lastName,
+            displayName: displayName,
             email: email,
             role: role,
             claimed: false
-          })
-        ]).then(function() {
-          form.classList.remove('show');
-          form.reset();
-          renderAccounts();
-          addAuditLog('Pre-registered: ' + email + ' (' + role + ')');
-          showToast('Account pre-registered! User must sign up via Register page to activate.', false, true);
+          }).catch(function() {}).then(function() {
+            return firebase.firestore().collection('users').doc(newUid).set({
+              firstName: firstName,
+              lastName: lastName,
+              displayName: displayName,
+              fullName: displayName,
+              email: email,
+              role: role,
+              phone: '',
+              address: ''
+            });
+          }).then(function() {
+            return Promise.all([
+              firebase.firestore().collection('accounts').doc(email).set({
+                firstName: firstName,
+                lastName: lastName,
+                name: displayName,
+                email: email,
+                phone: '',
+                address: '',
+                role: role,
+                status: 'active'
+              }),
+              firebase.firestore().collection('user_registrations').doc(email).update({
+                claimed: true,
+                claimedUid: newUid,
+                claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+              }).catch(function() {
+                return firebase.firestore().collection('user_registrations').doc(email).set({
+                  firstName: firstName,
+                  lastName: lastName,
+                  displayName: displayName,
+                  email: email,
+                  role: role,
+                  claimed: true,
+                  claimedUid: newUid,
+                  claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, {merge:true}).catch(function(){});
+              })
+            ]);
+          }).then(function() {
+            return secondaryApp.auth().signOut();
+          }).then(function() {
+            var newAccount = {
+              firstName: firstName,
+              lastName: lastName,
+              name: displayName,
+              email: email,
+              phone: '',
+              address: '',
+              role: role,
+              status: 'active'
+            };
+            accounts.push(newAccount);
+            // Keep the merged list in sync (best-effort)
+            return window.SmileHubAuth.saveAccounts(accounts).catch(function() {});
+          }).then(function() {
+            form.classList.remove('show');
+            form.reset();
+            renderAccounts();
+            addAuditLog('Created account: ' + email + ' (' + role + ')');
+            showToast('Account created — ' + email + ' can log in now!', false, true);
+          });
         }).catch(function(error) {
-          showToast('Firestore error: ' + error.message, true);
+          if (error && error.code === 'auth/email-already-in-use') {
+            // Auth user already exists (previous attempt partially succeeded) — fix Firestore via invitation flow
+            showToast('Auth already exists — repairing Firestore for ' + email + '...', false, false);
+            var displayName2 = firstName + ' ' + lastName;
+            return firebase.firestore().collection('users').where('email','==',email).get().catch(function(){ return { empty:true, forEach:function(){} }; }).then(function(snap){
+              var existingUid = null;
+              if (snap && snap.forEach) snap.forEach(function(doc){ existingUid = doc.id; });
+              // 1) Ensure invitation exists with claimed:false so users create/update can claim elevated role
+              return firebase.firestore().collection('user_registrations').doc(email).set({
+                firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:false
+              }).catch(function(){}).then(function(){
+                if (existingUid) {
+                  // Role cannot be changed via update (rule blocks it) — delete and recreate
+                  return firebase.firestore().collection('users').doc(existingUid).delete().catch(function(){}).then(function(){
+                    return firebase.firestore().collection('users').doc(existingUid).set({
+                      firstName:firstName,lastName:lastName,displayName:displayName2,fullName:displayName2,email:email,role:role,phone:'',address:''
+                    });
+                  });
+                } else {
+                  // No users doc yet — the next login's self-heal will create it, but create a placeholder
+                  // Find uid via Auth is not possible from client, so just ensure invitation + accounts
+                  return Promise.resolve();
+                }
+              }).then(function(){
+                return Promise.all([
+                  firebase.firestore().collection('accounts').doc(email).set({
+                    firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active'
+                  }),
+                  firebase.firestore().collection('user_registrations').doc(email).update({
+                    claimed:true, claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                  }).catch(function(){
+                    return firebase.firestore().collection('user_registrations').doc(email).set({
+                      firstName:firstName,lastName:lastName,displayName:displayName2,email:email,role:role,claimed:true,claimedAt:firebase.firestore.FieldValue.serverTimestamp()
+                    }, {merge:true}).catch(function(){});
+                  })
+                ]);
+              }).then(function(){
+                // Clear tombstone so getAccounts() shows it again
+                return firebase.firestore().collection('deleted_accounts').doc(email.toLowerCase()).delete().catch(function(){});
+              });
+            }).then(function(){
+              var newAccount2 = { firstName:firstName,lastName:lastName,name:displayName2,email:email,phone:'',address:'',role:role,status:'active' };
+              if (!accounts.some(function(a){ return a.email===email; })) accounts.push(newAccount2);
+              return window.SmileHubAuth.saveAccounts(accounts).catch(function(){});
+            }).then(function(){
+              form.classList.remove('show'); form.reset(); renderAccounts();
+              addAuditLog('Repaired account: ' + email + ' (' + role + ')');
+              showToast('Account repaired — ' + email + ' can log in now! Have them refresh and log in again.', false, true);
+            });
+          }
+          var msg = error && error.message ? error.message : String(error);
+          if (error && error.code === 'auth/weak-password') msg = 'Password is too weak.';
+          else if (error && error.code === 'auth/invalid-email') msg = 'Invalid email address.';
+          showToast(msg, true);
         });
       });
     }
@@ -1535,17 +1780,210 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function getAuditCategory(action) {
+    var a = (action || '').toLowerCase();
+    if (a.indexOf('stock') !== -1 || a.indexOf('inventory') !== -1 || a.indexOf('bulk') !== -1) return 'stock';
+    if (a.indexOf('order') !== -1 || a.indexOf('shipped') !== -1 || a.indexOf('delivered') !== -1 || a.indexOf('pending') !== -1) return 'order';
+    if (a.indexOf('product') !== -1) return 'product';
+    if (a.indexOf('account') !== -1 || a.indexOf('role') !== -1 || a.indexOf('suspended') !== -1 || a.indexOf('activated') !== -1 || a.indexOf('pre-registered') !== -1) return 'account';
+    if (a.indexOf('cms') !== -1 || a.indexOf('promotion') !== -1 || a.indexOf('faq') !== -1) return 'cms';
+    return 'other';
+  }
+  function getAuditIcon(cat) {
+    var icons = { stock: '📦', order: '📋', product: '🛒', account: '👤', cms: '🎨', other: '•' };
+    return icons[cat] || '•';
+  }
+  function getAuditBadge(cat) {
+    var colors = {
+      stock: 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;',
+      order: 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;',
+      product: 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;',
+      account: 'background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;',
+      cms: 'background:#fef3c7;color:#92400e;border:1px solid #fde68a;',
+      other: 'background:var(--sky);color:var(--muted);border:1px solid var(--border);'
+    };
+    return colors[cat] || colors.other;
+  }
+  function populateAuditAdminFilter() {
+    var sel = document.getElementById('auditAdminFilter');
+    if (!sel) return;
+    var admins = {};
+    getAuditLogs().forEach(function(l) { if (l.admin) admins[l.admin] = true; });
+    var current = sel.value;
+    var opts = '<option value="all">All Admins</option>' + Object.keys(admins).sort().map(function(a) {
+      return '<option value="' + a.replace(/"/g,'&quot;') + '">' + a + '</option>';
+    }).join('');
+    sel.innerHTML = opts;
+    if (admins[current] || current === 'all') sel.value = current;
+  }
   function renderAuditLogs() {
     var body = document.getElementById('auditBody');
     if (!body) return;
     var logs = getAuditLogs();
+    populateAuditAdminFilter();
+    // Read filters
+    var q = (document.getElementById('auditSearch') || {}).value || '';
+    q = q.toLowerCase().trim();
+    var adminF = (document.getElementById('auditAdminFilter') || {}).value || 'all';
+    var catF = (document.getElementById('auditActionFilter') || {}).value || 'all';
+    var dateF = (document.getElementById('auditDateFilter') || {}).value || 'all';
+    var now = new Date();
+    var filtered = logs.filter(function(log) {
+      if (q && (log.action || '').toLowerCase().indexOf(q) === -1 && (log.admin || '').toLowerCase().indexOf(q) === -1 && (log.time || '').toLowerCase().indexOf(q) === -1) return false;
+      if (adminF !== 'all' && log.admin !== adminF) return false;
+      var cat = getAuditCategory(log.action);
+      if (catF !== 'all' && cat !== catF) return false;
+      if (dateF !== 'all') {
+        var d = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate() : (log.time ? new Date(log.time) : null);
+        if (!d || isNaN(d.getTime())) {
+          // fallback: try parse time string
+          d = new Date(log.time);
+        }
+        if (!d || isNaN(d.getTime())) return false;
+        if (dateF === 'today' && d.toDateString() !== now.toDateString()) return false;
+        if (dateF === 'week') { var w = new Date(now); w.setDate(w.getDate()-7); if (d < w) return false; }
+        if (dateF === 'month' && (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear())) return false;
+      }
+      return true;
+    });
+    var countEl = document.getElementById('auditCount');
+    if (countEl) countEl.textContent = filtered.length + ' of ' + logs.length + ' entries';
     if (logs.length === 0) {
       body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
       return;
     }
-    body.innerHTML = logs.map(function(log) {
-      return '<tr><td>' + log.time + '</td><td>' + log.admin + '</td><td>' + log.action + '</td></tr>';
+    if (filtered.length === 0) {
+      body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:32px;">No results — try a different search or filter.</td></tr>';
+      return;
+    }
+    body.innerHTML = filtered.map(function(log) {
+      var cat = getAuditCategory(log.action);
+      var icon = getAuditIcon(cat);
+      var badge = getAuditBadge(cat);
+      var label = cat.charAt(0).toUpperCase() + cat.slice(1);
+      return '<tr>' +
+        '<td style="white-space:nowrap;font-size:0.85rem;color:var(--muted);">' + (log.time || '') + '</td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--sky);display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">' + (log.admin || '?').charAt(0).toUpperCase() + '</span>' + (log.admin || '') + '</span></td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;' + badge + '">' + icon + ' ' + label + '</span><span>' + (log.action || '') + '</span></span></td>' +
+        '</tr>';
     }).join('');
+  }
+
+  // --- MESSAGES INBOX ---
+  var messagesCache = [];
+  function fetchMessages(callback) {
+    firebase.firestore().collection('contact_messages').orderBy('createdAt','desc').limit(100).get().then(function(snap){
+      messagesCache = [];
+      snap.forEach(function(doc){
+        var d = doc.data(); d._id = doc.id;
+        if (d.createdAt && d.createdAt.toDate) d._time = d.createdAt.toDate().toLocaleString();
+        else d._time = d.createdAt ? String(d.createdAt) : '';
+        messagesCache.push(d);
+      });
+      if (callback) callback(messagesCache);
+      renderMessages();
+    }).catch(function(err){
+      console.warn('Could not load messages:', err);
+      var body = document.getElementById('messagesBody');
+      if (body) body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      if (callback) callback([]);
+    });
+  }
+  function updateMessageStats(list){
+    var total = messagesCache.length;
+    var n = messagesCache.filter(function(m){ return (m.status||'new')==='new'; }).length;
+    var r = messagesCache.filter(function(m){ return m.status==='read'; }).length;
+    var rep = messagesCache.filter(function(m){ return m.status==='replied'; }).length;
+    var el1=document.getElementById('msgTotal'), el2=document.getElementById('msgNew'), el3=document.getElementById('msgRead'), el4=document.getElementById('msgReplied');
+    if(el1) el1.textContent=total; if(el2) el2.textContent=n; if(el3) el3.textContent=r; if(el4) el4.textContent=rep;
+  }
+  function renderMessages(){
+    var body=document.getElementById('messagesBody'); if(!body) return;
+    var q=((document.getElementById('msgSearch')||{}).value||'').toLowerCase().trim();
+    var statusF=(document.getElementById('msgStatusFilter')||{}).value||'all';
+    var topicF=(document.getElementById('msgTopicFilter')||{}).value||'all';
+    var filtered=messagesCache.filter(function(m){
+      if(statusF!=='all' && (m.status||'new')!==statusF) return false;
+      if(topicF!=='all' && m.topic!==topicF) return false;
+      if(q){
+        var hay=[m.name,m.email,m.topic,m.message].join(' ').toLowerCase();
+        if(hay.indexOf(q)===-1) return false;
+      }
+      return true;
+    });
+    updateMessageStats();
+    var countEl=document.getElementById('msgCount'); if(countEl) countEl.textContent=filtered.length+' of '+messagesCache.length;
+    if(messagesCache.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No messages yet — contact form submissions will appear here.</td></tr>'; return; }
+    if(filtered.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No matching messages.</td></tr>'; return; }
+    body.innerHTML=filtered.map(function(m){
+      var st=m.status||'new';
+      var badge = st==='new' ? 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;' : st==='replied' ? 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;' : 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;';
+      var snippet=(m.message||'').length>80 ? (m.message||'').slice(0,80)+'…' : (m.message||'');
+      var safeEmail=(m.email||'').replace(/'/g,"\\'");
+      return '<tr>'+
+        '<td style="white-space:nowrap;font-size:0.82rem;color:var(--muted);">'+(m._time||'')+'</td>'+
+        '<td><strong>'+(m.name||'')+'</strong></td>'+
+        '<td><a href="mailto:'+(m.email||'')+'">'+(m.email||'')+'</a></td>'+
+        '<td><span class="chip-cat">'+(m.topic||'')+'</span></td>'+
+        '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(m.message||'').replace(/"/g,'&quot;')+'">'+snippet+'</td>'+
+        '<td><span style="padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;'+badge+'">'+st+'</span></td>'+
+        '<td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;">'+
+          '<button class="btn btn-light msg-view" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">View</button>'+
+          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\nThank you for contacting SmileHub about \"'+(m.topic||'')+'\".\n\n')+'" style="padding:4px 8px;font-size:0.78rem;text-decoration:none;">Reply</a>'+
+          (st!=='replied' ? '<button class="btn btn-light msg-replied" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Replied</button>' : '')+
+          (st==='new' ? '<button class="btn btn-light msg-read" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Read</button>' : '')+
+          '<button class="btn btn-danger msg-del" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>'+
+        '</td></tr>';
+    }).join('');
+    body.querySelectorAll('.msg-view').forEach(function(btn){
+      btn.addEventListener('click', function(){ openMessage(this.dataset.id); });
+    });
+    body.querySelectorAll('.msg-read').forEach(function(btn){
+      btn.addEventListener('click', function(){ updateMsgStatus(this.dataset.id,'read'); });
+    });
+    body.querySelectorAll('.msg-replied').forEach(function(btn){
+      btn.addEventListener('click', function(){ updateMsgStatus(this.dataset.id,'replied'); });
+    });
+    body.querySelectorAll('.msg-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id=this.dataset.id; if(!confirm('Delete this message?')) return;
+        firebase.firestore().collection('contact_messages').doc(id).delete().then(function(){
+          messagesCache=messagesCache.filter(function(m){ return m._id!==id; });
+          renderMessages(); showToast('Message deleted', false, false);
+        }).catch(function(e){ showToast('Delete failed: '+(e.message||e), true); });
+      });
+    });
+    // Auto-mark as read when viewed via mailto reply? No, manual
+  }
+  function updateMsgStatus(id, status){
+    firebase.firestore().collection('contact_messages').doc(id).update({status:status}).then(function(){
+      var m=messagesCache.find(function(x){ return x._id===id; }); if(m) m.status=status;
+      renderMessages(); addAuditLog('Marked message '+id+' as '+status); showToast('Marked as '+status, false, true);
+    }).catch(function(e){ showToast('Update failed: '+(e.message||e), true); });
+  }
+  function openMessage(id){
+    var m=messagesCache.find(function(x){ return x._id===id; }); if(!m) return;
+    var modal=document.getElementById('msgModal'), content=document.getElementById('msgModalContent'), title=document.getElementById('msgModalTitle');
+    if(!modal||!content) return;
+    if(title) title.textContent=m.topic ? m.topic+' — '+(m.name||'') : 'Message';
+    content.innerHTML=
+      '<div style="display:grid;gap:10px;">'+
+        '<div><strong>From:</strong> '+(m.name||'')+' &lt;'+(m.email||'')+'&gt;</div>'+
+        '<div><strong>Topic:</strong> '+(m.topic||'')+'</div>'+
+        '<div><strong>Time:</strong> '+(m._time||'')+'</div>'+
+        '<div><strong>Status:</strong> '+(m.status||'new')+'</div>'+
+        '<div style="padding:12px;background:var(--sky);border-radius:8px;white-space:pre-wrap;">'+(m.message||'')+'</div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">'+
+          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\n')+'">Reply via Email</a>'+
+          '<button class="btn btn-light" id="msgModalRead">Mark Read</button>'+
+          '<button class="btn btn-light" id="msgModalReplied">Mark Replied</button>'+
+        '</div>'+
+      '</div>';
+    modal.style.display='flex';
+    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); modal.style.display='none'; };
+    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); modal.style.display='none'; };
+    // Auto-mark new as read when opened
+    if((m.status||'new')==='new') updateMsgStatus(id,'read');
   }
 
   // --- NOTIFICATION TEMPLATES ---
@@ -1670,6 +2108,14 @@ document.addEventListener('DOMContentLoaded', function() {
       renderCms();
       setupCms();
     });
+    // Re-apply role-gated UI once the Firebase profile (and correct role) is loaded
+    document.addEventListener('authReady', function() {
+      applyRoleVisibility();
+      // Re-fetch accounts with correct isAdmin after role resolves
+      if (window.SmileHubAuth) {
+        window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(){});
+      }
+    });
     fetchAuditLogs();
     setupAccountSearch();
     if (window.SmileHubAuth) {
@@ -1685,6 +2131,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     renderNotificationTemplates();
 
+    // Messages inbox filters
+    var msgSearch = document.getElementById('msgSearch');
+    var msgStatusFilter = document.getElementById('msgStatusFilter');
+    var msgTopicFilter = document.getElementById('msgTopicFilter');
+    var refreshMessagesBtn = document.getElementById('refreshMessagesBtn');
+    if (msgSearch) msgSearch.addEventListener('input', renderMessages);
+    if (msgStatusFilter) msgStatusFilter.addEventListener('change', renderMessages);
+    if (msgTopicFilter) msgTopicFilter.addEventListener('change', renderMessages);
+    if (refreshMessagesBtn) refreshMessagesBtn.addEventListener('click', function(){ fetchMessages(); showToast('Messages refreshed', false, false); });
+    // Close msg modal on backdrop click
+    var msgModal = document.getElementById('msgModal');
+    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) msgModal.style.display='none'; });
+
     // Report period filter
     var periodSelect = document.getElementById('reportPeriod');
     if (periodSelect) {
@@ -1697,11 +2156,48 @@ document.addEventListener('DOMContentLoaded', function() {
       printBtn.addEventListener('click', printReport);
     }
 
+    // Audit filters
+    var auditSearch = document.getElementById('auditSearch');
+    var auditAdminFilter = document.getElementById('auditAdminFilter');
+    var auditActionFilter = document.getElementById('auditActionFilter');
+    var auditDateFilter = document.getElementById('auditDateFilter');
+    var auditClearFilters = document.getElementById('auditClearFilters');
+    if (auditSearch) auditSearch.addEventListener('input', renderAuditLogs);
+    if (auditAdminFilter) auditAdminFilter.addEventListener('change', renderAuditLogs);
+    if (auditActionFilter) auditActionFilter.addEventListener('change', renderAuditLogs);
+    if (auditDateFilter) auditDateFilter.addEventListener('change', renderAuditLogs);
+    if (auditClearFilters) auditClearFilters.addEventListener('click', function() {
+      if (auditSearch) auditSearch.value = '';
+      if (auditAdminFilter) auditAdminFilter.value = 'all';
+      if (auditActionFilter) auditActionFilter.value = 'all';
+      if (auditDateFilter) auditDateFilter.value = 'all';
+      renderAuditLogs();
+    });
+    var exportAuditBtn = document.getElementById('exportAuditBtn');
+    if (exportAuditBtn) exportAuditBtn.addEventListener('click', function() {
+      var logs = getAuditLogs();
+      if (!logs.length) { showToast('No logs to export', true); return; }
+      var csv = 'Time,Admin,Action\n' + logs.map(function(l) {
+        return '"' + (l.time||'').replace(/"/g,'""') + '","' + (l.admin||'').replace(/"/g,'""') + '","' + (l.action||'').replace(/"/g,'""') + '"';
+      }).join('\n');
+      var blob = new Blob([csv], {type:'text/csv'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href = url; a.download = 'smilehub-audit-' + new Date().toISOString().slice(0,10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+      showToast('Audit log exported', false, true);
+    });
+
     // Clear audit log
     var clearAuditBtn = document.getElementById('clearAuditBtn');
     if (clearAuditBtn) {
       clearAuditBtn.addEventListener('click', function() {
         if (confirm('Clear all audit log entries?')) {
+          // Clear Firestore collection (best-effort) + local cache
+          firebase.firestore().collection('audit_logs').get().then(function(snap) {
+            var batch = firebase.firestore().batch();
+            snap.forEach(function(doc) { batch.delete(doc.ref); });
+            return batch.commit();
+          }).catch(function() {});
+          auditLogsCache = [];
           localStorage.removeItem('smilehub_audit_log');
           renderAuditLogs();
           addAuditLog('Audit log cleared');

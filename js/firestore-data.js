@@ -199,9 +199,28 @@ function mergeOrders(local, remote) {
 
 function getOrders(callback) {
   var local = getLocalOrders();
+  // Customers may only read their own orders (firestore.rules: userId == uid),
+  // so a plain collection get is denied for non-admins. Use a filtered query.
+  var user = (typeof getCachedUser === 'function' ? getCachedUser() : null);
+  var isAdminUser = false;
+  try {
+    var role = user && user.role;
+    isAdminUser = role && ['admin','staff','superadmin'].indexOf(String(role).toLowerCase()) !== -1;
+  } catch(e){}
+  var ordersQuery = (!isAdminUser && user && user.uid)
+    ? db.collection('orders').where('userId', '==', user.uid)
+    : db.collection('orders');
+  // Fallback helper: if userId query returns nothing, try customerEmail (covers legacy web orders)
+  function fetchWithFallback(query, fallbackEmail, cb, eb){
+    return query.get().then(function(snap){
+      if (!snap.empty || !fallbackEmail || isAdminUser) { cb(snap); return; }
+      return db.collection('orders').where('customerEmail', '==', fallbackEmail).get().then(cb).catch(eb);
+    }).catch(eb);
+  }
+  var fallbackEmail = (!isAdminUser && user && user.email) ? String(user.email).toLowerCase() : null;
   // No orderBy('date') here: mobile-app orders store createdAt instead and
   // Firestore silently excludes documents missing the ordered field.
-  db.collection('orders').get().then(function(snapshot) {
+  fetchWithFallback(ordersQuery, fallbackEmail, function(snapshot){
     var orders = [];
     snapshot.forEach(function(doc) {
       var o = doc.data();
@@ -216,6 +235,7 @@ function getOrders(callback) {
         } catch (e) {}
       }
       if (!o.number) o.number = o.orderNumber || doc.id;
+      if (!o.email) o.email = o.customerEmail || o.customer_email || '';
       if (!o.customer) o.customer = o.customerName || o.customerEmail || 'Mobile customer';
       if (!o.address && o.shippingAddress && typeof o.shippingAddress === 'object') {
         var sa = o.shippingAddress;
