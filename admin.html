@@ -15,40 +15,33 @@
 <script defer="" src="js/auth.js?v=6.3.0"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
+<link rel="stylesheet" href="css/admin-overview.css?v=6.3.0">
 </head>
 <body class="admin-body">
+<a class="skip-link" href="#adminMain">Skip to main content</a>
 <div class="admin-layout">
-<aside class="admin-sidebar">
+<aside class="admin-sidebar" aria-label="Admin navigation">
 <a class="logo" href="homepage.html">
-<img alt="" src="assets/logo.svg"/>
+<img alt="SmileHub logo" src="assets/logo.svg"/>
 <span>SmileHub Admin</span>
 </a>
-<span class="admin-sidebar-label">Main Menu</span>
+<span class="admin-sidebar-label">Overview</span>
 <nav class="admin-menu">
-<a class="active" data-role="all" href="#dashboard">Dashboard</a>
-<a data-role="admin,superadmin" href="#products">Products</a>
-<a data-role="all" href="#inventory">Inventory</a>
-<a data-role="all" href="#orders">Orders</a>
-<a data-role="admin,superadmin" href="#customers">Customers</a>
-<a data-role="admin,superadmin" href="#reports">Reports</a>
-<a data-role="admin,superadmin" href="#cms">CMS</a>
-<a data-role="admin,superadmin" href="#notifications">Notifications</a>
-<a data-role="admin,superadmin" href="#audit">Audit Trail</a>
+<a class="active" data-role="all" href="#dashboard"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="7" rx="1.5" width="7" x="3" y="3"/><rect height="7" rx="1.5" width="7" x="14" y="3"/><rect height="7" rx="1.5" width="7" x="3" y="14"/><rect height="7" rx="1.5" width="7" x="14" y="14"/></svg><span>Dashboard</span></a>
+<a data-role="all" href="#products"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span>Products</span></a>
+<a data-role="all" href="#orders"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="17" rx="2" width="14" x="5" y="4"/><path d="M9 4a3 3 0 0 1 6 0"/><path d="M9 11h6M9 15h4"/></svg><span>Orders</span></a>
 </nav>
-<span class="admin-sidebar-label">Links</span>
+<span class="admin-sidebar-label">Manage</span>
 <nav class="admin-menu">
-<a href="homepage.html">Return to Store</a>
+<a data-role="admin,superadmin" href="#customers"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15c2.8.2 4.7 1.6 5.5 4.5"/></svg><span>Customers</span></a>
+<a data-role="admin,superadmin" href="#reports"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-9M21 21V8"/></svg><span>Reports</span></a>
+<a data-role="admin,superadmin" href="#cms"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg><span>CMS</span></a>
+<a data-role="admin,superadmin" href="#notifications"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span>Notifications</span></a>
+<a data-role="admin,superadmin" href="#audit"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Audit Trail</span></a>
+<a data-role="admin,superadmin" href="#messages"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a>
 </nav>
-</aside>
-<main class="admin-main">
-<div class="admin-top admin-dash-top">
-<div>
-<p class="eyebrow">SmileHub Admin &middot; Web</p>
-<h1>Administration Dashboard</h1>
-<p class="muted admin-subtitle" id="adminDateSubtitle">Overview of sales, stock and orders</p>
-</div>
-<div class="admin-top-actions">
-<button aria-label="Toggle dark mode" class="theme-button" title="Toggle dark mode" type="button">◐</button>
+<div class="admin-sidebar-footer">
+<a class="sidebar-store-link" href="homepage.html"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>Return to Store</span></a>
 <span class="admin-user-badge">
 <span class="admin-avatar" id="adminAvatar">A</span>
 <span>
@@ -56,57 +49,96 @@
 <span class="admin-role-badge" id="adminRoleBadge">admin</span>
 </span>
 </span>
+</div>
+</aside>
+<main class="admin-main" id="adminMain" tabindex="-1">
+<div class="admin-top admin-dash-top">
+<div>
+<p class="eyebrow" id="greetEyebrow">Good day</p>
+<h1 class="welcome-title"><span id="welcomeName">Admin</span>, here is the store</h1>
+<p class="muted admin-subtitle" id="adminDateSubtitle">Today at a glance, and how the last 30 days have gone.</p>
+</div>
+<div class="admin-top-actions">
+<button class="btn btn-dark" data-role-btn="admin,superadmin" id="dashAddProduct" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add Product</span></button>
+<div class="notif-bell-wrap" style="position:relative;">
+<button aria-label="Recent activity" class="icon-btn dash-bell" id="notifBellBtn" aria-haspopup="true" aria-expanded="false" aria-controls="notifDropdown" title="Recent activity" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span class="bell-badge hidden" id="dashBellCount">0</span></button>
+<div id="notifDropdown" class="notif-dropdown hidden" role="dialog" aria-modal="false" aria-labelledby="notifBellBtn" aria-label="Recent activity" style="display:none;">
+<div class="notif-dropdown-head">
+<div>
+<strong>Recent activity</strong>
+<span class="muted" id="notifDropdownCount">—</span>
+</div>
+<button class="icon-btn" data-notif-close type="button" aria-label="Close" style="width:32px;height:32px;border-radius:999px;"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+<div id="notifDropdownList" class="notif-dropdown-list"></div>
+<div class="notif-dropdown-foot">
+<button class="dash-link" data-notif-view-all type="button">View all activity →</button>
+<button class="dash-link" data-notif-pending type="button" id="notifDropdownPending">0 pending orders need attention →</button>
+</div>
+</div>
+</div>
+<button aria-label="Toggle dark mode" class="theme-button" title="Toggle dark mode" type="button">◐</button>
 <button class="btn btn-light" id="logoutButton" type="button">Logout</button>
 </div>
 </div>
 <!-- ===== DASHBOARD SECTION ===== -->
 <section data-role="all" id="dashboard">
-<div class="kpi-grid admin-kpi-grid">
-<a class="card kpi-card clickable" data-target="#orders" href="#orders">
-<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">₱</span><span class="muted kpi-label">Today's Sales</span></span>
-<strong id="kpiTodaySales">₱0</strong>
-<small class="kpi-sub" id="kpiTodayOrders">0 orders today</small>
+<div class="today-cards admin-section">
+<a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" aria-label="View orders — Orders today">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span class="muted kpi-label">Orders today</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<strong id="kpiTodayOrders">0</strong>
+<small class="kpi-sub" id="kpiTodaySales">₱0.00 collected</small>
 </a>
-<a class="card kpi-card clickable" data-target="#reports" href="#reports">
-<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">◈</span><span class="muted kpi-label">Inventory Value</span></span>
-<strong id="kpiTotalRevenue">₱0</strong>
-<small class="kpi-sub" id="kpiRevenuePeriod">Across all stock</small>
+<a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" aria-label="View orders — Pending now">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M7 3h10v5l-5 4-5-4z"/><path d="M7 21h10v-5l-5-4-5 4z"/></svg></span><span class="muted kpi-label">Pending now</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<strong id="kpiPendingNow">0</strong>
+<small class="kpi-sub" id="kpiPendingSub">Need attention</small>
 </a>
-<a class="card kpi-card clickable" data-target="#products" href="#products">
-<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">▦</span><span class="muted kpi-label">Total Products</span></span>
+<a class="card kpi-card clickable today-card" data-target="#products" href="#products" aria-label="Manage products">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span><span class="muted kpi-label">Products</span><span class="kpi-more" aria-hidden="true">...</span></span>
 <strong id="kpiTotalProducts">0</strong>
-<small class="kpi-sub" id="kpiActiveProducts">0 active</small>
+<small class="kpi-sub" id="kpiTotalRevenue">₱0 inventory value</small>
 </a>
-<a class="card kpi-card clickable" data-target="#inventory" href="#inventory">
-<span class="kpi-top"><span aria-hidden="true" class="kpi-icon">⚠</span><span class="muted kpi-label">Needs Attention</span></span>
+<a class="card kpi-card clickable today-card" data-target="#products" href="#products" aria-label="View low stock products">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18.5h.01"/></svg></span><span class="muted kpi-label">Low stock</span><span class="kpi-more" aria-hidden="true">...</span></span>
 <strong id="kpiLowStock">0</strong>
-<small class="kpi-sub" id="kpiLowStockDetail">Needs attention</small>
+<small class="kpi-sub" id="kpiLowStockDetail">Needs restocking</small>
 </a>
 </div>
-<div class="grid grid-2 admin-section">
-<article class="card form-card dash-card">
-<div class="dash-card-head">
-<div>
-<h2>Sales Performance</h2>
-<p class="muted dash-card-sub">Real revenue from orders &middot; Last 6 months</p>
+<div class="period-panel admin-section">
+<p class="section-eyebrow">Last 30 days</p>
+<div class="metrics-row clinic-trio">
+<article class="card kpi-card metric-card">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="12" rx="2" width="20" x="2" y="6"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg></span><span class="muted kpi-label">Collected</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<p class="hero-value"><strong id="mCollected">₱0.00</strong> <span class="mom-badge hidden" id="mCollectedBadge"></span></p>
+<small class="kpi-sub" id="mCollectedSub">0 payments taken</small>
+</article>
+<article class="card kpi-card metric-card">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg></span><span class="muted kpi-label">Completed</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<p class="hero-value"><strong id="mDelivered">0</strong></p>
+<small class="kpi-sub">Orders delivered</small>
+</article>
+<article class="card kpi-card metric-card">
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="muted kpi-label">Pending value</span><span class="scope-badge">All time</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<p class="hero-value"><strong id="mPendingValue">₱0.00</strong></p>
+<small class="kpi-sub">All pending orders — not just the last 30 days</small>
+</article>
 </div>
-<span class="chip-live">Live</span>
+</div>
+<div class="quick-rail admin-section" role="toolbar" aria-label="Quick actions">
+<button class="rail-link" onclick="window.navigateTo('#orders')" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="17" rx="2" width="14" x="5" y="4"/><path d="M9 4a3 3 0 0 1 6 0"/><path d="M9 11h6M9 15h4"/></svg><span>View Orders</span></button>
+<button class="rail-link" onclick="window.navigateTo('#products')" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span>Manage Stock</span></button>
+<button class="rail-link" onclick="window.location.href='homepage.html'" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>View Store</span></button>
+</div>
+<div class="chart-band admin-section">
+<div class="dash-card-head">
+<p class="ov-chart-eyebrow">Collected per month</p>
+<span class="ov-period-total" id="salesPeriodTotal" role="status" aria-live="polite"></span>
 </div>
 <div class="dash-chart-wrap">
-<canvas aria-label="Monthly sales chart" id="salesChartReal" role="img"></canvas>
+<canvas aria-label="Collected per month chart" id="salesChartReal" role="img"></canvas>
 </div>
 <p class="muted dash-empty hidden" id="salesChartEmpty">No sales data yet &mdash; new orders will appear here.</p>
-</article>
-<article class="card form-card dash-card">
-<h2>Quick Actions</h2>
-<p class="muted dash-card-sub">Common tasks</p>
-<div class="quick-grid">
-<button class="btn btn-light quick-btn" onclick="window.navigateTo('#orders')" type="button"><span aria-hidden="true" class="quick-icon">▤</span><span class="quick-text"><strong>View Orders</strong><small>Process &amp; track</small></span></button>
-<button class="btn btn-light quick-btn" onclick="window.navigateTo('#inventory')" type="button"><span aria-hidden="true" class="quick-icon">◫</span><span class="quick-text"><strong>Manage Stock</strong><small>Update levels</small></span></button>
-<button class="btn btn-light quick-btn" data-role-btn="admin,superadmin" onclick="window.openProductModal &amp;&amp; window.openProductModal()" type="button"><span aria-hidden="true" class="quick-icon">＋</span><span class="quick-text"><strong>Add Product</strong><small>New item</small></span></button>
-<button class="btn btn-light quick-btn" onclick="window.location.href='homepage.html'" type="button"><span aria-hidden="true" class="quick-icon">○</span><span class="quick-text"><strong>View Store</strong><small>Storefront</small></span></button>
-</div>
-</article>
 </div>
 <div class="grid grid-2 admin-section">
 <article class="card form-card dash-card">
@@ -118,13 +150,12 @@
 <button class="dash-link" onclick="window.navigateTo('#orders')" type="button">View all &rarr;</button>
 </div>
 <div class="table-wrap dash-table-wrap">
-<table class="dash-table">
-<thead>
+<table class="dash-table"><caption class="sr-only">Recent orders</caption><thead>
 <tr>
-<th>Order</th>
-<th>Customer</th>
-<th>Total</th>
-<th>Status</th>
+<th scope="col">Order</th>
+<th scope="col">Customer</th>
+<th scope="col">Total</th>
+<th scope="col">Status</th>
 </tr>
 </thead>
 <tbody id="dashRecentOrders">
@@ -139,72 +170,69 @@
 <h2>Inventory Alerts</h2>
 <p class="muted dash-card-sub">Low &amp; out of stock</p>
 </div>
-<button class="dash-link" onclick="window.navigateTo('#inventory')" type="button">Manage &rarr;</button>
+<button class="dash-link" onclick="window.navigateTo('#products')" type="button">Manage &rarr;</button>
 </div>
 <div class="dash-alerts" id="dashInventoryAlerts">
 <p class="muted dash-empty">All items well-stocked</p>
 </div>
 </article>
 </div>
-<div class="grid grid-2 admin-section">
-<article class="card form-card dash-card">
+<article class="card form-card dash-card admin-section">
 <div class="dash-card-head">
 <div>
-<h2>Stock Status</h2>
-<p class="muted dash-card-sub">Share of catalogue</p>
+<h2>Inventory</h2>
+<p class="muted dash-card-sub">Stock health and value by category</p>
 </div>
+<button class="dash-link" onclick="window.navigateTo('#products')" type="button">Manage &rarr;</button>
 </div>
-<div class="dash-chart-wrap dash-chart-sm">
+<div class="inventory-panel">
+<div class="dash-chart-wrap dash-chart-sm inventory-donut">
 <canvas aria-label="Stock status chart" id="chartStockStatus" role="img"></canvas>
 </div>
-</article>
-<article class="card form-card dash-card">
-<div class="dash-card-head">
-<div>
-<h2>Inventory by Category</h2>
-<p class="muted dash-card-sub">Value per category</p>
-</div>
-</div>
-<div class="dash-chart-wrap dash-chart-sm">
-<canvas aria-label="Inventory value by category chart" id="chartCategoryValue" role="img"></canvas>
+<div class="cat-bars" id="catBars"></div>
 </div>
 </article>
-</div>
 </section>
 <!-- ===== PRODUCTS SECTION ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="products" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Catalog</p>
 <h2>Product Management</h2>
-<button class="btn btn-primary" id="showProductForm">+ Add Product</button>
+<p class="muted dash-card-sub" id="productCount">Loading products…</p>
 </div>
-<div id="productModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
-<div style="max-width:640px;width:90%;max-height:85vh;overflow-y:auto;padding:0;background:var(--white);border-radius:14px;box-shadow:var(--shadow-xl);">
-<div id="productModalHeader" style="display:flex;justify-content:space-between;align-items:center;padding:20px 28px;border-bottom:1px solid var(--border);background:var(--sky);border-radius:14px 14px 0 0;">
-<div style="display:flex;align-items:center;gap:10px;">
-<span style="font-size:1.4rem;">📦</span>
-<h3 id="productModalTitle" style="margin:0;font-size:1.2rem;">Add Product</h3>
 </div>
-<button class="btn btn-light" onclick="document.getElementById('productModal').style.display='none'" style="padding:6px 14px;font-size:0.85rem;" type="button">✕ Close</button>
+<div id="productModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="productModalTitle" style="display:none;">
+<div class="modal-card" style="max-width:640px;">
+<div id="productModalHeader" class="modal-head">
+<div class="modal-head-main">
+<span class="kpi-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span>
+<div>
+<p class="ov-chart-eyebrow" id="productModalEyebrow">New product</p>
+<h3 id="productModalTitle" class="modal-title">Add Product</h3>
 </div>
-<div style="padding:24px 28px 28px;">
-<form class="form-card" id="productFormBox" style="padding:0;margin:0;">
+</div>
+<button class="modal-close" onclick="document.getElementById('productModal').style.display='none'" type="button" aria-label="Close">✕</button>
+</div>
+<div class="modal-body">
+<form class="form-card" id="productFormBox" style="padding:0;margin:0;border:0;box-shadow:none;background:transparent;">
 <div id="adminProductForm">
 <input name="productId" type="hidden" value=""/>
-<div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:14px;">
+<div class="product-grid">
 <div class="form-group" style="grid-column:span 2;">
-<label>Product Name *</label>
-<input name="name" placeholder="e.g., ProClean Toothbrush" required=""/>
+<label for="productName">Product Name *</label>
+<input id="productName" name="name" placeholder="e.g., ProClean Toothbrush" required=""/>
 </div>
 <div class="form-group">
-<label>Brand</label>
-<input name="brand" placeholder="e.g., SmilePro"/>
+<label for="productBrand">Brand</label>
+<input id="productBrand" name="brand" placeholder="e.g., SmilePro"/>
 </div>
 <div class="form-group">
-<label>SKU</label>
-<input name="sku" placeholder="Auto"/>
+<label for="productSku">SKU</label>
+<input id="productSku" name="sku" placeholder="Auto"/>
 </div>
 <div class="form-group">
-<label>Category *</label>
+<label for="productCategory">Category *</label>
 <select id="productCategory" name="category">
 <option value="Oral Care">Oral Care</option>
 <option value="Instruments">Instruments</option>
@@ -219,25 +247,29 @@
 </select>
 </div>
 <div class="form-group">
-<label>Price (₱) *</label>
-<input name="price" placeholder="0.00" required="" step="0.01" type="number"/>
+<label for="productPrice">Price (₱) *</label>
+<input id="productPrice" name="price" placeholder="0.00" required="" step="0.01" type="number"/>
 </div>
 <div class="form-group">
-<label>Stock Qty</label>
-<input min="0" name="stock" placeholder="0" type="number" value="0"/>
+<label for="productStock">Stock Qty</label>
+<input id="productStock" min="0" name="stock" placeholder="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="productMinStock">Min Stock</label>
+<input id="productMinStock" min="0" step="1" name="minStock" placeholder="10" type="number" value="10"/>
 </div>
 </div>
 <div class="form-group">
-<label>Description</label>
-<textarea name="description" placeholder="Product description..." rows="2"></textarea>
+<label for="productDescription">Description</label>
+<textarea id="productDescription" name="description" placeholder="Product description..." rows="2"></textarea>
 </div>
 <div class="form-group">
-<label>Specifications</label>
-<input name="specs" placeholder="e.g., 4 toothbrushes, Soft nylon bristles, Ergonomic handle (separate with commas)"/>
-<small class="muted">Separate multiple specs with commas</small>
+<label for="productSpecs">Specifications</label>
+<input id="productSpecs" name="specs" aria-describedby="productSpecsHint" placeholder="e.g., 4 toothbrushes, Soft nylon bristles, Ergonomic handle (separate with commas)"/>
+<small class="muted" id="productSpecsHint">Separate multiple specs with commas</small>
 </div>
 <div class="form-group">
-<label>Product Image</label>
+<label for="productImageSelect">Product Image</label>
 <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
 <div id="imagePreview" style="width:72px;height:72px;border:2px dashed var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--sky);transition:border-color 0.2s;">
 <img alt="Preview" id="previewImg" src="assets/products/oral-care.svg" style="max-width:56px;max-height:56px;object-fit:contain;"/>
@@ -253,7 +285,7 @@
 <option value="assets/products/orthodontic.svg">Orthodontics</option>
 <option value="assets/products/equipment.svg">Equipment</option>
 </select>
-<input id="customImageInput" name="customImage" placeholder="Or paste image URL..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;"/>
+<input id="customImageInput" name="customImage" aria-label="Custom image URL" placeholder="Or paste image URL..." style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;"/>
 </div>
 </div>
 </div>
@@ -266,8 +298,8 @@
 </div>
 </div>
 </div>
-<div class="admin-toolbar">
-<input id="adminSearch" placeholder="🔍 Search by name, SKU, or category..."/>
+<div class="admin-toolbar products-toolbar">
+<input id="adminSearch" aria-label="Search products" placeholder="🔍 Search by name, SKU, or category..."/>
 <select id="adminCategoryFilter" aria-label="Filter by category">
 <option value="all">All categories</option>
 <option value="Oral Care">Oral Care</option>
@@ -281,46 +313,23 @@
 <option value="Equipment">Equipment</option>
 <option value="Cosmetic">Cosmetic</option>
 </select>
-<span class="toolbar-count" id="productCount"></span>
+<select id="adminStockFilter" aria-label="Filter by stock status">
+<option value="all">All stock levels</option>
+<option value="in">In stock</option>
+<option value="low">Low stock</option>
+<option value="out">Out of stock</option>
+</select>
 </div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>Image</th>
-<th>SKU</th>
-<th>Product</th>
-<th>Category</th>
-<th>Price</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody id="adminProductsBody">
-<!-- Dynamic content -->
-</tbody>
-</table>
-</div>
-<div style="margin-top:12px; padding:12px 16px; background:var(--sky); border-radius:8px; font-size:0.9rem; color:var(--muted);">
-            ⚠️ <strong>Stock Management:</strong> To update product quantities, go to the <strong>Inventory</strong> section.
-          </div>
-</section>
-<!-- ===== INVENTORY SECTION ===== -->
-<section class="admin-section" data-role="all" id="inventory" style="display:none;">
-<div class="admin-top">
-<h2>📊 Inventory Management</h2>
-<button class="btn btn-secondary" onclick="window.showLowStock &amp;&amp; window.showLowStock()">Show Low Stock</button>
-</div>
-<div class="grid grid-4" style="margin-bottom:20px;">
+<div class="grid grid-4" style="margin-bottom:16px;">
 <article class="card kpi-card">
-<span class="muted">Total Items in Stock</span>
+<span class="muted">Total Units</span>
 <strong id="totalStockCount">0</strong>
 <small>Across all products</small>
 </article>
 <article class="card kpi-card">
-<span class="muted">Low Stock Items</span>
+<span class="muted">Low Stock</span>
 <strong id="lowStockCount">0</strong>
-<small>Need restocking soon</small>
+<small>At or below reorder point</small>
 </article>
 <article class="card kpi-card">
 <span class="muted">Out of Stock</span>
@@ -328,85 +337,62 @@
 <small>Currently unavailable</small>
 </article>
 <article class="card kpi-card">
-<span class="muted">Total Value</span>
+<span class="muted">Inventory Value</span>
 <strong id="inventoryValue">₱0</strong>
-<small>Estimated inventory value</small>
+<small>Retail value on hand</small>
 </article>
 </div>
 <div class="table-wrap">
-<table>
-<thead>
+<table><caption class="sr-only">Data table</caption><thead>
 <tr>
-<th>Image</th>
-<th>Product</th>
-<th>SKU</th>
-<th>Current Stock</th>
-<th>Min Stock</th>
-<th>Status</th>
-<th>Action</th>
+<th scope="col"><input type="checkbox" id="selectAllProducts" aria-label="Select all products"></th>
+<th scope="col">Image</th>
+<th scope="col">SKU</th>
+<th scope="col">Product</th>
+<th scope="col">Category</th>
+<th scope="col">Price</th>
+<th scope="col">Stock</th>
+<th scope="col">Min</th>
+<th scope="col">Status</th>
+<th scope="col">Action</th>
 </tr>
 </thead>
-<tbody id="inventoryBody">
+<tbody id="adminProductsBody">
 <!-- Dynamic content -->
 </tbody>
 </table>
 </div>
-<!-- Bulk Stock Update -->
-<div class="card form-card admin-section">
-<h3>📦 Bulk Stock Update</h3>
-<form id="bulkStockForm">
-<div class="form-grid">
-<div class="form-group">
-<label>Category Filter</label>
-<select id="bulkCategoryFilter">
-<option value="all">All Categories</option>
-<option value="Oral Care">Oral Care</option>
-<option value="Instruments">Instruments</option>
-<option value="PPE">PPE</option>
-<option value="Restorative">Restorative</option>
-<option value="Disposables">Disposables</option>
-<option value="Impression">Impression</option>
-<option value="Orthodontics">Orthodontics</option>
-<option value="Rotary">Rotary</option>
-<option value="Cosmetic">Cosmetic</option>
-<option value="Equipment">Equipment</option>
-</select>
-</div>
-<div class="form-group">
-<label>Adjustment Type</label>
-<select id="bulkAdjustmentType">
+<div id="productsBulkBar" class="bulk-bar hidden" role="toolbar" aria-label="Bulk actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:12px 14px;background:#1E293B;color:#fff;border-radius:12px;">
+<span id="productsBulkCount">0 selected</span>
+<span style="flex:1 1 auto"></span>
+<select id="productsBulkType" aria-label="Bulk adjustment type" style="padding:8px 10px;border-radius:8px;border:1px solid #334155;background:#fff;color:#1E293B;">
 <option value="set">Set to</option>
 <option value="add">Add</option>
 <option value="subtract">Subtract</option>
 </select>
+<input id="productsBulkQty" type="number" min="0" step="1" inputmode="numeric" value="10" aria-label="Bulk quantity" style="width:90px;padding:8px 10px;border-radius:8px;border:1px solid #334155;">
+<button class="btn btn-primary" id="productsBulkApply" type="button">Apply</button>
+<button class="btn btn-light" id="productsBulkExport" type="button">Export</button>
+<button class="btn btn-light hidden" id="bulkUndoBtn" type="button">Undo</button>
+<span class="muted" id="bulkPreview" role="status" aria-live="polite" style="color:#cbd5e1;font-size:0.85rem;"></span>
 </div>
-<div class="form-group">
-<label>Quantity</label>
-<input id="bulkQuantity" type="number" value="10"/>
-</div>
-</div>
-<button class="btn btn-primary" type="submit">Apply Bulk Update</button>
-</form>
-</div>
+<p class="muted form-hint" style="margin-top:10px;">Tip: tick products, then Set/Add/Subtract their stock. Use Min to set reorder points per product.</p>
 </section>
 <!-- ===== ORDERS SECTION ===== -->
 <section class="admin-section" data-role="all" id="orders" style="display:none;">
 <div class="admin-top">
-<h2>📋 Order Management</h2>
-<div style="display:flex; gap:10px; flex-wrap:wrap;">
-<select id="orderStatusFilter" onchange="filterOrders()" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--text);">
-<option value="all">All Orders</option>
-<option value="Pending">⏳ Pending</option>
-<option value="Processing">📦 Processing</option>
-<option value="Shipped">🚚 Shipped</option>
-<option value="Delivered">✅ Delivered</option>
-<option value="Cancelled">❌ Cancelled</option>
-</select>
-<button class="btn btn-secondary" onclick="refreshOrders()">🔄 Refresh</button>
+<div>
+<p class="ov-chart-eyebrow">Sales · fulfillment</p>
+<h2>Order Management</h2>
+<p class="muted dash-card-sub">Search, filter and act on fulfillment</p>
+</div>
+<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+<button class="btn btn-light" id="ordersExportBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Export</span></button>
+<button class="btn btn-light" onclick="refreshOrders()" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v6h-6"/></svg><span>Refresh</span></button>
 </div>
 </div>
-<!-- Order Stats -->
-<div class="grid grid-4" style="margin-bottom:20px;">
+<!-- Order KPIs -->
+<div class="grid grid-4" style="margin-bottom:16px;">
 <article class="card kpi-card">
 <span class="muted">Total Orders</span>
 <strong id="totalOrders">0</strong>
@@ -423,23 +409,46 @@
 <small>Being prepared</small>
 </article>
 <article class="card kpi-card">
-<span class="muted">Delivered Today</span>
+<span class="muted">Delivered</span>
 <strong id="deliveredToday">0</strong>
-<small>Completed</small>
+<small>Completed orders</small>
 </article>
 </div>
-<!-- Orders Table -->
+<!-- Orders Filters -->
+<div class="admin-toolbar orders-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--white);border:1px solid #E8E8EB;border-radius:16px;padding:12px 14px;margin-bottom:14px;">
+<input id="orderSearch" aria-label="Search orders" placeholder="🔍 Order, customer or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<select id="orderStatusFilter" aria-label="Filter orders by status" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="all">All Statuses</option>
+<option value="Pending">⏳ Pending</option>
+<option value="Processing">📦 Processing</option>
+<option value="Shipped">🚚 Shipped</option>
+<option value="Delivered">✅ Delivered</option>
+<option value="Cancelled">❌ Cancelled</option>
+<option value="Returned">↩️ Returned</option>
+<option value="Refunded">💸 Refunded</option>
+</select>
+<select id="orderDateFilter" aria-label="Filter orders by date" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="all">All Dates</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+<span class="toolbar-count" id="orderFilterCount" style="font-size:0.85rem;color:var(--muted);"></span>
+</div>
+<!-- Orders Layout: table + right rail -->
+<div class="orders-layout" style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;">
+<div>
 <div class="table-wrap">
-<table>
-<thead>
+<table><caption class="sr-only">Data table</caption><thead>
 <tr>
-<th>Order #</th>
-<th>Customer</th>
-<th>Date</th>
-<th>Total</th>
-<th>Items</th>
-<th>Status</th>
-<th>Action</th>
+<th scope="col"><input type="checkbox" id="orderSelectAll" aria-label="Select all orders"></th>
+<th scope="col">Order #</th>
+<th scope="col">Customer</th>
+<th scope="col">Date</th>
+<th scope="col">Total</th>
+<th scope="col">Items</th>
+<th scope="col">Status</th>
+<th scope="col">Action</th>
 </tr>
 </thead>
 <tbody id="ordersBody">
@@ -447,15 +456,66 @@
 </tbody>
 </table>
 </div>
-<!-- Order Details Modal -->
-<div id="orderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
-<div style="max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:30px; background:var(--white); border-radius:14px; box-shadow:var(--shadow-xl);">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-<h2 id="orderModalTitle">Order #SH-2026001</h2>
-<button class="btn btn-light" onclick="closeOrderModal()">✕ Close</button>
+<div id="ordersBulkBar" class="bulk-bar hidden" role="toolbar" aria-label="Order bulk actions" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:12px 14px;background:#1E293B;color:#fff;border-radius:12px;">
+<span id="ordersBulkCount">0 selected</span>
+<span style="flex:1 1 auto"></span>
+<select id="ordersBulkStatus" aria-label="Bulk change status" style="padding:8px 10px;border-radius:8px;border:1px solid #334155;background:#fff;color:#1E293B;">
+<option value="">Change status to…</option>
+<option value="Pending">Pending</option>
+<option value="Processing">Processing</option>
+<option value="Shipped">Shipped</option>
+<option value="Delivered">Delivered</option>
+<option value="Cancelled">Cancelled</option>
+<option value="Returned">Returned</option>
+<option value="Refunded">Refunded</option>
+</select>
+<button class="btn btn-primary" id="ordersBulkApply" type="button">Apply</button>
+<button class="btn btn-light" id="ordersBulkPrint" type="button">Print slips</button>
+<button class="btn btn-light" id="ordersBulkExport" type="button">Export</button>
+<button class="btn btn-light" id="ordersBulkClear" type="button">Clear</button>
 </div>
+</div>
+<aside class="orders-rail" style="display:grid;gap:16px;">
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="margin:0;font-size:0.95rem;">Orders by Status</h3>
+<span class="muted" style="font-size:0.75rem;" id="ordersStatusSub"></span>
+</div>
+<div id="ordersStatusBars" style="display:grid;gap:10px;"></div>
+</article>
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="margin:0;font-size:0.95rem;">Overview</h3>
+<span class="muted" style="font-size:0.75rem;">This month</span>
+</div>
+<div id="ordersOverview" style="display:grid;gap:10px;font-size:0.9rem;"></div>
+</article>
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="margin:0;font-size:0.95rem;">Top Sellers</h3>
+<span class="muted" style="font-size:0.75rem;">This month</span>
+</div>
+<div id="ordersTopSellers"></div>
+</article>
+</aside>
+</div>
+<!-- Order Details Modal -->
+<div id="orderModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle" style="display:none;">
+<div class="modal-card">
+<div class="modal-head">
+<div class="modal-head-main">
+<span class="kpi-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="17" rx="2" width="14" x="5" y="4"/><path d="M9 4a3 3 0 0 1 6 0"/><path d="M9 11h6M9 15h4"/></svg></span>
+<div>
+<p class="ov-chart-eyebrow">Order detail</p>
+<h3 id="orderModalTitle" class="modal-title">Order #SH-2026001</h3>
+</div>
+</div>
+<button class="modal-close" onclick="closeOrderModal()" type="button" aria-label="Close">✕</button>
+</div>
+<div class="modal-body">
 <div id="orderModalContent">
 <!-- Dynamic content -->
+</div>
 </div>
 </div>
 </div>
@@ -463,32 +523,58 @@
 <!-- ===== CUSTOMERS / ACCOUNTS SECTION ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="customers" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">People</p>
 <h2>Account Management</h2>
+<p class="muted dash-card-sub" id="customersSub">Search, filter and manage accounts</p>
+</div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-<input id="accountSearch" placeholder="Search name or email..." style="padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);width:200px;"/>
-<select id="accountRoleFilter" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<button class="btn btn-light" id="customersExportBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Export</span></button>
+<button class="btn btn-primary" id="showCreateAccountForm" type="button">+ Create Account</button>
+</div>
+</div>
+<div class="admin-toolbar customers-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--white);border:1px solid #E8E8EB;border-radius:16px;padding:12px 14px;margin-bottom:14px;">
+<input id="accountSearch" aria-label="Search accounts" placeholder="🔍 Search name or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);"/>
+<select id="accountRoleFilter" aria-label="Filter accounts by role" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Roles</option>
 <option value="customer">Customer</option>
 <option value="staff">Staff</option>
 <option value="admin">Admin</option>
 <option value="superadmin">Super Admin</option>
 </select>
-<button class="btn btn-primary" id="showCreateAccountForm">+ Create Account</button>
-</div>
+<select id="accountStatusFilter" aria-label="Filter accounts by status" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="all">All Statuses</option>
+<option value="active">Active</option>
+<option value="suspended">Suspended</option>
+</select>
+<select id="accountSort" aria-label="Sort accounts" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<option value="name">Sort: Name A–Z</option>
+<option value="role">Sort: Role</option>
+<option value="status">Sort: Status</option>
+<option value="orders">Sort: Orders ↓</option>
+<option value="spent">Sort: Spent ↓</option>
+</select>
+<span class="toolbar-count" id="accountFilterCount" style="font-size:0.85rem;color:var(--muted);"></span>
 </div>
 <form class="card form-card admin-form" id="createAccountForm" style="margin-bottom:20px;">
-<h3 style="margin-top:0;">Create New Account</h3>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+<span class="kpi-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><path d="M14 14h6M16 18v-6"/></svg></span>
+<div>
+<p class="ov-chart-eyebrow">New account</p>
+<h3 style="margin:2px 0 0;">Create Account</h3>
+</div>
+</div>
+<div class="account-grid">
 <div class="form-group">
-<label>First Name *</label>
-<input id="createAccFirstName" required=""/>
+<label for="createAccFirstName">First Name *</label>
+<input id="createAccFirstName" required="" placeholder="Juan" autocomplete="given-name"/>
 </div>
 <div class="form-group">
-<label>Last Name *</label>
-<input id="createAccLastName" required=""/>
+<label for="createAccLastName">Last Name *</label>
+<input id="createAccLastName" required="" placeholder="Dela Cruz" autocomplete="family-name"/>
 </div>
 <div class="form-group">
-<label>Role *</label>
+<label for="createAccRole">Role *</label>
 <select id="createAccRole">
 <option value="customer">Customer</option>
 <option value="staff">Staff</option>
@@ -497,17 +583,23 @@
 </select>
 </div>
 <div class="form-group">
-<label>Email *</label>
-<input id="createAccEmail" required="" type="email"/>
+<label for="createAccEmail">Email *</label>
+<input id="createAccEmail" required="" type="email" placeholder="juan@example.com" autocomplete="email"/>
 </div>
 <div class="form-group">
-<label>Password *</label>
-<input id="createAccPassword" minlength="6" required="" type="password"/>
+<label for="createAccPassword">Password *</label>
+<input id="createAccPassword" minlength="6" required="" type="password" placeholder="At least 6 characters" autocomplete="new-password" aria-describedby="createAccPasswordHint"/>
+<small class="muted" id="createAccPasswordHint">Min. 6 characters</small>
 </div>
-<div style="display:flex;align-items:end;gap:8px;grid-column:1/-1;">
-<button class="btn btn-primary" style="flex:1;" type="submit">Create</button>
+<div class="form-group">
+<label for="createAccPhone">Phone</label>
+<input id="createAccPhone" type="tel" placeholder="09XX XXX XXXX" autocomplete="tel" inputmode="tel"/>
+<small class="muted">Optional — shown in the table</small>
+</div>
+</div>
+<div class="modal-foot">
 <button class="btn btn-light" id="cancelCreateAccount" type="button">Cancel</button>
-</div>
+<button class="btn btn-primary" type="submit">Create</button>
 </div>
 </form>
 <div class="grid grid-4" style="margin-bottom:20px;">
@@ -533,18 +625,19 @@
 </article>
 </div>
 <div class="table-wrap">
-<table>
-<thead>
+<table><caption class="sr-only">Data table</caption><thead>
 <tr>
-<th>Name</th>
-<th>Email</th>
-<th>Role</th>
-<th>Status</th>
-<th>Actions</th>
+<th scope="col">Customer</th>
+<th scope="col">Phone</th>
+<th scope="col">Orders</th>
+<th scope="col">Total Spent</th>
+<th scope="col">Role</th>
+<th scope="col">Status</th>
+<th scope="col">Actions</th>
 </tr>
 </thead>
 <tbody id="accountsBody">
-<tr><td class="text-center muted" colspan="5" style="padding:40px;">Loading accounts...</td></tr>
+<tr><td class="text-center muted" colspan="7" style="padding:40px;">Loading accounts...</td></tr>
 </tbody>
 </table>
 </div>
@@ -552,81 +645,111 @@
 <!-- ===== CMS SECTION ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="cms" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Storefront</p>
 <h2>Content Management</h2>
-<button class="btn btn-primary" id="saveCmsBtn">Save Changes</button>
+<p class="muted dash-card-sub" id="cmsSub">Live storefront copy — changes apply on reload</p>
+</div>
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn btn-primary" id="saveCmsBtn" type="button">Save Changes<span class="cms-save-dot hidden" id="cmsSaveDot" aria-hidden="true"></span></button>
+</div>
 </div>
 <div class="grid grid-2" style="margin-bottom:20px;">
 <article class="card form-card">
-<h3>Hero Banner</h3>
+<div class="cms-hero">
+<span class="cms-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 8h18"/></svg></span>
+<div>
+<h3 style="margin:0;">Hero Banner</h3>
+<p class="muted" style="margin:2px 0 0;font-size:0.82rem;">Homepage headline and hero action</p>
+</div>
+</div>
 <div class="form-group">
-<label>Headline</label>
+<label for="cmsHeroHeadline">Headline</label>
 <input id="cmsHeroHeadline" value="Your Trusted Dental Supply Partner"/>
 </div>
 <div class="form-group">
-<label>Subtitle</label>
+<label for="cmsHeroSubtitle">Subtitle</label>
 <textarea id="cmsHeroSubtitle" rows="2">Quality dental products for clinics, dentists, and students across the Philippines.</textarea>
 </div>
 <div class="form-group">
-<label>CTA Button Text</label>
+<label for="cmsHeroCta">CTA Button Text</label>
 <input id="cmsHeroCta" value="Shop Now"/>
 </div>
 </article>
 <article class="card form-card">
-<h3>Promo Banner</h3>
+<div class="cms-hero">
+<span class="cms-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 12V8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v4"/><path d="M4 12h16"/><path d="M8 16h8"/><path d="M8 20h8"/></svg></span>
+<div>
+<h3 style="margin:0;">Promo Banner</h3>
+<p class="muted" style="margin:2px 0 0;font-size:0.82rem;">Top strip and store identity</p>
+</div>
+</div>
 <div class="form-group">
-<label>Promo Text</label>
+<label for="cmsPromoText">Promo Text</label>
 <input id="cmsPromoText" value="Free shipping on orders over ₱3,000"/>
 </div>
 <div class="form-group">
-<label>Button Label</label>
+<label for="cmsPromoBtn">Button Label</label>
 <input id="cmsPromoBtn" value="View Deals"/>
 </div>
 <div class="form-group">
-<label>Store Tagline</label>
+<label for="cmsStoreTagline">Store Tagline</label>
 <input id="cmsStoreTagline" value="SmileHub Dental Supplies"/>
 </div>
 </article>
 </div>
 <article class="card form-card" style="margin-bottom:20px;">
-<h3>FAQ Management</h3>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<div>
+<h3 style="margin:0;">FAQ Management</h3>
+<p class="muted" style="margin:2px 0 0;font-size:0.82rem;" id="cmsFaqCount">3 questions</p>
+</div>
+</div>
 <div id="cmsFaqList">
 <!-- FAQ items rendered here -->
 </div>
-<button class="btn btn-light" id="addFaqBtn" style="margin-top:12px;">+ Add FAQ</button>
+<button class="faq-add-zone" id="addFaqBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>Add FAQ</span></button>
 </article>
-<div style="display:flex; gap:10px;">
-<button class="btn btn-primary" id="saveCmsBtn2">Save Changes</button>
-<span class="muted" style="align-self:center;">Changes are saved to localStorage and applied on page reload.</span>
-</div>
 </section>
 <!-- ===== NOTIFICATIONS SECTION ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="notifications" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Messaging</p>
 <h2>Notification Templates</h2>
-<button class="btn btn-primary" id="saveNotifBtn">Save Templates</button>
+<p class="muted dash-card-sub" id="notifSub">4 events • placeholders: {{customer}}, {{order_number}}, {{total}}, {{address}}</p>
 </div>
-<p class="muted" style="margin-top:-16px;margin-bottom:20px;">Customize messages sent to customers on key events.</p>
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn btn-primary" id="saveNotifBtn" type="button">Save Templates</button>
+</div>
+</div>
 <div id="notifTemplates"></div>
 </section>
 <!-- ===== REPORTS SECTION ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="reports" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Analytics</p>
 <h2>Reports</h2>
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-<select id="reportPeriod" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<p class="muted dash-card-sub" id="reportsSub">Real-time sales overview</p>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+<select id="reportPeriod" aria-label="Report period" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Time</option>
 <option value="today">Today</option>
 <option value="week">This Week</option>
 <option value="month">This Month</option>
 </select>
-<button class="btn btn-secondary" id="printReportBtn">Print Report</button>
+<button class="btn btn-light" id="downloadReportBtn" type="button" title="CSV includes monthly breakdown + top 10 customers for the selected period and granularity"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Download report</span></button>
+<button class="btn btn-light" id="printReportBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M10 14h4"/></svg><span>Print</span></button>
 </div>
 </div>
+<p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: All Time • Granularity: Monthly • Export adds monthly breakdown + top 10 customers</p>
 <div class="grid grid-4" style="margin-bottom:20px;">
 <article class="card kpi-card">
 <span class="muted">Total Orders</span>
 <strong id="reportTotalOrders">0</strong>
-<small>All time</small>
+<small>In selected period</small>
 </article>
 <article class="card kpi-card">
 <span class="muted">Revenue</span>
@@ -644,16 +767,56 @@
 <small>Total units</small>
 </article>
 </div>
+<div class="grid grid-2" style="margin-bottom:20px;">
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;">
+<h3 style="margin:0;font-size:0.95rem;">Collected vs Pending by Month</h3>
+<span class="muted" style="font-size:0.75rem;">Last 6 months</span>
+</div>
+<div style="position:relative;height:220px;"><canvas id="reportStackedBar" role="img" aria-label="Collected vs Pending by month chart"></canvas></div>
+<p class="muted hidden" id="reportStackedEmpty" style="text-align:center;padding:12px 0 0;">No sales in this period.</p>
+<div style="display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:0.78rem;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;display:inline-block;"></span> Collected</span><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block;"></span> Pending</span></div>
+</article>
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;">
+<h3 style="margin:0;font-size:0.95rem;">Sales Performance</h3>
+<select id="reportTrendToggle" aria-label="Trend granularity" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.85rem;">
+<option value="monthly">Monthly</option>
+<option value="annually">Annually</option>
+</select>
+</div>
+<div style="position:relative;height:220px;"><canvas id="reportRevenueLine" role="img" aria-label="Revenue trend chart"></canvas></div>
+<p class="muted hidden" id="reportLineEmpty" style="text-align:center;padding:12px 0 0;">No revenue yet.</p>
+</article>
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="margin:0;font-size:0.95rem;">Top Customers</h3>
+<span class="muted" style="font-size:0.75rem;" id="reportTopCustomersSub"></span>
+</div>
+<div class="table-wrap" style="box-shadow:none;border:none;">
+<table><caption class="sr-only">Data table</caption><thead><tr><th scope="col">Customer</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">Share</th></tr></thead>
+<tbody id="reportTopCustomersBody"><tr><td colspan="4" class="text-center muted" style="padding:24px;">No customers yet</td></tr></tbody>
+</table>
+</div>
+</article>
+<article class="card form-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<h3 style="margin:0;font-size:0.95rem;">New Orders by Month</h3>
+<span class="muted" style="font-size:0.75rem;">Last 6 months</span>
+</div>
+<div style="position:relative;height:220px;"><canvas id="reportOrdersBar" role="img" aria-label="New orders by month chart"></canvas></div>
+<p class="muted hidden" id="reportOrdersBarEmpty" style="text-align:center;padding:12px 0 0;">No orders yet.</p>
+</article>
+</div>
 <div class="card form-card" style="margin-bottom:20px;">
 <h3>Sales by Product</h3>
 <div class="table-wrap" style="box-shadow:none;border:none;">
-<table>
-<thead>
+<table><caption class="sr-only">Data table</caption><thead>
 <tr>
-<th>Product</th>
-<th>Orders</th>
-<th>Units Sold</th>
-<th>Revenue</th>
+<th scope="col">Product</th>
+<th scope="col">Orders</th>
+<th scope="col">Units Sold</th>
+<th scope="col">Revenue</th>
 </tr>
 </thead>
 <tbody id="reportProductBody">
@@ -666,7 +829,7 @@
 <div class="card form-card">
 <h3>Orders by Status</h3>
 <div style="position:relative;height:180px;">
-<canvas id="reportStatusChart"></canvas>
+<canvas id="reportStatusChart" role="img" aria-label="Orders by status chart"></canvas>
 </div>
 </div>
 <div class="card form-card">
@@ -675,21 +838,48 @@
 </div>
 </div>
 </section>
-<!-- ===== AUDIT TRAIL ===== -->
+ <!-- ===== AUDIT TRAIL ===== -->
 <section class="admin-section" data-role="admin,superadmin" id="audit" style="display:none;">
 <div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Compliance</p>
 <h2>Audit Trail</h2>
-<div style="display:flex;gap:10px;">
-<button class="btn btn-light" id="clearAuditBtn">Clear Log</button>
+<p class="muted dash-card-sub" id="auditHeaderSub">Live record of admin actions</p>
 </div>
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn btn-light" id="exportAuditBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Export CSV</span></button>
+<button class="btn btn-light" id="clearAuditBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Clear Log</span></button>
+</div>
+</div>
+<div class="admin-toolbar">
+<input id="auditSearch" aria-label="Search audit log" placeholder="🔍 Search actions or admins..."/>
+<select id="auditAdminFilter" aria-label="Filter by admin">
+<option value="all">All Admins</option>
+</select>
+<select id="auditActionFilter" aria-label="Filter by category">
+<option value="all">All Actions</option>
+<option value="stock">Stock</option>
+<option value="order">Order</option>
+<option value="product">Product</option>
+<option value="account">Account</option>
+<option value="cms">CMS</option>
+<option value="other">Other</option>
+</select>
+<select id="auditDateFilter" aria-label="Filter by date">
+<option value="all">All Time</option>
+<option value="today">Today</option>
+<option value="week">This Week</option>
+<option value="month">This Month</option>
+</select>
+<button class="btn btn-light" id="auditClearFilters" type="button">Reset</button>
+<span class="toolbar-count" id="auditCount"></span>
 </div>
 <div class="table-wrap">
-<table>
-<thead>
+<table><caption class="sr-only">Data table</caption><thead>
 <tr>
-<th>Time</th>
-<th>Admin</th>
-<th>Action</th>
+<th scope="col">Time</th>
+<th scope="col">Admin</th>
+<th scope="col">Action</th>
 </tr>
 </thead>
 <tbody id="auditBody">
@@ -698,13 +888,122 @@
 </table>
 </div>
 </section>
+<!-- ===== MESSAGES INBOX ===== -->
+<section class="admin-section" data-role="admin,superadmin" id="messages" style="display:none;">
+<div class="admin-top">
+<div>
+<p class="ov-chart-eyebrow">Inbox</p>
+<h2>Messages</h2>
+<p class="muted dash-card-sub" id="messagesHeaderSub">Live inbox — reply via email</p>
+</div>
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn btn-light" id="refreshMessagesBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v6h-6"/></svg><span>Refresh</span></button>
+</div>
+</div>
+<div class="grid grid-4" style="margin-bottom:20px;">
+<article class="card kpi-card">
+<span class="muted">Total</span>
+<strong id="msgTotal">0</strong>
+<small>All messages</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">New</span>
+<strong id="msgNew">0</strong>
+<small>Need a reply</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Read</span>
+<strong id="msgRead">0</strong>
+<small>Seen, no reply yet</small>
+</article>
+<article class="card kpi-card">
+<span class="muted">Replied</span>
+<strong id="msgReplied">0</strong>
+<small>Resolved</small>
+</article>
+</div>
+<div class="admin-toolbar">
+<input id="msgSearch" aria-label="Search messages" placeholder="🔍 Search name, email, or message..."/>
+<select id="msgStatusFilter" aria-label="Filter messages by status">
+<option value="all">All Statuses</option>
+<option value="new">New</option>
+<option value="read">Read</option>
+<option value="replied">Replied</option>
+</select>
+<select id="msgTopicFilter" aria-label="Filter messages by topic">
+<option value="all">All Topics</option>
+</select>
+<span class="toolbar-count" id="msgCount"></span>
+</div>
+<div class="table-wrap">
+<table><caption class="sr-only">Data table</caption><thead>
+<tr>
+<th scope="col">Time</th>
+<th scope="col">Name</th>
+<th scope="col">Email</th>
+<th scope="col">Topic</th>
+<th scope="col">Message</th>
+<th scope="col">Status</th>
+<th scope="col">Actions</th>
+</tr>
+</thead>
+<tbody id="messagesBody">
+<tr><td class="text-center muted" colspan="7" style="padding:40px;">No messages yet.</td></tr>
+</tbody>
+</table>
+</div>
+<div id="msgModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="msgModalTitle" style="display:none;">
+<div class="modal-card">
+<div class="modal-head">
+<div class="modal-head-main">
+<span class="kpi-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+<div>
+<p class="ov-chart-eyebrow">Inbox message</p>
+<h3 id="msgModalTitle" class="modal-title">Message</h3>
+</div>
+</div>
+<button class="modal-close" onclick="document.getElementById('msgModal').style.display='none'" type="button" aria-label="Close">✕</button>
+</div>
+<div class="modal-body">
+<div id="msgModalContent"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Authored confirm modal (replaces native confirm for destructives) -->
+<div id="confirmModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" style="display:none;">
+<div class="modal-card" style="max-width:480px;">
+<div class="modal-head">
+<div class="modal-head-main">
+<span class="cms-icon" aria-hidden="true" style="background:#fee2e2;color:#b91c1c;"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></span>
+<div>
+<p class="ov-chart-eyebrow" id="confirmEyebrow">Confirm action</p>
+<h3 id="confirmTitle" class="modal-title">Are you sure?</h3>
+</div>
+</div>
+<button class="modal-close" data-confirm-close aria-label="Close" type="button">✕</button>
+</div>
+<div class="modal-body">
+<p id="confirmMessage" style="margin:0 0 10px; line-height:1.5;"></p>
+<p id="confirmImpact" class="muted" style="margin:0 0 12px; font-size:0.88rem;"></p>
+<div id="confirmInputWrap" class="hidden" style="margin-top:12px;">
+<label for="confirmInput" class="muted" style="font-size:0.82rem; display:block; margin-bottom:6px;">Type <strong id="confirmKeyword"></strong> to confirm</label>
+<input id="confirmInput" type="text" autocomplete="off" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px;">
+</div>
+</div>
+<div class="modal-foot">
+<button class="btn btn-light" data-confirm-cancel type="button">Cancel</button>
+<button class="btn btn-danger" data-confirm-ok type="button" disabled>Confirm</button>
+</div>
+</div>
+</div>
 </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/common.js?v=6.3.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
-<script src="js/admin.js"></script>
+<script src="js/admin.js?v=6.4.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.3.0"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script src="js/final-polish.js?v=6.3.0"></script>

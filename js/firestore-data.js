@@ -47,7 +47,32 @@ var defaultProducts = [
   { id: 29, sku: 'SH-EQ-029', name: 'Ultrasonic Scaler with 5 Tips', brand: 'ProSonic', category: 'Equipment', price: 6999, stock: 7, status: 'Low Stock', image: 'assets/products/equipment.svg' },
   { id: 30, sku: 'SH-EQ-030', name: 'Class B Autoclave 18L Demo Unit', brand: 'SteriliTech', category: 'Equipment', price: 89999, stock: 2, status: 'Low Stock', image: 'assets/products/equipment.svg' },
   { id: 31, sku: 'SH-EQ-031', name: 'Ergonomic Dental Chair Demo Package', brand: 'ChairPro', category: 'Equipment', price: 189999, stock: 1, status: 'Low Stock', image: 'assets/products/equipment.svg' },
-  { id: 32, sku: 'SH-CO-032', name: 'Professional Teeth Whitening Kit', brand: 'BrightDent', category: 'Cosmetic', price: 2899, stock: 16, status: 'Active', image: 'assets/products/cosmetic.svg' }
+  { id: 32, sku: 'SH-CO-032', name: 'Professional Teeth Whitening Kit', brand: 'BrightDent', category: 'Cosmetic', price: 2899, stock: 16, status: 'Active', image: 'assets/products/cosmetic.svg' },
+  { id: 33, sku: 'SH-RO-033', name: 'Carbide Bur Set 12pcs', brand: 'BurMaster', category: 'Rotary', price: 899, stock: 22, minStock: 10, status: 'Active', image: 'assets/products/rotary.svg', description: 'Tungsten carbide burs for cavity preparation and crown cutting, assorted shapes.', specs: ['12 burs, multiple shapes', 'Tungsten carbide', 'Autoclavable'] },
+  { id: 34, sku: 'SH-RO-034', name: 'Contra-Angle Handpiece', brand: 'TorqDent', category: 'Rotary', price: 3499, stock: 9, minStock: 5, status: 'Active', image: 'assets/products/rotary.svg', description: 'Low-speed contra-angle handpiece with push-button bur change and adjustable water spray.', specs: ['Push-button chuck', 'Autoclavable', 'Adjustable water spray'] },
+  { id: 35, sku: 'SH-RO-035', name: 'Diamond Polishing Kit 10pcs', brand: 'BurMaster', category: 'Rotary', price: 649, stock: 31, minStock: 10, status: 'Active', image: 'assets/products/rotary.svg', description: 'Diamond-coated polishers for composite finishing and enamel smoothing.', specs: ['10 polishers', 'Diamond-coated', 'For composite and enamel'] },
+  { id: 36, sku: 'SH-RO-036', name: 'Straight Handpiece Motor', brand: 'TorqDent', category: 'Rotary', price: 4999, stock: 6, minStock: 3, status: 'Active', image: 'assets/products/rotary.svg', description: 'Straight handpiece motor with adjustable speed and autoclavable nose cone.', specs: ['Adjustable speed', 'Autoclavable nose cone', 'Low vibration'] },
+  { id: 37, sku: 'SH-CO-037', name: 'Enamel Pro Whitening Strips 14s', brand: 'BrightDent', category: 'Cosmetic', price: 1299, stock: 38, minStock: 10, status: 'Active', image: 'assets/products/cosmetic.svg', description: 'Professional whitening strips for at-home enamel brightening with gentle adhesion.', specs: ['14 strips, 7 days', 'Enamel-safe', 'Mint flavor'] },
+  { id: 38, sku: 'SH-CO-038', name: 'Charcoal Whitening Toothpaste 120g', brand: 'BrightDent', category: 'Cosmetic', price: 349, stock: 64, minStock: 15, status: 'Active', image: 'assets/products/cosmetic.svg', description: 'Charcoal-infused whitening toothpaste for daily stain removal and fresh breath.', specs: ['120g tube', 'Charcoal + fluoride', 'Fresh mint'] },
+  { id: 39, sku: 'SH-CO-039', name: 'Lip & Gum Vitamin E Balm Duo', brand: 'SmilePro', category: 'Cosmetic', price: 279, stock: 52, minStock: 10, status: 'Active', image: 'assets/products/cosmetic.svg', description: 'Vitamin E balm duo for lip and gum comfort, ideal for orthodontic patients.', specs: ['2 balms', 'Vitamin E', 'For braces comfort'] },
+  { id: 40, sku: 'SH-CO-040', name: 'Shade Guide Bleaching Chart', brand: 'BrightDent', category: 'Cosmetic', price: 899, stock: 17, minStock: 5, status: 'Active', image: 'assets/products/cosmetic.svg', description: 'Shade guide chart for bleaching assessment and patient consultation.', specs: ['16 shades', 'Bleaching chart', 'Patient consultation'] },
+  { id: 41, sku: 'SH-IM-041', name: 'Heavy-Body VPS Cartridges 2x50mL', brand: 'Impressa', category: 'Impression', price: 1599, stock: 23, minStock: 8, status: 'Active', image: 'assets/products/impression.svg', description: 'Heavy-body VPS cartridges for tray impressions with high dimensional stability.', specs: ['2x50mL cartridges', 'Heavy-body VPS', 'High stability'] },
+  { id: 42, sku: 'SH-IM-042', name: 'Light-Body Wash Material 2x50mL', brand: 'Impressa', category: 'Impression', price: 1399, stock: 26, minStock: 8, status: 'Active', image: 'assets/products/impression.svg', description: 'Light-body wash material for detailed margin capture and crown impressions.', specs: ['2x50mL cartridges', 'Light-body wash', 'Fine detail'] },
+  { id: 43, sku: 'SH-IM-043', name: 'Plastic Impression Trays Assorted 12s', brand: 'Impressa', category: 'Impression', price: 549, stock: 41, minStock: 10, status: 'Active', image: 'assets/products/impression.svg', description: 'Assorted plastic impression trays for alginate and VPS impressions, disposable.', specs: ['12 trays assorted', 'Plastic disposable', 'Upper and lower'] },
+  { id: 44, sku: 'SH-OR-044', name: 'NiTi Archwire Set Upper/Lower', brand: 'OrthoEase', category: 'Orthodontics', price: 1899, stock: 19, minStock: 6, status: 'Active', image: 'assets/products/orthodontic.svg', description: 'Nickel-titanium archwire set for initial alignment, superelastic memory.', specs: ['Upper and lower', 'NiTi superelastic', 'Preformed arch'] },
+  { id: 45, sku: 'SH-OR-045', name: 'Elastic Ligature Ties 1000s', brand: 'OrthoEase', category: 'Orthodontics', price: 499, stock: 58, minStock: 12, status: 'Active', image: 'assets/products/orthodontic.svg', description: 'Elastic ligature ties for bracket ligation, assorted colors.', specs: ['1000 ties', 'Assorted colors', 'Latex-free'] },
+  { id: 46, sku: 'SH-OR-046', name: 'Bracket Removal Pliers', brand: 'OrthoEase', category: 'Orthodontics', price: 1599, stock: 13, minStock: 5, status: 'Active', image: 'assets/products/orthodontic.svg', description: 'Pliers for safe bracket removal without enamel damage.', specs: ['Bracket removal', 'Stainless steel', 'Autoclavable'] },
+  { id: 47, sku: 'SH-PP-047', name: 'KN95 Face Masks 30s', brand: 'SafeTouch', category: 'PPE', price: 449, stock: 82, minStock: 15, status: 'Active', image: 'assets/products/ppe.svg', description: 'KN95 face masks with 5-layer filtration for clinical use.', specs: ['30 masks', '5-layer filtration', 'KN95 standard'] },
+  { id: 48, sku: 'SH-PP-048', name: 'Disposable Isolation Gowns 10s', brand: 'MediGuard', category: 'PPE', price: 899, stock: 36, minStock: 10, status: 'Active', image: 'assets/products/ppe.svg', description: 'Disposable isolation gowns for infection control, lightweight and breathable.', specs: ['10 gowns', 'Disposable', 'Fluid resistant'] },
+  { id: 49, sku: 'SH-PP-049', name: 'Sterile Latex Gloves 50 pairs', brand: 'SafeTouch', category: 'PPE', price: 549, stock: 47, minStock: 12, status: 'Active', image: 'assets/products/ppe.svg', description: 'Sterile latex gloves for surgical procedures, powdered.', specs: ['50 pairs', 'Sterile latex', 'Powdered'] },
+  { id: 50, sku: 'SH-IN-050', name: 'Cotton Pliers College 6in', brand: 'Clinix', category: 'Instruments', price: 249, stock: 44, minStock: 10, status: 'Active', image: 'assets/products/instrument.svg', description: 'College cotton pliers for handling gauze and small objects.', specs: ['6 inch', 'Stainless steel', 'College style'] },
+  { id: 51, sku: 'SH-IN-051', name: 'Periodontal Probe CP-12', brand: 'Clinix', category: 'Instruments', price: 389, stock: 33, minStock: 10, status: 'Active', image: 'assets/products/instrument.svg', description: 'CP-12 periodontal probe for pocket depth measurement with clear markings.', specs: ['CP-12 markings', 'Stainless steel', 'Autoclavable'] },
+  { id: 52, sku: 'SH-RS-052', name: 'Flowable Composite A3 2x2g', brand: 'Restora', category: 'Restorative', price: 1099, stock: 28, minStock: 8, status: 'Active', image: 'assets/products/restorative.svg', description: 'Flowable composite A3 for small cavities and liner applications.', specs: ['2x2g syringes', 'Shade A3', 'Flowable'] },
+  { id: 53, sku: 'SH-RS-053', name: 'Finishing & Polishing Discs 80s', brand: 'Restora', category: 'Restorative', price: 599, stock: 39, minStock: 10, status: 'Active', image: 'assets/products/restorative.svg', description: 'Finishing and polishing discs for composite contouring and smoothing.', specs: ['80 discs', '4 grits', 'For composites'] },
+  { id: 54, sku: 'SH-OC-054', name: 'Interdental Brush Set 8s', brand: 'SmilePro', category: 'Oral Care', price: 229, stock: 71, minStock: 15, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Interdental brushes for plaque removal between teeth and around braces.', specs: ['8 brushes', 'Multiple sizes', 'For braces and implants'] },
+  { id: 55, sku: 'SH-OC-055', name: 'Tongue Scraper Stainless 2-Pack', brand: 'Dentiva', category: 'Oral Care', price: 199, stock: 66, minStock: 12, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Stainless tongue scrapers for fresh breath and oral hygiene.', specs: ['2 scrapers', 'Stainless steel', 'Easy to clean'] },
+  { id: 56, sku: 'SH-DI-056', name: 'Disposable Mixing Pads 3x3in 200s', brand: 'ClinicEssentials', category: 'Disposables', price: 249, stock: 77, minStock: 12, status: 'Active', image: 'assets/products/disposable.svg', description: 'Disposable mixing pads for cements and composites, non-absorbent.', specs: ['200 pads', '3x3 inch', 'Non-absorbent'] },
+  { id: 57, sku: 'SH-EQ-057', name: 'Portable Dental Suction Unit', brand: 'LumaDent', category: 'Equipment', price: 12999, stock: 5, minStock: 2, status: 'Active', image: 'assets/products/equipment.svg', description: 'Portable dental suction unit with quiet motor and easy-clean canister.', specs: ['Portable', 'Quiet motor', 'Easy-clean canister'] }
 ];
 
 var categoryImages = {
@@ -72,6 +97,22 @@ function getProducts(callback) {
     if (products.length === 0 && canAttemptSeed('smilehub_seed_products')) {
       seedDefaultProducts(callback);
     } else {
+      // One-shot merge for live DBs that already have 32 docs — add missing 25 without wiping edits
+      var missing = defaultProducts.filter(function(dp){ return !products.some(function(p){ return p.id === dp.id; }); });
+      if (missing.length && canAttemptSeed('smilehub_merge_products_57')) {
+        var mergeBatch = db.batch();
+        missing.forEach(function(p){ mergeBatch.set(db.collection('products').doc(String(p.id)), p); });
+        mergeBatch.set(db.collection('products_meta').doc('latest'), { version: firebase.firestore.FieldValue.increment(1), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        mergeBatch.commit().then(function(){
+          var merged = products.concat(missing);
+          merged.sort(function(a,b){ return a.id - b.id; });
+          callback(merged);
+        }).catch(function(err){
+          console.warn('Could not merge missing products:', err);
+          callback(products.length ? products : defaultProducts);
+        });
+        return;
+      }
       callback(products.length ? products : defaultProducts);
     }
   }).catch(function(error) {

@@ -11,8 +11,10 @@
   font-weight: 700;
 }
 button[aria-busy="true"] { cursor: wait; opacity: .72; }
-input:invalid:not(:placeholder-shown) { border-color: #c2410c !important; }
-input:valid:not(:placeholder-shown) { border-color: #15803d; }
+.admin-form.was-validated input:invalid,
+.admin-form.was-validated select:invalid,
+.admin-form.was-validated textarea:invalid { border-color: #c2410c !important; box-shadow: 0 0 0 3px rgba(194,65,12,.12); }
+.admin-form input:invalid:not(:placeholder-shown):not(.was-validated) { border-color: inherit; }
 .field-help { color: var(--text-muted, #64748b); font-size: .84rem; line-height: 1.45; }
 .firebase-requirement-note {
   padding: .9rem 1rem;
