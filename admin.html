@@ -52,6 +52,7 @@
 </div>
 </aside>
 <main class="admin-main" id="adminMain" tabindex="-1">
+<div id="fileOriginBanner" class="notice-box" hidden style="margin-bottom:14px;padding:12px 16px;background:#fff3cd;border:1px solid #ffe69c;border-radius:10px;font-size:0.9rem;color:#664d03;">You opened Admin from a local file (file://). Sign-in and private data (orders, accounts, messages, audit) need http(s) — run a localhost server or open the hosted URL, then sign in as staff.</div>
 <div class="admin-top admin-dash-top">
 <div>
 <p class="eyebrow" id="greetEyebrow">Good day</p>
@@ -77,7 +78,7 @@
 </div>
 </div>
 </div>
-<button aria-label="Toggle dark mode" class="theme-button" title="Toggle dark mode" type="button">◐</button>
+<button aria-label="Toggle dark mode" aria-pressed="false" class="theme-button" title="Toggle dark mode" type="button">◐</button>
 <button class="btn btn-light" id="logoutButton" type="button">Logout</button>
 </div>
 </div>
@@ -194,7 +195,7 @@
 </article>
 </section>
 <!-- ===== PRODUCTS SECTION ===== -->
-<section class="admin-section" data-role="admin,superadmin" id="products" style="display:none;">
+<section class="admin-section" data-role="all" id="products" style="display:none;">
 <div class="admin-top">
 <div>
 <p class="ov-chart-eyebrow">Catalog</p>
@@ -212,7 +213,7 @@
 <h3 id="productModalTitle" class="modal-title">Add Product</h3>
 </div>
 </div>
-<button class="modal-close" onclick="document.getElementById('productModal').style.display='none'" type="button" aria-label="Close">✕</button>
+<button class="modal-close" onclick="document.getElementById('productModal').style.display='none'" type="button" aria-label="Close product dialog">✕</button>
 </div>
 <div class="modal-body">
 <form class="form-card" id="productFormBox" style="padding:0;margin:0;border:0;box-shadow:none;background:transparent;">
@@ -299,7 +300,7 @@
 </div>
 </div>
 <div class="admin-toolbar products-toolbar">
-<input id="adminSearch" aria-label="Search products" placeholder="🔍 Search by name, SKU, or category..."/>
+<input id="adminSearch" aria-label="Search products" placeholder="Search by name, SKU, or category..."/>
 <select id="adminCategoryFilter" aria-label="Filter by category">
 <option value="all">All categories</option>
 <option value="Oral Care">Oral Care</option>
@@ -416,14 +417,14 @@
 </div>
 <!-- Orders Filters -->
 <div class="admin-toolbar orders-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--white);border:1px solid #E8E8EB;border-radius:16px;padding:12px 14px;margin-bottom:14px;">
-<input id="orderSearch" aria-label="Search orders" placeholder="🔍 Order, customer or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
+<input id="orderSearch" aria-label="Search orders" placeholder="Order, customer or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <select id="orderStatusFilter" aria-label="Filter orders by status" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Statuses</option>
-<option value="Pending">⏳ Pending</option>
-<option value="Processing">📦 Processing</option>
-<option value="Shipped">🚚 Shipped</option>
-<option value="Delivered">✅ Delivered</option>
-<option value="Cancelled">❌ Cancelled</option>
+<option value="Pending">Pending</option>
+<option value="Processing">Processing</option>
+<option value="Shipped">Shipped</option>
+<option value="Delivered">Delivered</option>
+<option value="Cancelled">Cancelled</option>
 <option value="Returned">↩️ Returned</option>
 <option value="Refunded">💸 Refunded</option>
 </select>
@@ -510,7 +511,7 @@
 <h3 id="orderModalTitle" class="modal-title">Order #SH-2026001</h3>
 </div>
 </div>
-<button class="modal-close" onclick="closeOrderModal()" type="button" aria-label="Close">✕</button>
+<button class="modal-close" onclick="closeOrderModal()" type="button" aria-label="Close order dialog">✕</button>
 </div>
 <div class="modal-body">
 <div id="orderModalContent">
@@ -534,7 +535,7 @@
 </div>
 </div>
 <div class="admin-toolbar customers-toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--white);border:1px solid #E8E8EB;border-radius:16px;padding:12px 14px;margin-bottom:14px;">
-<input id="accountSearch" aria-label="Search accounts" placeholder="🔍 Search name or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);"/>
+<input id="accountSearch" aria-label="Search accounts" placeholder="Search name or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);"/>
 <select id="accountRoleFilter" aria-label="Filter accounts by role" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Roles</option>
 <option value="customer">Customer</option>
@@ -852,7 +853,7 @@
 </div>
 </div>
 <div class="admin-toolbar">
-<input id="auditSearch" aria-label="Search audit log" placeholder="🔍 Search actions or admins..."/>
+<input id="auditSearch" aria-label="Search audit log" placeholder="Search actions or admins..."/>
 <select id="auditAdminFilter" aria-label="Filter by admin">
 <option value="all">All Admins</option>
 </select>
@@ -923,7 +924,7 @@
 </article>
 </div>
 <div class="admin-toolbar">
-<input id="msgSearch" aria-label="Search messages" placeholder="🔍 Search name, email, or message..."/>
+<input id="msgSearch" aria-label="Search messages" placeholder="Search name, email, or message..."/>
 <select id="msgStatusFilter" aria-label="Filter messages by status">
 <option value="all">All Statuses</option>
 <option value="new">New</option>
@@ -962,7 +963,7 @@
 <h3 id="msgModalTitle" class="modal-title">Message</h3>
 </div>
 </div>
-<button class="modal-close" onclick="document.getElementById('msgModal').style.display='none'" type="button" aria-label="Close">✕</button>
+<button class="modal-close" onclick="document.getElementById('msgModal').style.display='none'" type="button" aria-label="Close message dialog">✕</button>
 </div>
 <div class="modal-body">
 <div id="msgModalContent"></div>
@@ -981,7 +982,7 @@
 <h3 id="confirmTitle" class="modal-title">Are you sure?</h3>
 </div>
 </div>
-<button class="modal-close" data-confirm-close aria-label="Close" type="button">✕</button>
+<button class="modal-close" data-confirm-close aria-label="Close confirmation dialog" type="button">✕</button>
 </div>
 <div class="modal-body">
 <p id="confirmMessage" style="margin:0 0 10px; line-height:1.5;"></p>

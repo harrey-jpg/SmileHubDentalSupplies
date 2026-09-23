@@ -778,12 +778,29 @@ function protectLinksForGuests() {
   });
 }
 
+function emptySnap() { return { empty: true, forEach: function() {} }; }
 function getAccounts() {
+  // Per-collection catches: one denied list must not zero the others.
+  // Rejections carry which collection failed so callers can say denied-vs-empty.
+  function guarded(col) {
+    return firebase.firestore().collection(col).get().catch(function(err) {
+      err = err || new Error('load failed');
+      err.collection = col;
+      throw err;
+    });
+  }
   return Promise.all([
-    firebase.firestore().collection('accounts').get(),
-    firebase.firestore().collection('users').get(),
-    firebase.firestore().collection('deleted_accounts').get().catch(function() { return { forEach: function() {} }; })
+    guarded('accounts').catch(function(err) { err.partial = true; return { _error: err, forEach: function() {} }; }),
+    guarded('users').catch(function(err) { err.partial = true; return { _error: err, forEach: function() {} }; }),
+    firebase.firestore().collection('deleted_accounts').get().catch(function() { return emptySnap(); })
   ]).then(function(results) {
+    var firstErr = null;
+    results.forEach(function(r) { if (r && r._error && !firstErr) firstErr = r._error; });
+    if (results[0]._error && results[1]._error) {
+      var both = new Error('accounts + users denied');
+      both.code = (results[0]._error && results[0]._error.code) || (results[1]._error && results[1]._error.code) || 'permission-denied';
+      throw both;
+    }
     var deletedSet = {};
     var deletedSnap = results[2];
     if (deletedSnap && deletedSnap.forEach) {
@@ -825,17 +842,7 @@ function getAccounts() {
     });
 
     var accounts = Object.keys(byEmail).map(function(email) { return byEmail[email]; });
-    if (accounts.length === 0) {
-      accounts = [
-        { name: 'Demo Customer', email: 'customer@smilehub.ph', role: 'customer', status: 'active', firstName: 'Demo', lastName: 'Customer' },
-        { name: 'Admin User', email: 'admin@smilehub.ph', role: 'admin', status: 'active', firstName: 'Admin', lastName: 'User' },
-        { name: 'Staff User', email: 'staff@smilehub.ph', role: 'staff', status: 'active', firstName: 'Staff', lastName: 'User' },
-        { name: 'Super Admin', email: 'super@smilehub.ph', role: 'superadmin', status: 'active', firstName: 'Super', lastName: 'Admin' }
-      ];
-      var batch = firebase.firestore().batch();
-      accounts.forEach(function(a) { batch.set(firebase.firestore().collection('accounts').doc(a.email), a); });
-      return batch.commit().then(function() { return accounts; });
-    }
+    // Empty means empty — never auto-seed privileged demo accounts into production.
     return accounts;
   });
 }

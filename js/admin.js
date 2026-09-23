@@ -72,6 +72,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // CSV: quote + guard formula injection (=+-@) + flatten newlines
+  function csvCell(v) {
+    var s = String(v == null ? '' : v).replace(/[\r\n]+/g, ' ');
+    if (/^[=+\-@\t]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
   function deepClone(o) {
     try {
       if (typeof structuredClone === 'function') return structuredClone(o);
@@ -139,10 +146,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (customInput) {
       customInput.addEventListener('input', function() {
-        if (this.value.trim()) {
-          update(this.value.trim());
-          if (imgSelect) imgSelect.value = '';
+        var v = this.value.trim();
+        if (!v) return;
+        if (!/^(assets\/|https?:\/\/|data:image\/)/i.test(v) || v.length > 500 || /[\s<>"']/.test(v)) {
+          showToast('Image must be an assets/ path or https:// URL.', true);
+          return;
         }
+        update(v);
+        if (imgSelect) imgSelect.value = '';
       });
     }
   }
@@ -305,6 +316,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   function navigateTo(sectionId) {
     sectionId = normalizeNavTarget(sectionId);
+    if (roleResolved && currentRole && !isSectionAllowed(sectionId, currentRole)) {
+      showToast('You do not have access to that section.', true);
+      sectionId = '#dashboard';
+    }
     document.querySelectorAll('.admin-section, #dashboard').forEach(function(s) {
       s.style.display = 'none';
     });
@@ -407,25 +422,26 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
+    var canManageProducts = !roleResolved || !currentRole || isProductAdminRole(currentRole);
     productsBody.innerHTML = filtered.map(function(p) {
       const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'out-of-stock';
       const checked = selectedProductIds.has(p.id) ? ' checked' : '';
       return `
         <tr data-product="${escapeHtml(p.name)}">
           <td><input type="checkbox" class="product-select" data-id="${p.id}" aria-label="Select ${escapeHtml(p.name)}"${checked}></td>
-          <td><img class="prod-thumb" src="${p.image || 'assets/products/default.svg'}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/default.svg';"></td>
+          <td><img class="prod-thumb" src="${escapeHtml(p.image || 'assets/products/default.svg')}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/default.svg';"></td>
           <td><span class="sku-muted">${escapeHtml(p.sku)}</span></td>
           <td><strong>${escapeHtml(p.name)}</strong></td>
           <td><span class="chip-cat">${escapeHtml(p.category)}</span></td>
           <td class="price-strong">₱${Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
           <td><input type="number" class="stock-input" data-id="${p.id}" value="${p.stock}" min="0" step="1" aria-label="Stock for ${escapeHtml(p.name)}" style="width:72px;padding:6px;border:1px solid var(--border);border-radius:6px;font-variant-numeric:tabular-nums;"></td>
           <td><input type="number" class="min-input" data-id="${p.id}" value="${minOf(p)}" min="0" step="1" aria-label="Reorder point for ${escapeHtml(p.name)}" style="width:62px;padding:6px;border:1px solid var(--border);border-radius:6px;font-variant-numeric:tabular-nums;"></td>
-          <td><span class="status ${statusClass}">${p.status}</span></td>
+          <td><span class="status ${statusClass}">${escapeHtml(p.status)}</span></td>
           <td>
             <div class="row-actions" style="flex-wrap:nowrap;">
               <button class="icon-btn row-btn update-stock" data-id="${p.id}" title="Update stock for ${escapeHtml(p.name)}" aria-label="Update stock for ${escapeHtml(p.name)}" style="padding:4px 8px;font-size:0.75rem;">Update</button>
-              <button class="icon-btn row-btn edit-product" data-id="${p.id}" title="Edit ${escapeHtml(p.name)}" aria-label="Edit ${escapeHtml(p.name)}"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
-              <button class="icon-btn row-btn row-btn-danger delete-product" data-id="${p.id}" title="Delete ${escapeHtml(p.name)}" aria-label="Delete ${escapeHtml(p.name)}"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+              ${canManageProducts ? `<button class="icon-btn row-btn edit-product" data-id="${p.id}" title="Edit ${escapeHtml(p.name)}" aria-label="Edit ${escapeHtml(p.name)}"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
+              <button class="icon-btn row-btn row-btn-danger delete-product" data-id="${p.id}" title="Delete ${escapeHtml(p.name)}" aria-label="Delete ${escapeHtml(p.name)}"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>` : ''}
             </div>
           </td>
         </tr>
@@ -548,8 +564,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function editProduct(id) {
+    if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+      showToast('Only admins can edit product details. You can still update stock inline.', true);
+      return;
+    }
     const product = products.find(function(p) { return p.id === id; });
-    if (!product) { showToast('❌ Product not found', true); return; }
+    if (!product) { showToast('Product not found', true); return; }
 
     const form = document.getElementById('adminProductForm');
     if (form) {
@@ -599,8 +619,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateProduct(id, data) {
+    if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+      showToast('Only admins can save product details.', true);
+      return;
+    }
     const index = products.findIndex(function(p) { return p.id === id; });
-    if (index === -1) { showToast('❌ Product not found', true); return; }
+    if (index === -1) { showToast('Product not found', true); return; }
 
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
     const oldName = products[index].name;
@@ -633,6 +657,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var lastProductDeleteSnapshot = null;
   var lastProductDeleteId = null;
   function deleteProduct(id) {
+    if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+      showToast('Only admins can delete products.', true);
+      return;
+    }
     const product = products.find(function(p) { return p.id === id; });
     if (!product) return;
     var impact = 'Removes it from the store. Stock: ' + product.stock + ' units · ' + product.category + ' · This can be undone for 7 seconds.';
@@ -671,12 +699,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function resetForm() {
-    const form = document.getElementById('adminProductForm');
+    // NOTE: the <form> is #productFormBox; #adminProductForm is the inner <div>.
+    var form = document.getElementById('productFormBox') || document.getElementById('adminProductForm');
     if (form) {
-      form.reset();
-      form.querySelector('[name="productId"]').value = '';
+      if (typeof form.reset === 'function') {
+        try { form.reset(); } catch (e) {}
+      } else {
+        form.querySelectorAll('input, select, textarea').forEach(function(el) {
+          if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+          else if (el.name !== 'productId') el.value = '';
+        });
+      }
+      var pid = form.querySelector('[name="productId"]');
+      if (pid) pid.value = '';
       const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.textContent = '💾 Save Product';
+      if (submitBtn) submitBtn.textContent = 'Save Product';
     }
     var title = document.getElementById('productModalTitle');
     if (title) title.textContent = 'Add Product';
@@ -715,17 +752,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalStock = products.reduce(function(sum, p) { return sum + p.stock; }, 0);
 
     const orders = getOrders();
-    const todayStr = new Date().toLocaleDateString();
+    const todayStr = new Date().toDateString();
     const todayValid = orders.filter(function(o) {
-      return new Date(orderTime(o)).toLocaleDateString() === todayStr && isActiveOrder(o.status);
+      var ts = orderTime(o);
+      return ts && new Date(ts).toDateString() === todayStr && isActiveOrder(o.status);
     });
-    const todaySales = todayValid.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
+    // "Collected" means confirmed revenue — exclude Pending (uncollected).
+    const todaySales = todayValid.filter(function(o) { return o.status !== 'Pending'; })
+      .reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
-    const pending = orders.filter(function(o) { return o.status === 'Pending'; });
+    const pending = orders.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing' || o.status === 'Shipped'; });
+    const pendingCountLabel = pending.length;
     const pendingValue = pending.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
     const nowTs = Date.now();
-    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isActiveOrder(o.status); });
+    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isActiveOrder(o.status) && o.status !== 'Pending'; });
     const collected = in30.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     const prev30 = orders.filter(function(o) {
       var t = orderTime(o);
@@ -738,8 +779,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setText('kpiTodayOrders', String(todayValid.length).padStart(2, '0'));
     setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' collected');
-    setText('kpiPendingNow', String(pending.length).padStart(2, '0'));
-    setText('kpiPendingSub', pending.length + ' in the queue');
+    setText('kpiPendingNow', String(pendingCountLabel).padStart(2, '0'));
+    setText('kpiPendingSub', pendingCountLabel + ' in the queue');
     setText('kpiTotalProducts', String(total).padStart(2, '0'));
     setText('kpiTotalRevenue', '₱' + inventoryValue.toLocaleString('en-PH', {maximumFractionDigits: 0}) + ' inventory value');
     setText('kpiLowStock', String(low).padStart(2, '0'));
@@ -770,7 +811,9 @@ document.addEventListener('DOMContentLoaded', function() {
     syncWelcome();
     var sub = document.getElementById('adminDateSubtitle');
     if (sub) {
-      sub.textContent = 'Today at a glance, and how the last 30 days have gone.';
+      sub.textContent = (!orders.length && ordersLoadError)
+        ? 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.'
+        : 'Today at a glance, and how the last 30 days have gone.';
     }
     updateInventoryStats();
   }
@@ -788,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
       body.innerHTML = '<tr><td colspan="4" class="text-center muted">No orders yet</td></tr>';
       return;
     }
-    var sorted = orders.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    var sorted = orders.slice().sort(function(a, b) { return orderTime(b) - orderTime(a); });
     var recent = sorted.slice(0, 5);
 
     body.innerHTML = recent.map(function(o) {
@@ -837,8 +880,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function orderTime(o) {
     if (o.sortTs) return o.sortTs;
+    if (o.createdAt && typeof o.createdAt.toDate === 'function') {
+      try { return o.createdAt.toDate().getTime(); } catch (e) {}
+    }
     var t = o.date ? Date.parse(o.date) : NaN;
-    return isNaN(t) ? Date.now() : t;
+    return isNaN(t) ? 0 : t;
   }
 
   function orderStatusClass(status) {
@@ -938,9 +984,9 @@ document.addEventListener('DOMContentLoaded', function() {
     wrap.innerHTML = categories.map(function(c, i) {
       var pct = Math.max(2, Math.round((values[i] / max) * 100));
       var val = '₱' + Number(values[i]).toLocaleString('en-PH', {maximumFractionDigits: 0});
-      return '<div class="cat-row"><span class="cat-name">' + c + '</span>' +
+      return '<div class="cat-row"><span class="cat-name">' + escapeHtml(c) + '</span>' +
         '<span class="cat-track"><span class="cat-fill" style="width:' + pct + '%;background:' + color + '"></span></span>' +
-        '<span class="cat-val">' + val + '</span></div>';
+        '<span class="cat-val">' + escapeHtml(val) + '</span></div>';
     }).join('');
   }
 
@@ -1045,7 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showLowStock() {
     const items = products.filter(function(p) { return p.stock > 0 && p.stock <= minOf(p); });
-    if (items.length === 0) { showToast('✅ No low stock items', false, true); return; }
+    if (items.length === 0) { showToast('No low stock items', false, true); return; }
     window.navigateTo('#products');
     setTimeout(function(){
       document.querySelectorAll('#adminProductsBody tr').forEach(function(row) {
@@ -1055,7 +1101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isLow) setTimeout(function(){ row.classList.remove('row-flash'); }, 4500);
       });
     }, 200);
-    showToast('📊 ' + items.length + ' low stock items highlighted in Products', false, false);
+    showToast(items.length + ' low stock items highlighted in Products', false, false);
   }
 
   // --- BULK STOCK (selection-based — Products & inventory merged) ---
@@ -1126,9 +1172,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var rows = selectedProductIds.size ? getSelectedProducts() : products;
         if (!rows.length) { showToast('No products to export', true); return; }
         var csv = 'SKU,Product,Category,Price,Stock,Min,Status\n' + rows.map(function(p){
-          return '"' + (p.sku||'').replace(/"/g,'""') + '","' + (p.name||'').replace(/"/g,'""') + '","' + (p.category||'').replace(/"/g,'""') + '",' + p.price + ',' + p.stock + ',' + minOf(p) + ',"' + (p.status||'') + '"';
+          return [csvCell(p.sku), csvCell(p.name), csvCell(p.category), p.price, p.stock, minOf(p), csvCell(p.status)].join(',');
         }).join('\n');
-        var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-products-' + new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url);
+        var blob=new Blob(["\uFEFF" + csv],{type:'text/csv;charset=utf-8'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-products-' + new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
         addAuditLog('Exported ' + rows.length + ' products to CSV');
       });
     }
@@ -1163,8 +1209,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var qEl = document.getElementById('productsBulkQty');
         if (!tEl || !qEl) { showToast('Bulk form broken — reload', true); return; }
         var type=tEl.value; var qty=Number(qEl.value);
-        if (!Number.isInteger(qty) || qty < 0) { showToast('⚠️ Enter a whole quantity (0 or more)', true); return; }
-        if (qty > 10000) { showToast('⚠️ Quantity looks too large (max 10,000).', true); return; }
+        if (!Number.isInteger(qty) || qty < 0) { showToast('Enter a whole quantity (0 or more).', true); return; }
+        if (qty > 10000) { showToast('Quantity looks too large (max 10,000).', true); return; }
         if (selectedProductIds.size === 0) { showToast('Tick at least one product', true); return; }
         var impact = bulkImpactForIds(selectedProductIds, type, qty);
         if (applyBtn.disabled) return;
@@ -1203,16 +1249,26 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- ORDERS (inspired layout: filters + selection bar + right rail) ---
   var ordersCache = [];
   var selectedOrderIds = new Set();
+  // Load-error flags distinguish PERMISSION-DENIED from genuinely-empty.
+  var ordersLoadError = null;
+  var accountsLoadError = null;
 
   function getOrders() {
     return ordersCache;
   }
 
   function fetchOrders(callback) {
-    SmileHubData.getOrders(function(data) {
-      ordersCache = data;
-      if (callback) callback(data);
-    });
+    ordersLoadError = null;
+    try {
+      SmileHubData.getOrders(function(data, err) {
+        ordersCache = data || [];
+        if (err) ordersLoadError = (err && (err.code || err.message)) || 'load failed';
+        if (callback) callback(ordersCache);
+      });
+    } catch (e) {
+      ordersLoadError = (e && (e.code || e.message)) || 'load failed';
+      if (callback) callback(ordersCache);
+    }
   }
 
   function saveOrders(data) {
@@ -1300,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var head = 'Order #,Customer,Email,Date,Status,Total,Items';
     var rows = list.map(function(o){
       var items = (o.items||[]).map(function(it){ return (it.name||'') + ' x' + (it.quantity||1); }).join('; ');
-      return '"' + (o.number||'').replace(/"/g,'""') + '","' + (o.customer||'').replace(/"/g,'""') + '","' + (o.email||'').replace(/"/g,'""') + '","' + (o.date||'').replace(/"/g,'""') + '","' + (o.status||'').replace(/"/g,'""') + '",' + (o.total||0) + ',"' + items.replace(/"/g,'""') + '"';
+      return [csvCell(o.number), csvCell(o.customer), csvCell(o.email), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
     });
     return head + '\n' + rows.join('\n');
   }
@@ -1331,9 +1387,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fc) fc.textContent = filtered.length + ' of ' + orders.length;
 
     if (filtered.length === 0) {
-      body.innerHTML = orders.length === 0
-        ? `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders yet — new store orders will appear here.</td></tr>`
-        : `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders match — try a different search or filter.</td></tr>`;
+      if (orders.length === 0 && ordersLoadError) {
+        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Couldn\'t load orders (' + escapeHtml(ordersLoadError) + '). Sign in over localhost or hosting as staff, then Refresh.</td></tr>';
+      } else {
+        body.innerHTML = orders.length === 0
+          ? `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders yet — new store orders will appear here.</td></tr>`
+          : `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders match — try a different search or filter.</td></tr>`;
+      }
       updateOrderStats(orders);
       syncOrdersBulkBar([]);
       renderOrdersRail(filtered);
@@ -1360,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${count} items</td>
           <td><span class="status ${cls}">${icon} ${safeStatus}</span>${returnBadge}</td>
           <td>
-            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">👁️ View</button>
+            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View</button>
             <select class="order-status-update" data-number="${safeNumber}" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;" aria-label="Change status for order ${safeNumber}">
               <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
               <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
@@ -1511,7 +1571,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function viewOrder(number) {
     const orders = getOrders();
     const order = orders.find(function(o) { return o.number === number; });
-    if (!order) { showToast('❌ Order not found', true); return; }
+    if (!order) { showToast('Order not found', true); return; }
 
     const modal = document.getElementById('orderModal');
     const title = document.getElementById('orderModalTitle');
@@ -1556,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       } catch(e) {}
       var rrStatusCls = rrStatus === 'requested' ? 'return-requested' : rrStatus === 'approved' ? 'returned' : rrStatus === 'refunded' ? 'refunded' : 'low';
-      var rrStatusIcon = rrStatus === 'requested' ? '⏳' : rrStatus === 'approved' ? '✅' : rrStatus === 'refunded' ? '💸' : '❌';
+      var rrStatusIcon = '';
       var canAct = false;
       try { var r = getCurrentUserRole ? getCurrentUserRole() : null; canAct = r === 'admin' || r === 'superadmin'; } catch(e){ canAct=false; }
       var actionsHtml = '';
@@ -1721,16 +1781,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function refreshOrders() {
-    const filter = document.getElementById('orderStatusFilter')?.value || 'all';
+    const filter = (document.getElementById('orderStatusFilter') || {}).value || 'all';
     renderOrders(filter);
-    showToast('🔄 Refreshed', false, false);
+    showToast('Refreshed', false, false);
   }
 
   function updateOrderStats(orders) {
     const total = orders.length;
     const pending = orders.filter(function(o) { return o.status === 'Pending'; }).length;
     const processing = orders.filter(function(o) { return o.status === 'Processing' || o.status === 'Shipped'; }).length;
-    const delivered = orders.filter(function(o) { return o.status === 'Delivered'; }).length;
+    const todayStr = new Date().toDateString();
+    const deliveredTodayCount = orders.filter(function(o) {
+      if (o.status !== 'Delivered') return false;
+      var ts = orderTime(o);
+      return ts && new Date(ts).toDateString() === todayStr;
+    }).length;
 
     const el1 = document.getElementById('totalOrders');
     const el2 = document.getElementById('pendingOrders');
@@ -1739,7 +1804,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (el1) el1.textContent = total;
     if (el2) el2.textContent = pending;
     if (el3) el3.textContent = processing;
-    if (el4) el4.textContent = delivered;
+    if (el4) el4.textContent = deliveredTodayCount;
   }
 
   // --- MAKE DASHBOARD CLICKABLE ---
@@ -1816,51 +1881,65 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const formData = new FormData(form);
       
-      // Get image from select or custom input
+      // Get image from select or custom input (allowlist: assets/, https:, data:image/)
       const imgSelect = document.getElementById('productImageSelect');
       const customInput = document.getElementById('customImageInput');
       let image = imgSelect ? imgSelect.value : '';
       if (customInput && customInput.value.trim()) {
         image = customInput.value.trim();
       }
-      
-      const stockVal = parseInt(formData.get('stock'));
-      const minVal = parseInt(formData.get('minStock'));
-      const productData = {
-        name: formData.get('name') || '',
-        brand: formData.get('brand') || '',
-        category: formData.get('category') || '',
-        price: formData.get('price') || 0,
-        sku: formData.get('sku') || '',
-        stock: isNaN(stockVal) ? 0 : stockVal,
-        minStock: isNaN(minVal) ? 10 : Math.max(0, minVal),
-        image: image,
-        description: formData.get('description') || '',
-        specs: formData.get('specs') || ''
-      };
-      
-      // Validate required fields
-      if (!productData.name.trim()) {
-        showToast('⚠️ Product name is required!', true);
+      if (image && !/^(assets\/|https?:\/\/|data:image\/)/i.test(image)) {
+        showToast('Image must be an assets/ path or https:// URL.', true);
         return;
       }
-      if (!productData.category) {
-        showToast('⚠️ Category is required!', true);
-        return;
-      }
-      if (!productData.price || parseFloat(productData.price) <= 0) {
-        showToast('⚠️ Please enter a valid price!', true);
+      if (image && (image.length > 500 || /[\s<>"']/.test(image))) {
+        showToast('That image URL looks invalid.', true);
         return;
       }
 
-      // Duplicate SKU guard (warn-and-continue: variants can share SKUs)
+      const stockVal = parseInt(formData.get('stock'), 10);
+      const minVal = parseInt(formData.get('minStock'), 10);
+      const priceVal = parseFloat(formData.get('price'));
+      const productData = {
+        name: String(formData.get('name') || '').trim(),
+        brand: String(formData.get('brand') || '').trim(),
+        category: formData.get('category') || '',
+        price: formData.get('price') || 0,
+        sku: String(formData.get('sku') || '').trim(),
+        stock: isNaN(stockVal) ? 0 : stockVal,
+        minStock: isNaN(minVal) ? 10 : Math.max(0, minVal),
+        image: image,
+        description: String(formData.get('description') || ''),
+        specs: String(formData.get('specs') || '')
+      };
+
+      // Validate required fields (strict: reject NaN/non-numeric price)
+      if (!productData.name) {
+        showToast('Product name is required.', true);
+        return;
+      }
+      if (!productData.category) {
+        showToast('Category is required.', true);
+        return;
+      }
+      if (!(priceVal > 0) || !isFinite(priceVal) || priceVal > 9999999) {
+        showToast('Enter a valid price (0–9,999,999).', true);
+        return;
+      }
+      productData.price = priceVal;
+      if (productData.stock < 0 || productData.stock > 999999) {
+        showToast('Stock must be 0–999999.', true);
+        return;
+      }
+
+      // Duplicate SKU guard (block: SKUs must be unique)
       const productId = formData.get('productId');
-      const editingId = productId ? parseInt(productId) : null;
+      const editingId = productId ? parseInt(productId, 10) : null;
       if (productData.sku) {
         var dupe = products.find(function(p) {
-          return p.sku === productData.sku && p.id !== editingId;
+          return String(p.sku).toLowerCase() === productData.sku.toLowerCase() && p.id !== editingId;
         });
-        if (dupe && !window.confirm('SKU "' + productData.sku + '" is already used by "' + dupe.name + '". Save anyway?')) return;
+        if (dupe) { showToast('SKU "' + productData.sku + '" is already used by "' + dupe.name + '".', true); return; }
       }
       
       if (editingId) {
@@ -1903,24 +1982,33 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(e){}
     return getCurrentUserRole();
   }
+  var currentRole = null;
+  var roleResolved = false;
+  function isProductAdminRole(role) {
+    return role === 'admin' || role === 'superadmin';
+  }
+  function isSectionAllowed(sectionId, role) {
+    if (!role) return false;
+    if (sectionId === '#inventory') sectionId = '#products';
+    var target = document.querySelector(sectionId);
+    if (!target) return false;
+    var allowed = (target.getAttribute('data-role') || 'all').split(',');
+    return allowed.indexOf(role) !== -1 || allowed.indexOf('all') !== -1;
+  }
   function getCachedRoleTTL(){
-    try{
-      var raw=localStorage.getItem('smilehub_role_cache');
-      if(!raw) return null;
-      var obj=JSON.parse(raw);
-      if(!obj.role || !obj.ts) return null;
-      if(Date.now()-obj.ts > 5*60*1000) return null;
-      return obj.role;
-    }catch(e){ return null; }
+    return null;
   }
   function setCachedRoleTTL(role){
-    try{ localStorage.setItem('smilehub_role_cache', JSON.stringify({role:role, ts:Date.now()})); }catch(e){}
+    return;
   }
   function paintRole(role){
+    currentRole = role;
+    roleResolved = true;
+    try { localStorage.removeItem('smilehub_role_cache'); } catch (e) {}
     var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
     if (user) {
       var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
-      if (av) av.textContent = user.name.charAt(0).toUpperCase();
+      if (av) av.textContent = (user.name || 'A').charAt(0).toUpperCase();
       if (nm) nm.textContent = user.name;
       try { syncWelcome(); } catch (e) {}
       if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[role]||role; }
@@ -1958,52 +2046,23 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!ok && typeof navigateTo === 'function') navigateTo('#dashboard');
     } catch (e) {}
   }
-  async function applyRoleVisibility() {
-    // Option B: instant paint from TTL cache, then background re-validate
-    var cachedTTL = getCachedRoleTTL();
-    if (cachedTTL) {
-      var loadingTTL = document.getElementById('adminLoading');
-      var layoutTTL = document.querySelector('.admin-layout');
-      if (layoutTTL) layoutTTL.style.visibility = 'visible';
-      if (loadingTTL) loadingTTL.style.display = 'none';
-      // Paint cached role immediately (0ms), then refresh in background
-      (function paintCached(r){
-        var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
-        if (user) {
-          var av=document.getElementById('adminAvatar'), nm=document.getElementById('adminUsername'), rb=document.getElementById('adminRoleBadge');
-          if (av) av.textContent = user.name.charAt(0).toUpperCase();
-          if (nm) nm.textContent = user.name;
-      try { syncWelcome(); } catch (e) {}
-          if (rb) { var lb={admin:'Admin',staff:'Staff',superadmin:'Super Admin',customer:'Customer'}; rb.textContent=lb[r]||r; }
-        }
-        document.querySelectorAll('.admin-menu a[data-role]').forEach(function(link){
-          var allowed=link.getAttribute('data-role').split(',');
-          link.style.display = (!allowed.includes(r) && !allowed.includes('all')) ? 'none' : '';
-        });
-        gateSectionsByRole(r);
-        document.querySelectorAll('[data-role-btn]').forEach(function(el){
-          var allowed=el.getAttribute('data-role-btn').split(',');
-          el.style.display = (!allowed.includes(r)) ? 'none' : '';
-        });
-        enforceVisibleSection(r);
-      })(cachedTTL);
-      // Background fresh fetch — correct if role changed
-      getCurrentUserRoleFresh().then(function(fresh){
-        if (fresh && fresh !== cachedTTL) {
-          setCachedRoleTTL(fresh);
-          paintRole(fresh);
-        }
-      });
-      return;
-    }
-    const role = await getCurrentUserRoleFresh();
-    if (role) setCachedRoleTTL(role);
-    // Reveal layout once role is known — prevents flash of wrong role (customer -> superadmin)
-    var loading = document.getElementById('adminLoading');
+  function denyAdminAccess(reason) {
     var layout = document.querySelector('.admin-layout');
-    if (layout) layout.style.visibility = 'visible';
-    if (loading) loading.style.display = 'none';
-    if (!role) return;
+    if (layout) layout.style.visibility = 'hidden';
+    showToast(reason || 'Access denied.', true);
+    setTimeout(function() { window.location.replace('homepage.html?message=admin-only'); }, 900);
+  }
+  async function applyRoleVisibility() {
+    try { localStorage.removeItem('smilehub_role_cache'); } catch (e) {}
+    const role = await getCurrentUserRoleFresh();
+    roleResolved = true;
+    var allowedRoles = ['admin', 'staff', 'superadmin'];
+    if (!role || allowedRoles.indexOf(role) === -1) {
+      denyAdminAccess(!role ? 'Please sign in with a staff account.' : 'Your account does not have admin access.');
+      return null;
+    }
+    // Layout has no adminLoading gate on main — paint directly.
+    paintRole(role);
 
     // Update top bar with user info
     const user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
@@ -2043,6 +2102,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     enforceVisibleSection(role);
+    return role;
   }
 
   // --- CMS ---
@@ -2133,8 +2193,8 @@ document.addEventListener('DOMContentLoaded', function() {
     list.innerHTML = data.faqs.map(function(faq, i) {
       return '<div class="faq-card">' +
         '<div class="faq-fields">' +
-          '<input class="faq-question" data-index="' + i + '" value="' + faq.q.replace(/"/g, '&quot;') + '" placeholder="Question" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">' +
-          '<textarea class="faq-answer" data-index="' + i + '" placeholder="Answer" rows="2" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">' + faq.a.replace(/"/g, '&quot;') + '</textarea>' +
+          '<input class="faq-question" data-index="' + i + '" value="' + escapeHtml(faq.q || '').replace(/\n/g, '&#10;') + '" placeholder="Question" aria-label="FAQ question ' + (i + 1) + '" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">' +
+          '<textarea class="faq-answer" data-index="' + i + '" placeholder="Answer" aria-label="FAQ answer ' + (i + 1) + '" rows="2" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;">' + escapeHtml(faq.a || '') + '</textarea>' +
         '</div>' +
         '<div class="faq-actions">' +
           '<button class="icon-btn row-btn faq-up" data-index="' + i + '" aria-label="Move up" title="Move up"' + (i===0?' disabled':'') + '><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M7 8l5-5 5 5"/></svg></button>' +
@@ -2172,18 +2232,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
+    var cmsFaqTimer = null;
     list.querySelectorAll('.faq-question, .faq-answer').forEach(function(el) {
       el.addEventListener('input', function() {
         var data = loadCms();
         var questions = list.querySelectorAll('.faq-question');
         var answers = list.querySelectorAll('.faq-answer');
         questions.forEach(function(q, i) {
-          if (data.faqs[i]) { data.faqs[i].q = q.value; }
+          if (data.faqs[i]) { data.faqs[i].q = q.value.slice(0, 300); }
         });
         answers.forEach(function(a, i) {
-          if (data.faqs[i]) { data.faqs[i].a = a.value; }
+          if (data.faqs[i]) { data.faqs[i].a = a.value.slice(0, 2000); }
         });
-        saveCms(data); markCmsDirty();
+        markCmsDirty();
+        if (cmsFaqTimer) clearTimeout(cmsFaqTimer);
+        cmsFaqTimer = setTimeout(function() { saveCms(data); }, 800);
       });
     });
   }
@@ -2212,21 +2275,21 @@ document.addEventListener('DOMContentLoaded', function() {
       var promoText = document.getElementById('cmsPromoText');
       var promoBtn = document.getElementById('cmsPromoBtn');
       var tagline = document.getElementById('cmsStoreTagline');
-      if (headline) data.heroHeadline = headline.value;
-      if (subtitle) data.heroSubtitle = subtitle.value;
-      if (cta) data.heroCta = cta.value;
-      if (promoText) data.promoText = promoText.value;
-      if (promoBtn) data.promoBtn = promoBtn.value;
-      if (tagline) data.storeTagline = tagline.value;
+      if (headline) data.heroHeadline = headline.value.slice(0, 160);
+      if (subtitle) data.heroSubtitle = subtitle.value.slice(0, 500);
+      if (cta) data.heroCta = cta.value.slice(0, 60);
+      if (promoText) data.promoText = promoText.value.slice(0, 160);
+      if (promoBtn) data.promoBtn = promoBtn.value.slice(0, 60);
+      if (tagline) data.storeTagline = tagline.value.slice(0, 160);
 
       // Collect FAQ data
       var questions = document.querySelectorAll('.faq-question');
       var answers = document.querySelectorAll('.faq-answer');
       questions.forEach(function(q, i) {
-        if (data.faqs[i]) data.faqs[i].q = q.value;
+        if (data.faqs[i]) data.faqs[i].q = q.value.slice(0, 300);
       });
       answers.forEach(function(a, i) {
-        if (data.faqs[i]) data.faqs[i].a = a.value;
+        if (data.faqs[i]) data.faqs[i].a = a.value.slice(0, 2000);
       });
 
       saveCms(data); clearCmsDirty(); addAuditLog('Updated CMS content');
@@ -2245,9 +2308,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!body) return;
 
     if (accounts.length === 0) {
-      body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
+      body.innerHTML = accountsLoadError
+        ? '<tr><td colspan="7" class="text-center muted" style="padding:40px;">Couldn\'t load accounts (' + escapeHtml(accountsLoadError) + '). Sign in over localhost or hosting as an admin, then reopen Customers.</td></tr>'
+        : '<tr><td colspan="7" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
       updateAccountStats(accounts);
-      var sub0=document.getElementById('customersSub'); if(sub0) sub0.textContent='No accounts yet';
+      var sub0=document.getElementById('customersSub'); if(sub0) sub0.textContent = accountsLoadError ? 'Couldn\'t load accounts' : 'No accounts yet';
       var cnt0=document.getElementById('accountFilterCount'); if(cnt0) cnt0.textContent='0 of 0';
       return;
     }
@@ -2505,9 +2570,9 @@ document.addEventListener('DOMContentLoaded', function() {
           });
           found={orders:ordersCount, spent:spent};
         } catch(e){ found={orders:0,spent:0}; }
-        return '"' + (a.name||'').replace(/"/g,'""') + '","' + (a.email||'').replace(/"/g,'""') + '","' + (phone||'').replace(/"/g,'""') + '","' + (a.role||'') + '","' + (a.status||'active') + '",' + found.orders + ',' + found.spent;
+        return [csvCell(a.name), csvCell(a.email), csvCell(phone), csvCell(a.role), csvCell(a.status || 'active'), found.orders, found.spent].join(',');
       }).join('\n');
-      var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-customers-' + new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url); addAuditLog('Exported ' + rows.length + ' accounts to CSV'); showToast('Accounts exported', false, true);
+      var blob=new Blob(["\uFEFF" + csv],{type:'text/csv;charset=utf-8'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-customers-' + new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000); addAuditLog('Exported ' + rows.length + ' accounts to CSV'); showToast('Accounts exported', false, true);
     });
 
     // Create account form toggle
@@ -2736,11 +2801,13 @@ document.addEventListener('DOMContentLoaded', function() {
     period = period || 'all';
     var orders = getOrders();
 
-    // Date filter
+    // Date filter (orderTime-safe: covers createdAt-only mobile orders)
     var now = new Date();
     var filtered = orders.filter(function(o) {
       if (period === 'all') return true;
-      var d = new Date(o.date);
+      var ts = orderTime(o);
+      if (!ts) return false;
+      var d = new Date(ts);
       if (period === 'today') return d.toDateString() === now.toDateString();
       if (period === 'week') {
         var weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
@@ -2752,11 +2819,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return true;
     });
 
-    // Stats
+    // Stats (revenue excludes Cancelled/Returned/Refunded)
     var totalOrders = filtered.length;
-    var totalRevenue = filtered.reduce(function(sum, o) { return sum + (o.total || 0); }, 0);
+    var revenueRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
+    var totalRevenue = revenueRows.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     var totalItems = filtered.reduce(function(sum, o) {
-      return sum + (o.items ? o.items.reduce(function(s, i) { return s + (i.quantity || 1); }, 0) : 0);
+      return sum + (o.items ? o.items.reduce(function(s, i) { return s + (Number(i.quantity) || 1); }, 0) : 0);
     }, 0);
     var avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -2765,16 +2833,21 @@ document.addEventListener('DOMContentLoaded', function() {
     setText('reportAvgOrder', '₱' + avgOrder.toLocaleString('en-PH', {minimumFractionDigits: 2}));
     setText('reportItemsSold', totalItems);
 
-    // Product breakdown
+    // Product breakdown (orders = distinct orders containing the product)
     var productMap = {};
+    var seenPerProduct = {};
     filtered.forEach(function(o) {
       if (o.items) {
         o.items.forEach(function(item) {
           var name = item.name || 'Unknown';
-          if (!productMap[name]) productMap[name] = { orders: 0, units: 0, revenue: 0 };
-          productMap[name].orders += 1;
-          productMap[name].units += item.quantity || 1;
-          productMap[name].revenue += (item.quantity || 1) * (item.price || 0);
+          if (!productMap[name]) { productMap[name] = { orders: 0, units: 0, revenue: 0 }; seenPerProduct[name] = {}; }
+          var qty = Number(item.quantity) || 1;
+          productMap[name].units += qty;
+          productMap[name].revenue += qty * (Number(item.price) || 0);
+          if (o.number && !seenPerProduct[name][o.number]) {
+            seenPerProduct[name][o.number] = true;
+            productMap[name].orders += 1;
+          }
         });
       }
     });
@@ -2787,7 +2860,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         body.innerHTML = sorted.map(function(name) {
           var p = productMap[name];
-          return '<tr><td><strong>' + name + '</strong></td><td>' + p.orders + '</td><td>' + p.units + '</td><td>₱' + p.revenue.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
+          return '<tr><td><strong>' + escapeHtml(name) + '</strong></td><td>' + p.orders + '</td><td>' + p.units + '</td><td>₱' + p.revenue.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
         }).join('');
       }
     }
@@ -2823,16 +2896,17 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Payment summary
+    // Payment summary (cancelled/returned/refunded excluded from revenue)
     var summary = document.getElementById('reportPaymentSummary');
     if (summary) {
-      var totalVal = filtered.reduce(function(s, o) { return s + (o.total || 0); }, 0);
-      var pendingVal = filtered.filter(function(o) { return o.status === 'Pending'; }).reduce(function(s, o) { return s + (o.total || 0); }, 0);
-      var completedVal = filtered.filter(function(o) { return o.status === 'Delivered'; }).reduce(function(s, o) { return s + (o.total || 0); }, 0);
+      var validRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
+      var totalVal = validRows.reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var pendingVal = filtered.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var completedVal = filtered.filter(function(o) { return o.status === 'Delivered'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
       summary.innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Total Revenue</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Pending Payments</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Completed Payments</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Total Revenue (excl. cancelled)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Pending / Processing</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Fulfilled (Delivered)</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
         '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Orders Count</span><strong>' + filtered.length + '</strong></div>';
     }
     // Reports header sub + scope disclosure
@@ -2841,7 +2915,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var labelForSub = (document.getElementById('reportPeriod')||{}).options ? (document.getElementById('reportPeriod').options[document.getElementById('reportPeriod').selectedIndex]||{}).text || period : period;
     var granForSub = reportTrendGranularity === 'annually' ? 'Annually' : 'Monthly';
     if (repSub) {
-      repSub.textContent = labelForSub + ' • ' + granForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
+      if (!orders.length && ordersLoadError) {
+        repSub.textContent = 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.';
+      } else {
+        repSub.textContent = labelForSub + ' • ' + granForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
+      }
     }
     if (scopeNote) {
       scopeNote.textContent = 'Period: ' + labelForSub + ' • Granularity: ' + granForSub + ' • Export adds monthly breakdown + top 10 customers';
@@ -3000,11 +3078,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var totalRev=0;
         filtered.forEach(function(o){
           if(!o.customer && !o.email) return;
-          var key=(o.customer||o.email||'Unknown').trim();
-          var emailKey=String(o.email||o.customer||key).toLowerCase();
-          // Use display name as key but keep email for grouping
-          var k=key;
-          if(!map[k]) map[k]={ customer:key, orders:0, revenue:0 };
+          // Group by email when available to avoid merging same-name customers.
+          var k=String(o.email||o.customer||'Unknown').toLowerCase().trim();
+          var label=(o.customer||o.email||'Unknown').trim();
+          if(!map[k]) map[k]={ customer:label, orders:0, revenue:0 };
           map[k].orders+=1;
           map[k].revenue+= Number(o.total)||0;
           totalRev+= Number(o.total)||0;
@@ -3027,38 +3104,45 @@ document.addEventListener('DOMContentLoaded', function() {
   function printReport() {
     var period = document.getElementById('reportPeriod');
     var label = period ? period.options[period.selectedIndex].text : 'All Time';
-    var content = document.querySelector('#reports .grid-4') ? document.getElementById('reports').innerHTML : '';
-    if (!content) return;
-
+    var section = document.getElementById('reports');
+    if (!section) return;
     var win = window.open('', '_blank');
-    win.document.write('<html><head><title>Sales Report - ' + label + '</title>' +
+    if (!win) { showToast('Allow popups to print the report.', true); return; }
+    function rowText(tr) {
+      return Array.prototype.map.call(tr.querySelectorAll('th,td'), function(c) { return c.textContent.trim(); }).join(' | ');
+    }
+    var lines = ['SmileHub Sales Report — ' + label + ' — Generated ' + new Date().toLocaleString()];
+    lines.push('Totals: Orders ' + ((document.getElementById('reportTotalOrders') || {}).textContent || '') +
+      ', Revenue ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
+      ', Avg ' + ((document.getElementById('reportAvgOrder') || {}).textContent || '') +
+      ', Units ' + ((document.getElementById('reportItemsSold') || {}).textContent || ''));
+    Array.prototype.forEach.call(section.querySelectorAll('#reportProductBody tr'), function(tr) { lines.push(' - ' + rowText(tr)); });
+    var escLines = lines.map(function(l) { return escapeHtml(l); }).join('<br>');
+    win.document.write('<html><head><title>Sales Report - ' + escapeHtml(label) + '</title>' +
       '<style>body{font-family:"DM Sans",system-ui,sans-serif;padding:30px;color:#203047;}' +
-      'table{width:100%;border-collapse:collapse;margin:16px 0;}th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #dce5ec;}' +
-      'th{background:#e9f7fb;font-size:0.85rem;text-transform:uppercase;}' +
-      '.print-hide{display:none!important;}' +
       'h2{margin:0 0 4px;}.muted{color:#6b7a8c;font-size:0.9rem;}' +
-      '.kpi-card{display:inline-block;padding:16px 24px;margin:8px;border:1px solid #dce5ec;border-radius:12px;text-align:center;}' +
-      '.kpi-card strong{display:block;font-size:1.5rem;margin-top:4px;}' +
       '@media print{body{padding:0;}}</style></head><body>' +
-      '<h1>Sales Report</h1><p class="muted">' + label + ' &middot; Generated ' + new Date().toLocaleString() + '</p>' +
-      content.replace(/<button[\s\S]*?<\/button>/g, '').replace(/<canvas[\s\S]*?<\/canvas>/g, '').replace(/id="[^"]*"/g, '') +
+      '<h1>Sales Report</h1><p class="muted">' + escapeHtml(label) + ' · Generated ' + escapeHtml(new Date().toLocaleString()) + '</p>' +
+      '<div>' + escLines + '</div>' +
       '</body></html>');
     win.document.close();
-    setTimeout(function() { win.print(); }, 500);
+    setTimeout(function() { try { win.print(); } catch (e) {} }, 500);
   }
 
-  // --- PRINT ORDER SLIP ---
+  // --- PRINT ORDER SLIP (escaped, popup-safe) ---
   function printOrderSlip(orderNumber) {
     var orders = getOrders();
     var order = orders.find(function(o) { return o.number === orderNumber; });
     if (!order) { showToast('Order not found', true); return; }
 
     var itemsHtml = order.items ? order.items.map(function(item) {
-      return '<tr><td>' + (item.name || 'Item') + '</td><td>' + (item.quantity || 1) + '</td><td>₱' + Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td><td>₱' + Number((item.quantity || 1) * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
+      var qty = Number(item.quantity) || 1;
+      return '<tr><td>' + escapeHtml(item.name || 'Item') + '</td><td>' + qty + '</td><td>₱' + Number(item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td><td>₱' + Number(qty * item.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
     }).join('') : '';
 
     var win = window.open('', '_blank');
-    win.document.write('<html><head><title>Order Slip - ' + order.number + '</title>' +
+    if (!win) { showToast('Allow popups to print the slip.', true); return; }
+    win.document.write('<html><head><title>Order Slip - ' + escapeHtml(order.number) + '</title>' +
       '<style>' +
       'body{font-family:"DM Sans",system-ui,sans-serif;padding:40px;color:#203047;max-width:700px;margin:auto;}' +
       '.header{text-align:center;border-bottom:2px solid #1261a0;padding-bottom:20px;margin-bottom:24px;}' +
@@ -3075,11 +3159,11 @@ document.addEventListener('DOMContentLoaded', function() {
       '</style></head><body>' +
       '<div class="header"><h1>SmileHub Dental Supplies</h1><p>Order Slip</p></div>' +
       '<div class="info">' +
-      '<div><strong>Order #</strong>' + order.number + '</div>' +
-      '<div><strong>Date</strong>' + order.date + '</div>' +
-      '<div><strong>Customer</strong>' + order.customer + '</div>' +
-      '<div><strong>Status</strong>' + order.status + '</div>' +
-      '<div style="grid-column:span 2;"><strong>Shipping Address</strong>' + (order.address || 'N/A') + '</div>' +
+      '<div><strong>Order #</strong>' + escapeHtml(order.number) + '</div>' +
+      '<div><strong>Date</strong>' + escapeHtml(order.date) + '</div>' +
+      '<div><strong>Customer</strong>' + escapeHtml(order.customer) + '</div>' +
+      '<div><strong>Status</strong>' + escapeHtml(order.status) + '</div>' +
+      '<div style="grid-column:span 2;"><strong>Shipping Address</strong>' + escapeHtml(order.address || 'N/A') + '</div>' +
       '</div>' +
       '<table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml +
       '<tr class="total-row"><td colspan="3" style="text-align:right;">Total</td><td>₱' + Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>' +
@@ -3120,19 +3204,11 @@ document.addEventListener('DOMContentLoaded', function() {
   function fetchAuditLogs(callback) {
     firebase.firestore().collection('audit_logs').orderBy('timestamp', 'desc').limit(200).get().then(function(snapshot) {
       auditLogsCache = [];
-      snapshot.forEach(function(doc) { auditLogsCache.push(doc.data()); });
-      if (auditLogsCache.length === 0) {
-        auditLogsCache = [
-          { time: new Date(Date.now() - 3600000).toLocaleString(), admin: 'SmileHub Admin', action: 'Updated stock for Composite Resin A2' },
-          { time: new Date(Date.now() - 7200000).toLocaleString(), admin: 'SmileHub Admin', action: 'Changed order SH-2026031 to Processing' },
-          { time: new Date(Date.now() - 86400000).toLocaleString(), admin: 'SmileHub Admin', action: 'Published homepage promotion' }
-        ];
-        var batch = firebase.firestore().batch();
-        auditLogsCache.forEach(function(e) {
-          batch.add(firebase.firestore().collection('audit_logs'), e);
-        });
-        batch.commit().catch(function() {});
-      }
+      snapshot.forEach(function(doc) {
+        var d = doc.data();
+        if (d && d.action) auditLogsCache.push(d);
+      });
+      // Empty means empty — never seed fake entries into the real log.
       if (callback) callback(auditLogsCache);
     }).catch(function() {
       if (callback) callback(auditLogsCache || []);
@@ -3149,8 +3225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'other';
   }
   function getAuditIcon(cat) {
-    var icons = { stock: '📦', order: '📋', product: '🛒', account: '👤', cms: '🎨', other: '•' };
-    return icons[cat] || '•';
+    return '';
   }
   function getAuditBadge(cat) {
     var colors = {
@@ -3170,7 +3245,7 @@ document.addEventListener('DOMContentLoaded', function() {
     getAuditLogs().forEach(function(l) { if (l.admin) admins[l.admin] = true; });
     var current = sel.value;
     var opts = '<option value="all">All Admins</option>' + Object.keys(admins).sort().map(function(a) {
-      return '<option value="' + a.replace(/"/g,'&quot;') + '">' + a + '</option>';
+      return '<option value="' + escapeHtml(a) + '">' + escapeHtml(a) + '</option>';
     }).join('');
     sel.innerHTML = opts;
     if (admins[current] || current === 'all') sel.value = current;
@@ -3219,13 +3294,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     body.innerHTML = filtered.map(function(log) {
       var cat = getAuditCategory(log.action);
-      var icon = getAuditIcon(cat);
       var badge = getAuditBadge(cat);
       var label = cat.charAt(0).toUpperCase() + cat.slice(1);
       return '<tr>' +
-        '<td style="white-space:nowrap;font-size:0.85rem;color:var(--muted);">' + (log.time || '') + '</td>' +
-        '<td><span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--sky);display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">' + (log.admin || '?').charAt(0).toUpperCase() + '</span>' + (log.admin || '') + '</span></td>' +
-        '<td><span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;' + badge + '">' + icon + ' ' + label + '</span><span>' + (log.action || '') + '</span></span></td>' +
+        '<td style="white-space:nowrap;font-size:0.85rem;color:var(--muted);">' + escapeHtml(log.time || '') + '</td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:6px;"><span aria-hidden="true" style="width:26px;height:26px;border-radius:50%;background:var(--sky);display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">' + escapeHtml((log.admin || '?').charAt(0).toUpperCase()) + '</span>' + escapeHtml(log.admin || '') + '</span></td>' +
+        '<td><span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;' + badge + '">' + escapeHtml(label) + '</span><span>' + escapeHtml(log.action || '') + '</span></span></td>' +
         '</tr>';
     }).join('');
   }
@@ -3352,21 +3426,23 @@ document.addEventListener('DOMContentLoaded', function() {
     body.innerHTML=filtered.map(function(m){
       var st=m.status||'new';
       var badge = st==='new' ? 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;' : st==='replied' ? 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;' : 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;';
-      var snippet=(m.message||'').length>80 ? (m.message||'').slice(0,80)+'…' : (m.message||'');
-      var safeEmail=(m.email||'').replace(/'/g,"\\'");
+      var rawMsg = String(m.message || '');
+      var snippet = rawMsg.length > 80 ? rawMsg.slice(0, 80) + '…' : rawMsg;
+      var email = String(m.email || '');
+      var safeMailto = /^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+$/.test(email) ? 'mailto:' + email : '#';
       return '<tr>'+
-        '<td style="white-space:nowrap;font-size:0.82rem;color:var(--muted);">'+(m._time||'')+'</td>'+
-        '<td><strong>'+(m.name||'')+'</strong></td>'+
-        '<td><a href="mailto:'+(m.email||'')+'">'+(m.email||'')+'</a></td>'+
-        '<td><span class="chip-cat">'+(m.topic||'')+'</span></td>'+
-        '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(m.message||'').replace(/"/g,'&quot;')+'">'+snippet+'</td>'+
-        '<td><span style="padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;'+badge+'">'+st+'</span></td>'+
+        '<td style="white-space:nowrap;font-size:0.82rem;color:var(--muted);">'+escapeHtml(m._time||'')+'</td>'+
+        '<td><strong>'+escapeHtml(m.name||'')+'</strong></td>'+
+        '<td><a href="'+escapeHtml(safeMailto)+'">'+escapeHtml(email)+'</a></td>'+
+        '<td><span class="chip-cat">'+escapeHtml(m.topic||'')+'</span></td>'+
+        '<td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escapeHtml(rawMsg)+'">'+escapeHtml(snippet)+'</td>'+
+        '<td><span style="padding:3px 8px;border-radius:999px;font-size:0.7rem;font-weight:700;text-transform:uppercase;'+badge+'">'+escapeHtml(st)+'</span></td>'+
         '<td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;">'+
-          '<button class="btn btn-light msg-view" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">View</button>'+
-          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\nThank you for contacting SmileHub about \"'+(m.topic||'')+'\".\n\n')+'" style="padding:4px 8px;font-size:0.78rem;text-decoration:none;">Reply</a>'+
-          (st!=='replied' ? '<button class="btn btn-light msg-replied" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Replied</button>' : '')+
-          (st==='new' ? '<button class="btn btn-light msg-read" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Mark Read</button>' : '')+
-          '<button class="btn btn-danger msg-del" data-id="'+m._id+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>'+
+          '<button class="btn btn-light msg-view" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">View</button>'+
+          '<a class="btn btn-primary" href="'+escapeHtml(safeMailto)+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\nThank you for contacting SmileHub.\n\n')+'" style="padding:4px 8px;font-size:0.78rem;text-decoration:none;">Reply</a>'+
+          (st!=='replied' ? '<button class="btn btn-light msg-replied" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Mark Replied</button>' : '')+
+          (st==='new' ? '<button class="btn btn-light msg-read" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Mark Read</button>' : '')+
+          '<button class="btn btn-danger msg-del" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>'+
         '</td></tr>';
     }).join('');
     body.querySelectorAll('.msg-view').forEach(function(btn){
@@ -3421,15 +3497,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var modal=document.getElementById('msgModal'), content=document.getElementById('msgModalContent'), title=document.getElementById('msgModalTitle');
     if(!modal||!content) return;
     if(title) title.textContent=m.topic ? m.topic+' — '+(m.name||'') : 'Message';
+    var msgEmail = String(m.email || '');
+    var msgSafeMailto = /^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+$/.test(msgEmail) ? 'mailto:' + msgEmail : '#';
     content.innerHTML=
       '<div style="display:grid;gap:10px;">'+
-        '<div><strong>From:</strong> '+escapeHtml(m.name||'')+' &lt;'+escapeHtml(m.email||'')+'&gt;</div>'+
+        '<div><strong>From:</strong> '+escapeHtml(m.name||'')+' &lt;'+escapeHtml(msgEmail)+'&gt;</div>'+
         '<div><strong>Topic:</strong> '+escapeHtml(m.topic||'')+'</div>'+
         '<div><strong>Time:</strong> '+escapeHtml(m._time||'')+'</div>'+
         '<div><strong>Status:</strong> '+escapeHtml(m.status||'new')+'</div>'+
         '<div style="padding:12px;background:var(--sky);border-radius:8px;white-space:pre-wrap;">'+escapeHtml(m.message||'')+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">'+
-          '<a class="btn btn-primary" href="mailto:'+(m.email||'')+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\n')+'">Reply via Email</a>'+
+          '<a class="btn btn-primary" href="'+escapeHtml(msgSafeMailto)+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\n')+'">Reply via Email</a>'+
           '<button class="btn btn-light" id="msgModalRead">Mark Read</button>'+
           '<button class="btn btn-light" id="msgModalReplied">Mark Replied</button>'+
         '</div>'+
@@ -3476,21 +3554,25 @@ document.addEventListener('DOMContentLoaded', function() {
         .replace(/\{\{total\}\}/g, '₱2,743.20')
         .replace(/\{\{address\}\}/g, '123 Sample St, Quezon City');
     }
-    container.innerHTML = templates.map(function(t, i) {
-      var previewSubject = samplePreview(t.subject);
-      var previewBody = samplePreview(t.body).replace(/\n/g, '<br>');
+    function escPreview(text) {
+      return escapeHtml(samplePreview(text)).replace(/\n/g, '<br>');
+    }
+    container.innerHTML = '<p class="muted" style="margin:0 0 12px;font-size:0.85rem;">Templates are local drafts only — copy them into your mailer when notifying customers.</p>' +
+      templates.map(function(t, i) {
+      var previewSubject = escPreview(t.subject);
+      var previewBody = escPreview(t.body);
       return '<div class="card form-card notif-card" style="margin-bottom:14px;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
           '<div style="display:flex;align-items:center;gap:10px;">' +
             '<span class="cms-icon" aria-hidden="true"><svg class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg></span>' +
-            '<h3 style="margin:0;">' + t.label + '</h3>' +
+            '<h3 style="margin:0;">' + escapeHtml(t.label) + '</h3>' +
           '</div>' +
-          '<button class="icon-btn row-btn reset-template" data-index="' + i + '" aria-label="Reset" title="Reset"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v6h-6"/></svg></button>' +
+          '<button class="icon-btn row-btn reset-template" data-index="' + i + '" aria-label="Reset ' + escapeHtml(t.label) + '" title="Reset"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v6h-6"/></svg></button>' +
         '</div>' +
-        '<div class="form-group"><label>Subject</label><input class="notif-subject" data-index="' + i + '" value="' + t.subject.replace(/"/g, '&quot;') + '" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;"></div>' +
-        '<div class="form-group"><label>Body</label><textarea class="notif-body" data-index="' + i + '" rows="3" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;">' + t.body.replace(/"/g, '&quot;') + '</textarea></div>' +
+        '<div class="form-group"><label for="notif-subject-' + i + '">Subject</label><input id="notif-subject-' + i + '" class="notif-subject" data-index="' + i + '" value="' + escapeHtml(t.subject || '') + '" maxlength="160" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;"></div>' +
+        '<div class="form-group"><label for="notif-body-' + i + '">Body</label><textarea id="notif-body-' + i + '" class="notif-body" data-index="' + i + '" rows="4" maxlength="2000" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;">' + escapeHtml(t.body || '') + '</textarea></div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;"><span class="chip-cat">{{customer}}</span><span class="chip-cat">{{order_number}}</span><span class="chip-cat">{{total}}</span><span class="chip-cat">{{address}}</span></div>' +
-        '<div class="notif-preview" id="notifPreview-' + i + '"><div style="font-weight:700;margin-bottom:4px;">Preview</div><div><strong>Subject:</strong> ' + escapeHtml(previewSubject) + '</div><div style="margin-top:6px;white-space:pre-wrap;">' + previewBody + '</div></div>' +
+        '<div class="notif-preview" id="notifPreview-' + i + '"><div style="font-weight:700;margin-bottom:4px;">Preview</div><div><strong>Subject:</strong> ' + previewSubject + '</div><div style="margin-top:6px;white-space:pre-wrap;">' + previewBody + '</div></div>' +
         '</div>';
     }).join('');
 
@@ -3499,9 +3581,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var bodyEl = container.querySelector('.notif-body[data-index="' + idx + '"]');
       var preview = document.getElementById('notifPreview-' + idx);
       if(!subjEl || !bodyEl || !preview) return;
-      var ps = samplePreview(subjEl.value);
-      var pb = samplePreview(bodyEl.value).replace(/\n/g, '<br>');
-      preview.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">Preview</div><div><strong>Subject:</strong> ' + escapeHtml(ps) + '</div><div style="margin-top:6px;white-space:pre-wrap;">' + pb + '</div>';
+      var ps = escPreview(subjEl.value.slice(0, 160));
+      var pb = escPreview(bodyEl.value.slice(0, 2000));
+      preview.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">Preview</div><div><strong>Subject:</strong> ' + ps + '</div><div style="margin-top:6px;white-space:pre-wrap;">' + pb + '</div>';
     }
 
     container.querySelectorAll('.notif-subject, .notif-body').forEach(function(el) {
@@ -3560,14 +3642,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    try {
+      if (window.location && window.location.protocol === 'file:') {
+        var fb = document.getElementById('fileOriginBanner');
+        if (fb) fb.hidden = false;
+      }
+    } catch (e) {}
     setupImagePreview();
     setupSidebarNavigation();
     setupFormSubmit();
     setupBulkStock();
     var dashAdd = document.getElementById('dashAddProduct');
-    if (dashAdd) {
+    if (dashAdd && !dashAdd.dataset.bound) {
+      dashAdd.dataset.bound = '1';
       dashAdd.addEventListener('click', function() {
-        openProductModalDirect();
+        openNewProductModal();
       });
     }
     var productsLoaded = false;
@@ -3599,6 +3688,7 @@ document.addEventListener('DOMContentLoaded', function() {
           snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; live.push(d); });
           if (!live.length && ordersCache.length) return;
           ordersCache = live;
+          ordersLoadError = null;
           try { renderOrders((document.getElementById('orderStatusFilter')||{}).value||'all'); } catch(e){}
           try { updateDashboard(); } catch(e){}
           try { renderOrdersRail(getOrders()); } catch(e){}
@@ -3610,6 +3700,9 @@ document.addEventListener('DOMContentLoaded', function() {
               renderReports(per);
             }
           } catch(e){}
+        }, function(err){
+          ordersLoadError = (err && (err.code || err.message)) || 'permission denied';
+          console.warn('Orders live sync denied:', err);
         });
       }
     } catch(e){}
@@ -3681,14 +3774,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if(selectedOrderIds.size===0){ showToast('Tick orders to print', true); return; }
         selectedOrderIds.forEach(function(num){ try{ printOrderSlip(num); }catch(e){} });
       });
+      function downloadCsv(csv, filename) {
+        var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+      }
       var bulkExport = document.getElementById('ordersBulkExport');
       if (bulkExport) bulkExport.addEventListener('click', function(){
         var list = selectedOrderIds.size ? getOrders().filter(function(o){ return selectedOrderIds.has(o.number); }) : getOrders();
         if(!list.length){ showToast('No orders to export', true); return; }
-        var csv=ordersToCsv(list); var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-orders-' + new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url); addAuditLog('Exported ' + list.length + ' orders to CSV'); showToast('Orders exported', false, true);
+        var csv=ordersToCsv(list); downloadCsv(csv, 'smilehub-orders-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Exported ' + list.length + ' orders to CSV'); showToast('Orders exported', false, true);
       });
       var topExport = document.getElementById('ordersExportBtn');
-      if (topExport) topExport.addEventListener('click', function(){ var be=document.getElementById('ordersBulkExport'); if(be) be.click(); else { var csv=ordersToCsv(getOrders()); var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-orders-' + new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url); } });
+      if (topExport) topExport.addEventListener('click', function(){ var be=document.getElementById('ordersBulkExport'); if(be) be.click(); else { var csv=ordersToCsv(getOrders()); downloadCsv(csv, 'smilehub-orders-' + new Date().toISOString().slice(0,10)+'.csv'); } });
     })();
     // Reports wiring — period, trend toggle, download (live via onSnapshot)
     (function(){
@@ -3702,7 +3806,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var now=new Date();
         var filtered=getOrders().filter(function(o){
           if(period==='all') return true;
-          var d=new Date(o.date);
+          var ts=orderTime(o);
+          if(!ts) return false;
+          var d=new Date(ts);
           if(period==='today') return d.toDateString()===now.toDateString();
           if(period==='week'){ var w=new Date(now); w.setDate(w.getDate()-7); return d>=w; }
           if(period==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
@@ -3711,16 +3817,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!filtered.length){ showToast('No data to download for this period', true); return; }
         var csv='Period,'+period+'\nGenerated,'+new Date().toLocaleString()+'\n\nOrder #,Customer,Date,Status,Total,Items\n' + filtered.map(function(o){
           var items=(o.items||[]).map(function(it){ return (it.name||'')+' x'+(it.quantity||1); }).join('; ');
-          return '"' + (o.number||'').replace(/"/g,'""') + '","' + (o.customer||'').replace(/"/g,'""') + '","' + (o.date||'') + '","' + (o.status||'') + '",' + (o.total||0) + ',"' + items.replace(/"/g,'""') + '"';
+          return [csvCell(o.number), csvCell(o.customer), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
         }).join('\n');
         // Add monthly summary
-        var months={}; filtered.forEach(function(o){ var dt=new Date(orderTime(o)); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(o.status==='Pending') months[key].pending+=v; else if(isActiveOrder(o.status)) months[key].collected+=v; months[key].count+=1; });
+        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(o.status==='Pending') months[key].pending+=v; else if(isActiveOrder(o.status)) months[key].collected+=v; months[key].count+=1; });
         csv+='\n\nMonth,Collected,Pending,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
-        // Top customers
-        var map={}; filtered.forEach(function(o){ var key=(o.customer||o.email||'Unknown'); if(!map[key]) map[key]={orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
+        // Top customers (group by email when available to avoid same-name merges)
+        var map={}; filtered.forEach(function(o){ var key=String(o.email||o.customer||'Unknown').toLowerCase(); if(!map[key]) map[key]={label:(o.customer||o.email||'Unknown'), orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
         var top=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,10);
-        csv+='\n\nTop Customers,Orders,Revenue\n' + top.map(function(k){ var m=map[k]; return '"' + k.replace(/"/g,'""') + '",' + m.orders + ',' + m.revenue; }).join('\n');
-        var blob=new Blob([csv],{type:'text/csv'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url); addAuditLog('Downloaded sales report ('+period+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
+        csv+='\n\nTop Customers,Orders,Revenue\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
+        downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+period+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
       });
     })();
     // Notification bell dropdown wiring
@@ -3762,18 +3868,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Re-apply role-gated UI once the Firebase profile (and correct role) is loaded
     document.addEventListener('authReady', function() {
       applyRoleVisibility();
-      // Re-fetch accounts with correct isAdmin after role resolves
+      // Re-fetch with the resolved role: accounts AND orders (orders were
+      // first fetched pre-auth with a stale cached role).
+      fetchOrders(function() {
+        renderOrders((document.getElementById('orderStatusFilter') || {}).value || 'all');
+        renderRecentOrders();
+        updateDashboard();
+      });
       if (window.SmileHubAuth) {
-        window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(){});
+        accountsLoadError = null;
+        window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(err){
+          accountsLoadError = (err && (err.code || err.message)) || 'permission denied';
+          renderAccounts();
+        });
       }
     });
     fetchAuditLogs();
     setupAccountSearch();
     if (window.SmileHubAuth) {
+      accountsLoadError = null;
       window.SmileHubAuth.getAccounts().then(function(a) {
         accounts = a;
         renderAccounts();
       }).catch(function(error) {
+        accountsLoadError = (error && (error.code || error.message)) || 'permission denied';
         console.warn('Could not load accounts (check users/{uid} role doc / Firestore rules):', error);
         renderAccounts();
       });
@@ -3829,11 +3947,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var logs = getAuditLogs();
       if (!logs.length) { showToast('No logs to export', true); return; }
       var csv = 'Time,Admin,Action\n' + logs.map(function(l) {
-        return '"' + (l.time||'').replace(/"/g,'""') + '","' + (l.admin||'').replace(/"/g,'""') + '","' + (l.action||'').replace(/"/g,'""') + '"';
+        return [csvCell(l.time), csvCell(l.admin), csvCell(l.action)].join(',');
       }).join('\n');
-      var blob = new Blob([csv], {type:'text/csv'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a'); a.href = url; a.download = 'smilehub-audit-' + new Date().toISOString().slice(0,10) + '.csv'; a.click(); URL.revokeObjectURL(url);
+      downloadCsv(csv, 'smilehub-audit-' + new Date().toISOString().slice(0,10) + '.csv');
       showToast('Audit log exported', false, true);
     });
 
@@ -3855,35 +3971,29 @@ document.addEventListener('DOMContentLoaded', function() {
           cancelLabel: 'Cancel'
         }).then(function(ok){
           if (!ok) return;
-          auditLastSnapshot = deepClone(getAuditLogs());
-
-          // Clear Firestore collection (best-effort) + local cache
+          // Security rules forbid audit delete — attempt it honestly and only
+          // clear the local view when Firestore confirms.
+          showToast('Clearing audit log…');
           firebase.firestore().collection('audit_logs').get().then(function(snap) {
+            if (snap.empty) {
+              auditLogsCache = [];
+              renderAuditLogs();
+              showToast('Audit log is already empty', false, false);
+              return null;
+            }
             var batch = firebase.firestore().batch();
             snap.forEach(function(doc) { batch.delete(doc.ref); });
             return batch.commit();
-          }).catch(function() {});
-          auditLogsCache = [];
-          localStorage.removeItem('smilehub_audit_log');
-          renderAuditLogs();
-          addAuditLog('Audit log cleared');
-          showUndoToast('Audit log cleared — Undo?', function(){
-            if (!auditLastSnapshot) return;
-            auditLogsCache = deepClone(auditLastSnapshot);
-            try { localStorage.setItem('smilehub_audit_log', JSON.stringify(auditLogsCache)); } catch(e){}
-            try {
-              var batch2 = firebase.firestore().batch();
-              auditLogsCache.forEach(function(entry){
-                var ref = firebase.firestore().collection('audit_logs').doc();
-                batch2.set(ref, entry);
-              });
-              batch2.commit().catch(function(){});
-            } catch(e){}
+          }).then(function(res) {
+            if (res === null) return;
+            auditLastSnapshot = [];
+            auditLogsCache = [];
+            try { localStorage.removeItem('smilehub_audit_log'); } catch (e) {}
             renderAuditLogs();
-            addAuditLog('Restored audit log (undo clear)');
-            showToast('Audit log restored', false, true);
-            auditLastSnapshot = null;
-          }, 10000);
+            showToast('Audit log cleared in Firestore', false, true);
+          }).catch(function(err) {
+            showToast('Clear blocked by security rules — export instead. (' + ((err && (err.code || err.message)) || 'permission denied') + ')', true);
+          });
         });
       });
     }
@@ -3936,15 +4046,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
   }
 
+    function openNewProductModal() {
+      if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+        showToast('Only admins can add products.', true);
+        return;
+      }
+      navigateTo('#products');
+      var modal = document.getElementById('productModal');
+      if (!modal) return;
+      if (modal.style.display === 'flex') { resetForm(); return; }
+      openAdminModal(modal);
+      var form = document.getElementById('productFormBox') || document.getElementById('adminProductForm');
+      if (form) {
+        if (typeof form.reset === 'function') { try { form.reset(); } catch (e) {} }
+        var pidField = form.querySelector('[name="productId"]');
+        if (pidField) pidField.value = '';
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn) btn.textContent = 'Save Product';
+        var preview = document.getElementById('previewImg');
+        if (preview) preview.src = safeImageSrc('assets/products/oral-care.svg');
+        var custom = document.getElementById('customImageInput');
+        if (custom) custom.value = '';
+        var imgSelect = document.getElementById('productImageSelect');
+        if (imgSelect) imgSelect.value = 'assets/products/oral-care.svg';
+      }
+      var title = document.getElementById('productModalTitle');
+      if (title) title.textContent = 'Add Product';
+      var eyebrow = document.getElementById('productModalEyebrow');
+      if (eyebrow) eyebrow.textContent = 'New product';
+    }
+    function safeImageSrc(src) {
+      if (!src) return 'assets/products/default.svg';
+      var v = String(src).trim();
+      if (/^(assets\/|https?:\/\/|data:image\/)/i.test(v) && v.length <= 500 && !/[\s<>"']/.test(v)) return v;
+      return 'assets/products/default.svg';
+    }
     // Bridge so global onclick handlers (defined below, outside this
     // closure) can reach internal functions and data.
     window.SmileHubAdmin = {
       getProducts: function() { return products; },
+      navigateTo: function(sectionId) { navigateTo(sectionId); },
+      canManageProducts: function() { return !roleResolved || !currentRole || isProductAdminRole(currentRole); },
+      openProductModal: function() { openNewProductModal(); },
+      toast: function(msg, isError, isSuccess) { showToast(msg, isError, isSuccess); },
       filterOrders: function(filter) { renderOrders(filter); },
       refreshOrders: function(filter) {
         fetchOrders(function() {
           renderOrders(filter);
-          if (window.showToast) showToast('🔄 Orders refreshed', false, false);
+          showToast('Orders refreshed.', false, false);
         });
       }
     };
@@ -3952,9 +4101,15 @@ document.addEventListener('DOMContentLoaded', function() {
   init();
 });
 
-// --- GLOBAL FUNCTIONS ---
+// --- GLOBAL FUNCTIONS (role-enforced) ---
 window.navigateTo = function(sectionId) {
   if (sectionId === '#inventory') sectionId = '#products';
+  try {
+    if (window.SmileHubAdmin && window.SmileHubAdmin.navigateTo) {
+      window.SmileHubAdmin.navigateTo(sectionId);
+      return;
+    }
+  } catch (e) {}
   document.querySelectorAll('.admin-section, #dashboard').forEach(function(s) {
     s.style.display = 'none';
   });
@@ -3986,7 +4141,7 @@ window.showLowStock = function() {
     var min = (Number.isInteger(m) && m >= 0) ? m : 10;
     return p.stock > 0 && p.stock <= min;
   });
-  if (items.length === 0) { window.showToast('✅ No low stock items', false, true); return; }
+  if (items.length === 0) { window.showToast('No low stock items', false, true); return; }
   window.navigateTo('#products');
   setTimeout(function(){
     document.querySelectorAll('#adminProductsBody tr').forEach(function(row) {
@@ -3996,7 +4151,7 @@ window.showLowStock = function() {
       if (isLow) setTimeout(function(){ row.classList.remove('row-flash'); }, 4500);
     });
   }, 200);
-  window.showToast('📊 ' + items.length + ' low stock item(s) highlighted', false, false);
+  window.showToast(items.length + ' low stock item(s) highlighted', false, false);
 };
 
 window.filterOrders = function() {
@@ -4010,7 +4165,7 @@ window.refreshOrders = function() {
     window.SmileHubAdmin.refreshOrders(filter);
     return;
   }
-  showToast('🔄 Refreshed', false, false);
+  showToast('Refreshed', false, false);
 };
 
 window.closeOrderModal = function() {
@@ -4024,28 +4179,18 @@ window.closeOrderModal = function() {
 };
 
 function openProductModalDirect(){
+  try {
+    var bridge = window.SmileHubAdmin;
+    if (bridge && bridge.openProductModal) {
+      if (bridge.canManageProducts && !bridge.canManageProducts()) {
+        if (bridge.toast) bridge.toast('Only admins can add products.', true);
+        return;
+      }
+      bridge.openProductModal();
+      return;
+    }
+  } catch (e) {}
   window.navigateTo('#products');
-  var modal = document.getElementById('productModal');
-  if (!modal) return;
-  if (modal.style.display === 'flex') { resetForm(); return; }
-  openAdminModal(modal);
-  var form = document.getElementById('adminProductForm');
-  if (form) {
-    form.reset();
-    form.querySelector('[name="productId"]').value = '';
-    var btn = form.querySelector('button[type="submit"]');
-    if (btn) btn.textContent = '💾 Save Product';
-    var preview = document.getElementById('previewImg');
-    if (preview) preview.src = 'assets/products/oral-care.svg';
-    var custom = document.getElementById('customImageInput');
-    if (custom) custom.value = '';
-    var imgSelect = document.getElementById('productImageSelect');
-    if (imgSelect) imgSelect.value = 'assets/products/oral-care.svg';
-  }
-  var title = document.getElementById('productModalTitle');
-  if (title) title.textContent = 'Add Product';
-  var eyebrow = document.getElementById('productModalEyebrow');
-  if (eyebrow) eyebrow.textContent = 'New product';
 }
 window.openProductModal = openProductModalDirect;
 

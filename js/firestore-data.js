@@ -284,21 +284,12 @@ function getOrders(callback) {
       }
       orders.push(o);
     });
-    if (orders.length === 0 && canAttemptSeed('smilehub_seed_orders')) {
-      var defaults = getDefaultOrders();
-      orders = mergeOrders(local, defaults);
-      var batch = db.batch();
-      defaults.forEach(function(o) { batch.set(db.collection('orders').doc(o.number), o); });
-      batch.commit().catch(function(error) {
-        console.warn('Could not seed demo orders (requires admin):', error);
-      });
-    } else {
-      orders = mergeOrders(local, orders.length ? orders : getDefaultOrders());
-    }
-    callback(orders);
+    // Empty means empty — never seed demo orders into production KPIs.
+    orders = mergeOrders(local, orders);
+    callback(orders, null);
   }).catch(function(error) {
     console.warn('Could not load orders from Firestore:', error);
-    callback(mergeOrders(local, getDefaultOrders()));
+    callback(mergeOrders(local, []), error);
   });
 }
 

@@ -6,8 +6,17 @@ service cloud.firestore {
     function userDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
+    function role() {
+      return signedIn() ? userDoc().data.role : null;
+    }
+    function isStaff() {
+      return signedIn() && role() in ['admin', 'staff', 'superadmin'];
+    }
+    function isProductAdmin() {
+      return signedIn() && role() in ['admin', 'superadmin'];
+    }
     function isAdmin() {
-      return signedIn() && userDoc().data.role in ['admin', 'staff', 'superadmin'];
+      return isStaff();
     }
     function validProfile(uid) {
       return own(uid)
@@ -33,15 +42,19 @@ service cloud.firestore {
 
     match /products/{id} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isProductAdmin();
+      // Product admins may edit anything. Staff (orders+stock role) may only
+      // touch stock controls — inventory is merged into the products section.
+      allow update: if isProductAdmin() || (isStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'minStock', 'status', 'updatedAt']));
     }
     match /products_meta/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isProductAdmin();
     }
     match /categories/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isProductAdmin();
     }
     match /users/{uid} {
       // Create: self-registration is allowed as 'customer'. Elevated roles
@@ -50,12 +63,12 @@ service cloud.firestore {
       allow create: if (validProfile(uid)
         && (requestedRole() == 'customer'
             || (requestedRole() in ['admin', 'staff', 'superadmin']
-                && invitedRole() == requestedRole()))) || isAdmin();
+                && invitedRole() == requestedRole()))) || isProductAdmin();
       // Update: profile fields may change, but the role can NEVER be changed
-      // by the owner. Admins may update any user's profile (e.g., to repair roles).
-      allow update: if (validProfile(uid) && requestedRole() == currentRole()) || isAdmin();
-      allow read: if own(uid) || isAdmin();
-      allow delete: if own(uid) || isAdmin();
+      // by the owner. Product admins may update any user's profile (e.g., to repair roles).
+      allow update: if (validProfile(uid) && requestedRole() == currentRole()) || isProductAdmin();
+      allow read: if own(uid) || isProductAdmin();
+      allow delete: if own(uid) || isProductAdmin();
 
       // Saved shipping addresses subcollection (mobile app).
       match /addresses/{addressId} {
@@ -82,10 +95,14 @@ service cloud.firestore {
 
     match /orders/{id} {
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow update: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','returnRequest','updatedAt']));
-      allow delete: if isAdmin();
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      // Staff may transition any status. Owners may only request a return or
+      // cancel their own pending order — not set Delivered/Shipped.
+      allow update: if isStaff() || (signedIn() && resource.data.userId == request.auth.uid
+        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['returnRequest','updatedAt'])
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt'])
+            && resource.data.status == 'Pending' && request.resource.data.status == 'Cancelled')));
+      allow delete: if isProductAdmin();
     }
     match /reviews/{id} {
       allow read: if true;
@@ -94,39 +111,50 @@ service cloud.firestore {
     }
     match /cms/{id} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isProductAdmin();
     }
     match /accounts/{email} {
-      allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
+      allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
       // New sign-ups (web or mobile) may create their own account record;
-      // admins may create missing records too (e.g. merged user profiles).
-      // Only admins may modify or remove records afterwards.
+      // product admins may create missing records too (e.g. merged user profiles).
+      // Only product admins may modify or remove records afterwards.
       allow create: if signedIn()
-        && (request.auth.token.email == email || isAdmin());
-      allow update, delete: if isAdmin();
+        && (request.auth.token.email == email || isProductAdmin());
+      allow update, delete: if isProductAdmin();
     }
     match /user_registrations/{email} {
-      allow read: if signedIn() && (request.auth.token.email == email || isAdmin());
-      allow create: if signedIn() && (request.auth.token.email == email || isAdmin());
+      allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
+      allow create: if signedIn() && (request.auth.token.email == email || isProductAdmin());
       // The invited account may claim its own invitation, but may only touch
       // the claim fields — everything else stays admin-managed.
-      allow update: if isAdmin()
+      allow update: if isProductAdmin()
         || (signedIn() && request.auth.token.email == email
             && request.resource.data.diff(resource.data).affectedKeys()
                  .hasOnly(['claimed', 'claimedUid', 'claimedAt']));
-      allow delete: if isAdmin();
+      allow delete: if isProductAdmin();
     }
     match /contact_messages/{id} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow create: if true
+        && request.resource.data.name is string
+        && request.resource.data.email is string
+        && request.resource.data.message is string
+        && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 120
+        && request.resource.data.email.size() >= 5 && request.resource.data.email.size() <= 254
+        && request.resource.data.message.size() >= 1 && request.resource.data.message.size() <= 5000
+        && (!('topic' in request.resource.data) || request.resource.data.topic.size() <= 120);
+      allow read, update, delete: if isStaff();
     }
     match /deleted_accounts/{email} {
-      allow read, create, delete: if isAdmin();
-      allow update: if isAdmin();
+      allow read, create, delete: if isProductAdmin();
+      allow update: if isProductAdmin();
     }
     match /audit_logs/{id} {
-      allow read: if isAdmin();
-      allow create: if signedIn();
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && request.resource.data.action is string
+        && request.resource.data.admin is string
+        && request.resource.data.action.size() >= 1 && request.resource.data.action.size() <= 1000
+        && request.resource.data.admin.size() >= 1 && request.resource.data.admin.size() <= 120;
       allow update, delete: if false;
     }
   }
