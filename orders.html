@@ -16,6 +16,7 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
@@ -102,14 +103,14 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
+<section class="page-title hero-band compact">
 <div class="container">
-<div class="breadcrumbs">
-<a href="homepage.html">
-            Home
-          </a>
-          / Order History
-        </div>
+<nav class="crumbs" aria-label="Breadcrumb">
+<a href="homepage.html">Home</a>
+<span aria-hidden="true">/</span>
+<span aria-current="page">Order History</span>
+</nav>
+<div class="eyebrow">Your orders</div>
 <h1>
           Order History
         </h1>
@@ -123,11 +124,11 @@
 <div class="orders-controls">
 <div class="form-group" style="flex:1;min-width:200px;margin:0">
 <label for="ordersSearch" class="sr-only">Search orders</label>
-<input id="ordersSearch" type="search" placeholder="Search by order number" autocomplete="off"/>
+<input id="ordersSearch" type="search" placeholder="Search by order, item, or customer" autocomplete="off"/>
 </div>
 <div class="form-group" style="margin:0;min-width:160px">
 <label for="ordersStatusFilter" class="sr-only">Filter by status</label>
-<select id="ordersStatusFilter"><option value="">All statuses</option><option>Pending</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option></select>
+<select id="ordersStatusFilter"><option value="">All statuses</option><option>Pending</option><option>Pending Payment</option><option>Pending Quotation</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option><option>Returned</option><option>Refunded</option></select>
 </div>
 <button class="btn btn-light" id="ordersClearFilter" type="button">Clear filters</button>
 </div>
@@ -268,6 +269,7 @@
 </footer>
 <script src="js/common.js?v=6.3.0">
 </script>
+<script src="js/customer-notify.js?v=1.0.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/orders.js">

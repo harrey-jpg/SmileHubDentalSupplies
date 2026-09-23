@@ -160,6 +160,12 @@ function addToCart(button) {
   if (!Number.isFinite(qty) || qty < 1) qty = 1;
   qty = Math.min(qty, 999);
 
+  // Cap against known stock up front so the cart never promises
+  // more than exists (cart reconcile used to correct this post-hoc).
+  var stockCap = Number(button.dataset.stock);
+  var stockKnown = button.dataset.stock !== undefined && Number.isFinite(stockCap) && stockCap > 0;
+  if (stockKnown) qty = Math.min(qty, stockCap);
+
   const product = {
     id: Number(button.dataset.id),
     name: button.dataset.name,
@@ -175,6 +181,19 @@ function addToCart(button) {
 
   if (existingProduct) {
     existingProduct.quantity += product.quantity;
+    if (stockKnown && existingProduct.quantity > stockCap) {
+      existingProduct.quantity = stockCap;
+      saveStoredList(CART_KEY, cart);
+      updateCartCount();
+      showToast('Only ' + stockCap + ' available — cart set to max.', true);
+      if (button) {
+        var originalCap = button.innerHTML;
+        button.innerHTML = '✓ Capped';
+        button.disabled = true;
+        setTimeout(function () { button.innerHTML = originalCap; button.disabled = false; }, 900);
+      }
+      return;
+    }
   } else {
     cart.push(product);
   }
@@ -449,6 +468,8 @@ function togglePassword(btn) {
   if (open && closed) {
     open.classList.toggle('hidden', show);
     closed.classList.toggle('hidden', !show);
+  } else if (!btn.querySelector('svg')) {
+    btn.textContent = show ? 'Hide' : 'Show';
   }
   input.focus();
 }

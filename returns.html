@@ -14,6 +14,7 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -102,7 +103,7 @@
 </div>
 </nav>
 </header>
-<section class="page-title"><div class="container"><div class="breadcrumbs"><a href="homepage.html">Home</a> / Returns & Refunds</div><h1>Returns & Refunds</h1><p class="muted">Create and track frontend return requests.</p></div></section><main class="section-sm"><div class="container account-page-grid">
+<section class="page-title hero-band compact"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="homepage.html">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">Returns &amp; Refunds</span></nav><div class="eyebrow">Returns</div><h1>Returns &amp; Refunds</h1><p class="muted">Create and track frontend return requests.</p></div></section><main class="section-sm"><div class="container account-page-grid">
 <section class="card form-card"><div class="eyebrow">Customer support</div><h2>Request a return</h2><form id="returnForm"><div class="form-grid"><div class="form-group"><label for="returnOrder">Order number</label><input id="returnOrder" required placeholder="SH-2026001"></div><div class="form-group"><label for="returnReason">Reason</label><select id="returnReason" required><option value="">Choose a reason</option><option>Damaged item</option><option>Wrong item</option><option>No longer needed</option><option>Other</option></select></div></div><div class="form-group"><label for="returnDetails">Details</label><textarea id="returnDetails" required placeholder="Describe the issue and item condition"></textarea></div><label class="payment-option"><input id="returnAgree" type="checkbox" required><span>I confirm the item follows the displayed return conditions.</span></label><button class="btn btn-primary">Submit request</button></form></section>
 <aside class="card form-card"><h3>Return conditions</h3><ul class="spec-list"><li>Use the original order number.</li><li>Keep packaging and accessories where possible.</li><li>Opened sterile or hygiene-sensitive items may not qualify.</li><li>This frontend stores requests only on this device.</li></ul><a class="btn btn-light btn-block" href="orders.html">View orders</a></aside>
 </div><div class="container"><h2>Your requests</h2><div id="returnList" class="grid grid-3"></div></div></main><footer class="footer">
@@ -176,9 +177,92 @@
 <script src="js/profile.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script>
 document.addEventListener('DOMContentLoaded',function(){
- var key='smilehub_returns',items=[];try{items=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
- var list=document.getElementById('returnList');function render(){list.innerHTML=items.length?items.map(function(x){return '<article class="card form-card"><span class="status processing">Under review</span><h3>'+x.order+'</h3><p>'+x.reason+'</p><small class="muted">'+new Date(x.date).toLocaleDateString()+'</small></article>';}).join(''):'<div class="card empty-state"><p>No return requests yet.</p></div>';}render();
- document.getElementById('returnForm').onsubmit=function(e){e.preventDefault();items.unshift({id:Date.now(),order:document.getElementById('returnOrder').value,reason:document.getElementById('returnReason').value,details:document.getElementById('returnDetails').value,date:new Date().toISOString()});localStorage.setItem(key,JSON.stringify(items));e.target.reset();render();alert('Return request saved on this device.');};
+ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+ var deviceKey='smilehub_returns';
+ function deviceItems(){try{var a=JSON.parse(localStorage.getItem(deviceKey)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+ function currentUser(){try{return (window.SmileHubAuth&&window.SmileHubAuth.getLoggedInUser())||(typeof getCachedUser==='function'?getCachedUser():null);}catch(e){return null;}}
+ var list=document.getElementById('returnList');
+ var form=document.getElementById('returnForm');
+ var orderInput=document.getElementById('returnOrder');
+ var reasonInput=document.getElementById('returnReason');
+ var detailsInput=document.getElementById('returnDetails');
+ var agreeInput=document.getElementById('returnAgree');
+ var statusBox=document.createElement('p');
+ statusBox.className='muted';statusBox.setAttribute('role','status');statusBox.style.marginTop='10px';
+ form.appendChild(statusBox);
+ function orderTimeMs(o){var t=o.sortTs||(o.date?Date.parse(o.date):NaN);if(!t||isNaN(t)){if(o.createdAt&&typeof o.createdAt.toDate==='function'){try{t=o.createdAt.toDate().getTime();}catch(e){}}}return (!t||isNaN(t))?null:t;}
+ function myOrders(all){
+   var user=currentUser();
+   if(!user) return [];
+   return (all||[]).filter(function(o){
+     var orderEmail=String(o.email||(o.customerObj&&o.customerObj.email)||'').toLowerCase();
+     var orderName=String(o.customerName||o.customer||'').toLowerCase();
+     return (orderEmail&&user.email&&orderEmail===String(user.email).toLowerCase())||(!orderEmail&&user.name&&orderName===String(user.name).toLowerCase());
+   });
+ }
+ function renderRemote(orders){
+   var reqs=orders.filter(function(o){return o.returnRequest;});
+   if(!reqs.length){list.innerHTML='<div class="card empty-state"><p>No return requests yet.</p></div>';return;}
+   list.innerHTML=reqs.map(function(o){
+     var rr=o.returnRequest||{};var st=String(rr.status||'requested');
+     var cls=st==='approved'?'delivered':st==='rejected'?'low':'processing';
+     var when='';try{var d=rr.requestedAt?(rr.requestedAt.toDate?rr.requestedAt.toDate():new Date(rr.requestedAt)):new Date(o.date);when=isNaN(d.getTime())?'':d.toLocaleDateString();}catch(e){}
+     return '<article class="card form-card"><span class="status '+cls+'">'+esc(st)+'</span><h3>'+esc(o.number||o.orderNumber||'')+'</h3><p>'+esc(rr.reason||'')+(rr.note?' — '+esc(rr.note):'')+'</p><small class="muted">'+esc(when)+'</small></article>';
+   }).join('');
+ }
+ function renderDevice(){
+   var items=deviceItems();
+   list.innerHTML=items.length?items.map(function(x){return '<article class="card form-card"><span class="status processing">Under review</span><h3>'+esc(x.order)+'</h3><p>'+esc(x.reason)+'</p><small class="muted">'+esc(new Date(x.date).toLocaleDateString())+'</small></article>';}).join(''):'<div class="card empty-state"><p>No return requests yet.</p></div>';
+ }
+ function refresh(){
+   var user=currentUser();
+   if(!user||!window.SmileHubData){renderDevice();return;}
+   try{
+     SmileHubData.getOrders(function(all){renderRemote(myOrders(all));});
+   }catch(e){renderDevice();}
+ }
+ refresh();
+ form.onsubmit=function(e){
+   e.preventDefault();
+   statusBox.textContent='';
+   var num=orderInput.value.trim();
+   var reason=reasonInput.value;
+   var details=detailsInput.value.trim();
+   if(!num){statusBox.textContent='Enter your order number.';orderInput.focus();return;}
+   if(!reason){statusBox.textContent='Choose a reason.';reasonInput.focus();return;}
+   if(agreeInput&&!agreeInput.checked){statusBox.textContent='Please confirm the item follows the return conditions.';agreeInput.focus();return;}
+   var user=currentUser();
+   function saveDevice(note){
+     var items=deviceItems();
+     items.unshift({id:Date.now(),order:num,reason:reason,details:details,date:new Date().toISOString()});
+     try{localStorage.setItem(deviceKey,JSON.stringify(items));}catch(err){}
+     form.reset();refresh();
+     statusBox.textContent=note||'Return request saved on this device.';
+   }
+   if(!user||!window.SmileHubData){saveDevice();return;}
+   try{
+     SmileHubData.getOrders(function(all){
+       var mine=myOrders(all);
+       var order=mine.filter(function(o){return String(o.number||o.orderNumber).toLowerCase()===num.toLowerCase();})[0];
+       if(!order){statusBox.textContent='No order '+num+' found on your account.';orderInput.focus();return;}
+       if(String(order.status||'').toLowerCase()!=='delivered'){statusBox.textContent='Only delivered orders can be returned (this one is '+String(order.status||'unknown')+').';return;}
+       if(order.returnRequest){statusBox.textContent='A return is already requested for '+num+'.';return;}
+       var t=orderTimeMs(order);
+       if(t!==null&&(Date.now()-t)/(1000*60*60*24)>7){statusBox.textContent='Return window closed (7 days from delivery).';return;}
+       var refId=order.docId||order.number||order.orderNumber;
+       var payload={returnRequest:{reason:reason,note:details,requestedAt:(window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date().toISOString()),status:'requested'},updatedAt:(window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date().toISOString())};
+       try{
+         firebase.firestore().collection('orders').doc(String(refId)).update(payload).then(function(){
+           form.reset();refresh();
+           statusBox.textContent='Return requested for '+num+'. Track it in Orders.';
+           if(typeof showToast==='function')showToast('Return requested for '+num);
+         }).catch(function(err){
+           saveDevice('Saved on this device (offline) — it will not reach staff until you are online. Reference: '+num);
+         });
+       }catch(err){saveDevice();}
+     });
+   }catch(err){saveDevice();}
+ };
 });
 </script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>

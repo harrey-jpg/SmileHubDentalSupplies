@@ -37,6 +37,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if(idx!==-1) pending[idx]=entry; else pending.push(entry);
     setPending(pending);
   }
+  function removePending(id){
+    setPending(getPending().filter(function(p){ return String(p.id)!==String(id); }));
+  }
+  function orderTimestampMs(o){
+    var t = o.sortTs || (o.date ? Date.parse(o.date) : NaN);
+    if (!t || isNaN(t)) {
+      if (o.createdAt && typeof o.createdAt.toDate === 'function') {
+        try { t = o.createdAt.toDate().getTime(); } catch (e) {}
+      }
+    }
+    return (!t || isNaN(t)) ? null : t;
+  }
   function applyPending(orders){
     var pending=getPending(); if(!pending.length) return orders;
     var now=Date.now();
@@ -151,7 +163,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (isHidden(o.number || o.orderNumber)) return false;
       var num = String(o.number || o.orderNumber || '').toLowerCase();
       var status = String(o.status || '').toLowerCase();
-      var matchSearch = !q || num.indexOf(q) !== -1;
+      var itemNames = Array.isArray(o.items) ? o.items.map(function(it){ return String(it.name || ''); }).join(' ').toLowerCase() : '';
+      var customer = String(o.customer || o.customerName || '').toLowerCase();
+      var matchSearch = !q || num.indexOf(q) !== -1 || itemNames.indexOf(q) !== -1 || customer.indexOf(q) !== -1;
       var matchStatus = !statusVal || status === statusVal.toLowerCase();
       return matchSearch && matchStatus;
     });
@@ -183,11 +197,12 @@ document.addEventListener('DOMContentLoaded', function() {
       var canReturn = false, returnDisabled = false, returnLabel = 'Return';
       if(String(order.status||'').toLowerCase() === 'delivered' && !order.returnRequest){
         try{
-          var orderTime = order.sortTs || (order.date ? Date.parse(order.date) : Date.now());
-          var diffDays = (Date.now() - orderTime) / (1000*60*60*24);
+          // Unparseable dates fail OPEN (eligible) — never silently lock fresh orders out.
+          var orderTime = orderTimestampMs(order);
+          var diffDays = orderTime === null ? 0 : (Date.now() - orderTime) / (1000*60*60*24);
           if(diffDays <= 7) canReturn = true;
           else { canReturn = false; returnDisabled = true; returnLabel = 'Return (past 7 days)'; }
-        }catch(e){ canReturn = false; }
+        }catch(e){ canReturn = true; }
       } else if(order.returnRequest){
         canReturn = false; returnDisabled = true; returnLabel = 'Return requested';
       }
@@ -207,23 +222,62 @@ document.addEventListener('DOMContentLoaded', function() {
   function reorder(orderId) {
     var order = allOrders.find(function(o) { return String(o.number || o.orderNumber) === String(orderId); });
     if (!order || !Array.isArray(order.items) || !order.items.length) return showToast('No items to reorder', true);
-    var cart = getStoredList(CART_KEY_NAME);
-    order.items.forEach(function(it) {
-      var existing = cart.find(function(c) { return String(c.id) === String(it.productId || it.id) || c.name === it.name; });
-      if (existing) existing.quantity = Number(existing.quantity || 1) + Number(it.quantity || 1);
-      else cart.push({ id: it.productId || it.id || Date.now(), name: it.name, price: Number(it.price||0), quantity: Number(it.quantity||1), image: it.image || 'assets/products/default.svg' });
-    });
-    saveStoredList(CART_KEY_NAME, cart);
-    if (typeof updateCartCount === 'function') updateCartCount();
-    // toast with View Cart action
-    showToast('Items from ' + orderId + ' added to cart');
-    setTimeout(function(){
-      var toastEl = document.getElementById('siteToast');
-      if(toastEl && toastEl.textContent.indexOf(orderId)!==-1){
-        toastEl.innerHTML = escapeHtml('Items from ' + orderId + ' added to cart') + ' <a href="cart.html" style="color:#fff;text-decoration:underline;margin-left:8px">View Cart</a>';
-        toastEl.classList.add('show');
+    showToast('Checking live stock and prices…');
+    var done = function(liveList) {
+      if (!liveList || !liveList.length) {
+        // Offline/empty catalog: fall back to snapshot prices with an honest note.
+        var cart0 = getStoredList(CART_KEY_NAME);
+        order.items.forEach(function(it) {
+          var existing0 = cart0.find(function(c) { return String(c.id) === String(it.productId || it.id) || c.name === it.name; });
+          if (existing0) existing0.quantity = Number(existing0.quantity || 1) + Number(it.quantity || 1);
+          else cart0.push({ id: it.productId || it.id || ('reorder-' + String(it.name || 'item').toLowerCase().replace(/[^a-z0-9]+/g, '-')), name: it.name, price: Number(it.price || 0), quantity: Number(it.quantity || 1), image: it.image || 'assets/products/default.svg' });
+        });
+        saveStoredList(CART_KEY_NAME, cart0);
+        if (typeof updateCartCount === 'function') updateCartCount();
+        showToast('Reordered from snapshot (offline prices) — review cart before checkout.');
+        return;
       }
-    }, 100);
+      var liveById = {}, liveByName = {};
+      (liveList || []).forEach(function(p) {
+        liveById[String(p.id)] = p;
+        liveByName[String(p.name || '').toLowerCase()] = p;
+      });
+      var cart = getStoredList(CART_KEY_NAME);
+      var added = 0, skipped = [], repriced = [];
+      order.items.forEach(function(it) {
+        var live = liveById[String(it.productId || it.id)] || liveByName[String(it.name || '').toLowerCase()] || null;
+        var qty = Number(it.quantity || 1);
+        if (live) {
+          if (Number(live.stock) <= 0) { skipped.push(it.name); return; }
+          if (Number(live.price) !== Number(it.price)) repriced.push(it.name);
+          var existing = cart.find(function(c) { return String(c.id) === String(live.id); });
+          var take = Math.min(qty, Number(live.stock), 999);
+          if (existing) existing.quantity = Math.min(Number(existing.quantity || 1) + take, Number(live.stock), 999);
+          else cart.push({ id: live.id, name: live.name, price: Number(live.price || 0), quantity: take, image: live.image || 'assets/products/default.svg' });
+          added++;
+        } else {
+          skipped.push(it.name + ' (no longer sold)');
+        }
+      });
+      saveStoredList(CART_KEY_NAME, cart);
+      if (typeof updateCartCount === 'function') updateCartCount();
+      var msg = added ? added + ' item' + (added === 1 ? '' : 's') + ' from ' + orderId + ' added at current prices'
+        : 'Nothing reordered from ' + orderId;
+      if (skipped.length) msg += ' — skipped: ' + skipped.join(', ');
+      if (repriced.length) msg += ' (prices updated)';
+      showToast(msg, !added);
+      setTimeout(function(){
+        var toastEl = document.getElementById('siteToast');
+        if(toastEl && added){
+          toastEl.innerHTML = escapeHtml(msg) + ' <a href="cart.html" style="color:#fff;text-decoration:underline;margin-left:8px">View Cart</a>';
+          toastEl.classList.add('show');
+        }
+      }, 100);
+    };
+    try {
+      if (window.SmileHubData && SmileHubData.getProducts) SmileHubData.getProducts(function(list){ done(list || []); });
+      else done([]);
+    } catch (e) { done([]); }
   }
 
   function removeOrder(orderId){
@@ -269,8 +323,16 @@ document.addEventListener('DOMContentLoaded', function() {
     db.collection('orders').doc(String(docId)).update(payload).then(function(){
       showToast('Order ' + orderId + ' cancelled');
     }).catch(function(err){
-      showRowError(orderId, 'Could not cancel: ' + (err.message||'offline — will retry'));
-      showToast('Could not cancel: ' + (err.message||'offline — will retry'), true);
+      // Roll back the optimistic update so a denied write can't masquerade as Cancelled.
+      order.status = originalStatus;
+      removePending(orderId);
+      try{
+        var localOrders3 = JSON.parse(localStorage.getItem('smilehub_orders')||'[]');
+        for(var j=0;j<localOrders3.length;j++){ if(String(localOrders3[j].number||localOrders3[j].orderNumber)===String(orderId)){ localOrders3[j].status=originalStatus; localStorage.setItem('smilehub_orders', JSON.stringify(localOrders3)); break; } }
+      }catch(e){}
+      render();
+      showRowError(orderId, 'Could not cancel (' + (err.code || 'denied') + ') — status restored to ' + originalStatus);
+      showToast('Could not cancel: ' + (err.message || 'permission denied'), true);
       if(btn) btn.disabled=false;
     });
   }
@@ -279,8 +341,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = allOrders.find(function(o){ return String(o.number||o.orderNumber)===String(orderId); });
     if(!order) return;
     if(order.returnRequest) return showToast('Return already requested for ' + orderId, true);
-    var orderTime = order.sortTs || (order.date ? Date.parse(order.date) : Date.now());
-    var diffDays = (Date.now() - orderTime) / (1000*60*60*24);
+    var orderTime = orderTimestampMs(order);
+    var diffDays = orderTime === null ? 0 : (Date.now() - orderTime) / (1000*60*60*24);
     if(diffDays > 7) return showToast('Return window closed (7 days)', true);
     pendingReturnOrderId = orderId;
     if(returnOrderInfo) returnOrderInfo.textContent = 'Order ' + orderId + ' — ' + (order.date||'') + ' • ' + money(order.total||0);
@@ -341,10 +403,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var itemsRows = (order.items || []).map(function(it) {
       return '<tr><td>' + escapeHtml(it.name || 'Product') + '</td><td>' + escapeHtml(String(it.quantity || 1)) + '</td><td>' + money(it.price || 0) + '</td><td>' + money((it.price||0)*(it.quantity||1)) + '</td></tr>';
     }).join('');
+    var invSubtotal = (order.subtotal != null) ? Number(order.subtotal) : (order.items || []).reduce(function(s, it){ return s + Number(it.price || 0) * Number(it.quantity || 1); }, 0);
+    var invShipping = Number(order.shipping || 0);
+    var invDiscount = Number(order.discount || 0);
+    var invTax = (order.tax != null) ? Number(order.tax) : Math.round((invSubtotal - invDiscount) * 0.12 * 100) / 100;
+    var invRows = '<tr><td colspan="3" style="text-align:right">Subtotal</td><td>' + money(invSubtotal) + '</td></tr>' +
+      '<tr><td colspan="3" style="text-align:right">Shipping</td><td>' + (invShipping === 0 ? 'Free' : money(invShipping)) + '</td></tr>';
+    if (invDiscount > 0) invRows += '<tr><td colspan="3" style="text-align:right">Discount' + (order.coupon ? ' (' + escapeHtml(order.coupon) + ')' : '') + '</td><td>−' + money(invDiscount) + '</td></tr>';
+    invRows += '<tr><td colspan="3" style="text-align:right">VAT (12%)</td><td>' + money(invTax) + '</td></tr>' +
+      '<tr><td colspan="3" style="text-align:right"><strong>Total</strong></td><td><strong>' + money(order.total || 0) + '</strong></td></tr>';
     invoiceBody.innerHTML = '<p><strong>Order:</strong> ' + escapeHtml(order.number || order.orderNumber) + ' &nbsp; <strong>Date:</strong> ' + escapeHtml(order.date || '') + ' &nbsp; <strong>Status:</strong> ' + escapeHtml(order.status || '') + '</p>' +
       '<p><strong>Ship to:</strong> ' + escapeHtml(order.address || '') + '</p>' +
-      '<table class="invoice-table"><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsRows + '</tbody><tfoot><tr><td colspan="3" style="text-align:right"><strong>Total</strong></td><td><strong>' + money(order.total||0) + '</strong></td></tr></tfoot></table>' +
-      '<p class="muted" style="margin-top:12px">Thank you for shopping with SmileHub Dental Supplies.</p>';
+      '<table class="invoice-table"><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsRows + '</tbody><tfoot>' + invRows + '</tfoot></table>' +
+      '<p class="muted" style="margin-top:12px">Thank you for shopping with SmileHub Dental Supplies.<br><small>Demo invoice for your records — not an official BIR receipt.</small></p>';
     invoiceModal.classList.add('open');
     invoiceModal.setAttribute('aria-hidden', 'false');
     invoicePrint.focus();
@@ -425,6 +496,9 @@ document.addEventListener('DOMContentLoaded', function() {
           return tb - ta;
         });
         allOrders = applyPending(filtered);
+        try {
+          if (window.CustomerNotify) window.CustomerNotify.checkOrderStatuses(allOrders);
+        } catch (e) {}
         if (!user && allOrders.length === 0) {
           if (emptyEl) {
             emptyEl.querySelector('h2').textContent = 'No orders yet';

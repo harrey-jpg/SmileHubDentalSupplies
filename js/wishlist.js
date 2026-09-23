@@ -84,7 +84,10 @@ function renderWishlist() {
     var img = safeImageLocal(item.image);
     var stockKnown = id in wishlistLive;
     var inStock = stockKnown ? wishlistLive[id] > 0 : true;
-    var actions = (stockKnown && !inStock)
+    var actions = !stockKnown
+      ? '<button class="btn btn-primary add-cart" data-id="' + id + '" data-name="' + name + '" data-price="' + price + '" data-image="' + img + '" disabled title="Checking stock…">Add to Cart</button>' +
+        '<button class="btn btn-light move-cart" data-id="' + id + '" disabled title="Checking stock…">Move to Cart</button>'
+      : (stockKnown && !inStock)
       ? '<button class="btn btn-light notify-btn" data-id="' + id + '" data-name="' + name + '" type="button">Notify me when back</button>' +
         '<a class="btn btn-light" href="profile.html">Restock alerts</a>'
       : '<button class="btn btn-primary add-cart" data-id="' + id + '" data-name="' + name + '" data-price="' + price + '" data-image="' + img + '">Add to Cart</button>' +
@@ -126,6 +129,7 @@ function renderWishlist() {
         var guestItem = null;
         getStoredList(WISH_KEY).forEach(function(entry) { if (Number(entry.id) === id) guestItem = entry; });
         if (guestItem) {
+          try { localStorage.setItem('smilehub_pending_wish_move', String(id)); } catch (e) {}
           var guestProxy = document.createElement('button');
           guestProxy.dataset.id = guestItem.id;
           guestProxy.dataset.name = guestItem.name || 'Product';
@@ -213,6 +217,20 @@ function removeWishlistItem(id, silent) {
 
 document.addEventListener('DOMContentLoaded', function() {
   updateWishlistCount();
+  // Complete a guest "Move to Cart": login restore puts it in the cart,
+  // so drop it from the wishlist once instead of double-adding on retry.
+  try {
+    var pendingMove = localStorage.getItem('smilehub_pending_wish_move');
+    if (pendingMove && customerIsLoggedIn()) {
+      var inCart = getStoredList(CART_KEY).some(function(entry) { return Number(entry.id) === Number(pendingMove); });
+      var inWish = getStoredList(WISH_KEY).some(function(entry) { return Number(entry.id) === Number(pendingMove); });
+      if (inCart && inWish) {
+        removeWishlistItem(Number(pendingMove), true);
+        showToast('Moved to cart');
+      }
+      localStorage.removeItem('smilehub_pending_wish_move');
+    }
+  } catch (e) {}
   renderWishlist();
   // Enrich with live stock (chips + guards) once the catalog resolves.
   try {

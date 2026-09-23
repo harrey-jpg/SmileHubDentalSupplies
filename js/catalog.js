@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (!grid) return;
 
+  var gridDefaultOrder = [];
+
   var catalogLoaded = false;
   var catalogTimer = null;
   var catalogAttempts = 0;
@@ -145,14 +147,20 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="product-brand">' + (p.brand || 'SmileHub') + ' &middot; ' + (p.sku || 'SH-' + String(p.id).padStart(3, '0')) + '</div>' +
           '<div class="price-row"><span class="price">' + money(p.price || 0) + '</span> <span class="' + statusClass + '">' + statusText + '</span></div>' +
           '<div class="product-actions">' +
-            '<button class="btn btn-primary add-cart catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>Add to Cart</button>' +
-            '<button class="btn buy-now catalog-btn btn-quiet" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>' + BOLT_SVG + ' Buy Now</button>' +
+            (inStock
+              ? '<button class="btn btn-primary add-cart catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>Add to Cart</button>' +
+                '<button class="btn buy-now catalog-btn btn-quiet" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>' + BOLT_SVG + ' Buy Now</button>'
+              : '<button class="btn btn-light notify-btn catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" type="button">Notify me when back</button>') +
             '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
           '</div>' +
         '</div>';
       grid.appendChild(card);
     });
+    gridDefaultOrder = Array.prototype.slice.call(grid.children);
     attachEventListeners();
+    try {
+      if (window.CustomerNotify) window.CustomerNotify.checkRestock(catalogProducts);
+    } catch (e) {}
   }
 
   function bindOnce(button, handler) {
@@ -161,7 +169,39 @@ document.addEventListener('DOMContentLoaded', function() {
     button.addEventListener('click', handler);
   }
 
+  function catalogRestockIds() {
+    try {
+      var raw = JSON.parse(localStorage.getItem('smilehub_restock') || '[]');
+      return (Array.isArray(raw) ? raw : []).map(function(e) { return (typeof e === 'number') ? e : Number(e.id); });
+    } catch (e) { return []; }
+  }
+  function paintCatalogNotify() {
+    var ids = catalogRestockIds();
+    document.querySelectorAll('.notify-btn.catalog-btn').forEach(function(button) {
+      var on = ids.indexOf(Number(button.dataset.id)) !== -1;
+      button.classList.toggle('is-on', on);
+      button.textContent = on ? "✓ You're on the list" : 'Notify me when back';
+    });
+  }
   function attachEventListeners() {
+    document.querySelectorAll('.notify-btn.catalog-btn').forEach(function(button) {
+      bindOnce(button, function() {
+        var id = Number(button.dataset.id);
+        var ids = catalogRestockIds();
+        var raw = [];
+        try { raw = JSON.parse(localStorage.getItem('smilehub_restock') || '[]'); if (!Array.isArray(raw)) raw = []; } catch (e) {}
+        if (ids.indexOf(id) !== -1) {
+          raw = raw.filter(function(e) { return ((typeof e === 'number') ? e : Number(e.id)) !== id; });
+          showToast('Removed from restock alerts');
+        } else {
+          raw.push({ id: id, name: button.dataset.name || ('Product #' + id) });
+          showToast("You're on the restock list — see Profile › Restock alerts");
+        }
+        try { localStorage.setItem('smilehub_restock', JSON.stringify(raw)); } catch (e) {}
+        paintCatalogNotify();
+      });
+    });
+    paintCatalogNotify();
     document.querySelectorAll('.add-cart.catalog-btn').forEach(function(button) {
       bindOnce(button, function(e) {
         e.preventDefault();
@@ -214,6 +254,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   if (category && params.get('category')) category.value = matchOption(category, params.get('category'));
   if (brand && params.get('brand')) brand.value = matchOption(brand, params.get('brand'));
+  if (priceMin && params.get('min')) priceMin.value = params.get('min');
+  if (priceMax && params.get('max')) priceMax.value = params.get('max');
+  if (inStockOnly && params.get('inStock') === '1') inStockOnly.checked = true;
+  if (sort && params.get('sort')) {
+    var sortOpt = Array.prototype.filter.call(sort.options, function(o) { return o.value === params.get('sort'); })[0];
+    if (sortOpt) sort.value = sortOpt.value;
+  }
+
+  function syncCatalogUrl() {
+    try {
+      var p = new URLSearchParams();
+      if (search && search.value.trim()) p.set('q', search.value.trim());
+      if (category && category.value !== 'all') p.set('category', category.value);
+      if (brand && brand.value !== 'all') p.set('brand', brand.value);
+      if (priceMin && priceMin.value !== '') p.set('min', priceMin.value);
+      if (priceMax && priceMax.value !== '') p.set('max', priceMax.value);
+      if (inStockOnly && inStockOnly.checked) p.set('inStock', '1');
+      if (sort && sort.value !== 'default') p.set('sort', sort.value);
+      var qs = p.toString();
+      history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+    } catch (e) {}
+  }
 
   var priceNotice = document.getElementById('priceNotice');
   var noResults = document.getElementById('noResults');
@@ -266,8 +328,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (sort.value === 'price-low') visibleCards.sort(function(a,b) { return Number(a.dataset.price) - Number(b.dataset.price); });
       else if (sort.value === 'price-high') visibleCards.sort(function(a,b) { return Number(b.dataset.price) - Number(a.dataset.price); });
       else if (sort.value === 'name') visibleCards.sort(function(a,b) { return a.dataset.name.localeCompare(b.dataset.name); });
+      else visibleCards.sort(function(a,b) { return gridDefaultOrder.indexOf(a) - gridDefaultOrder.indexOf(b); });
     }
     visibleCards.forEach(function(c) { grid.appendChild(c); });
+    syncCatalogUrl();
     attachEventListeners();
     if (count) count.textContent = visibleCount + ' product' + (visibleCount !== 1 ? 's' : '') + ' found';
     noResults.classList.toggle('hidden', visibleCount !== 0);

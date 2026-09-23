@@ -564,7 +564,8 @@ function handleRegister(event) {
   var email = document.getElementById('registerEmail').value.trim().toLowerCase();
   var password = document.getElementById('registerPassword').value;
   var accountTypeSelect = document.getElementById('registerAccountType');
-  var selectedRole = accountTypeSelect ? accountTypeSelect.value : 'customer';
+  var accountType = accountTypeSelect ? accountTypeSelect.value : 'customer';
+  if (['customer', 'dentist', 'clinic', 'student'].indexOf(accountType) === -1) accountType = 'customer';
 
   if (!firstName) { showAuthMessage('First name is required.', true); return; }
   if (!lastName) { showAuthMessage('Last name is required.', true); return; }
@@ -600,7 +601,9 @@ function handleRegister(event) {
     showAuthMessage('Account created! Setting up profile...');
 
     return firebase.firestore().collection('user_registrations').doc(email).get().then(function(doc) {
-      var role = selectedRole;
+      // Role stays customer unless an unclaimed admin invitation exists.
+      // The account-type select is segmentation only (stored as accountType).
+      var role = 'customer';
       var reg = doc.exists && doc.data().claimed === false ? doc.data() : null;
 
       if (reg) {
@@ -615,6 +618,7 @@ function handleRegister(event) {
         displayName: firstName + ' ' + lastName,
         email: email,
         role: role,
+        accountType: accountType,
         phone: '',
         address: ''
       }).then(function() {
@@ -634,6 +638,7 @@ function handleRegister(event) {
           phone: '',
           address: '',
           role: role,
+          accountType: accountType,
           status: 'active'
         });
       }).then(function() {
@@ -642,6 +647,7 @@ function handleRegister(event) {
           name: firstName + ' ' + lastName,
           email: email,
           role: role,
+          accountType: accountType,
           phone: '',
           address: '',
           firstName: firstName,

@@ -153,20 +153,21 @@
 <label for="registerAccountType">
             Account Type
           </label>
-<select id="registerAccountType">
+<select id="registerAccountType" aria-describedby="registerAccountTypeHelp">
 <option value="customer">
               Customer
             </option>
-<option value="customer">
+<option value="dentist">
               Dentist
             </option>
-<option value="customer">
+<option value="clinic">
               Dental Clinic
             </option>
-<option value="customer">
+<option value="student">
               Dental Student
             </option>
 </select>
+<small class="muted" id="registerAccountTypeHelp">Tells us who you are — everyone starts with a customer account.</small>
 </div>
 <div class="form-group">
 <label for="registerPassword">
@@ -174,7 +175,7 @@
           </label>
 <div class="password-wrap">
 <input autocomplete="new-password" id="registerPassword" minlength="8" name="password" required="" type="password"/>
-<button class="password-toggle" onclick="togglePassword(this)" type="button">👁</button>
+<button class="password-toggle" onclick="togglePassword(this)" type="button">Show</button>
 </div>
 <div aria-live="polite" class="password-strength">
 <div class="password-strength-track"><div class="password-strength-bar" id="passwordStrengthBar"></div></div>
@@ -183,7 +184,7 @@
 <label for="registerConfirmPassword">Confirm Password</label>
 <div class="password-wrap">
 <input autocomplete="new-password" id="registerConfirmPassword" minlength="8" name="confirmPassword" required="" type="password"/>
-<button aria-label="Show or hide confirmed password" class="password-toggle" onclick="togglePassword(this)" type="button">👁</button>
+<button aria-label="Show or hide confirmed password" class="password-toggle" onclick="togglePassword(this)" type="button">Show</button>
 </div></div>
 <label class="check-row" for="registerTerms">
 <input id="registerTerms" required="" type="checkbox"/>

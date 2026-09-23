@@ -168,7 +168,7 @@
       }).finally(function () {
         if (button) {
           button.disabled = false;
-          button.textContent = '📍 Use current location';
+          button.textContent = 'Use current location';
         }
       });
     }, function (error) {
@@ -291,7 +291,11 @@
       showProfileMessage(phoneChanged ? 'Profile saved. Verify your new phone number before checkout.' : 'Profile information saved.');
     }).catch(function (error) {
       setSaveState('Save failed', true);
-      showProfileMessage('Could not save profile: ' + error.message, true);
+      var msg = error && error.message ? error.message : 'please try again';
+      if (/quota|storage|size|limit/i.test(msg)) {
+        msg = 'Photo too large to save. Remove the photo and try again, or use a smaller image.';
+      }
+      showProfileMessage('Could not save profile: ' + msg, true);
     });
   }
 
@@ -349,9 +353,9 @@
     event.preventDefault();
     var newPassword = value('newPassword');
     var confirmPassword = value('confirmPassword');
-    if (newPassword.length < 6) {
-      setFieldError('newPassword', 'passwordFormError', 'The new password must contain at least 6 characters.');
-      return showProfileMessage('The new password must contain at least 6 characters.', true);
+    if (newPassword.length < 8) {
+      setFieldError('newPassword', 'passwordFormError', 'The new password must contain at least 8 characters.');
+      return showProfileMessage('The new password must contain at least 8 characters.', true);
     }
     if (newPassword !== confirmPassword) {
       setFieldError('confirmPassword', 'passwordFormError', 'The new passwords do not match.');

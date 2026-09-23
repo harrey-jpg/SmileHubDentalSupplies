@@ -273,6 +273,19 @@ document.addEventListener('DOMContentLoaded', function() {
     sameAsShipping.addEventListener('change', function() {
       if (this.checked) copyShippingToBilling();
     });
+    // Prefill once on load when checked (default), and keep in sync while
+    // checked so the visible fields never contradict the checkbox.
+    if (sameAsShipping.checked) {
+      try { copyShippingToBilling(); } catch (e) {}
+    }
+    ['checkoutFirstName', 'checkoutLastName', 'checkoutEmail', 'checkoutPhone', 'checkoutAddress', 'checkoutProvince', 'checkoutCity', 'checkoutBarangay', 'checkoutPostal'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', function() {
+        if (sameAsShipping.checked) {
+          try { copyShippingToBilling(); } catch (e) {}
+        }
+      });
+    });
   }
 
   function processPayment(order, total, callback) {
@@ -524,6 +537,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
       document.getElementById('confirmOrderNumber').textContent = order.orderNumber;
       document.getElementById('confirmEmail').textContent = email;
+      var payNote = document.getElementById('confirmPaymentNote');
+      if (payNote) {
+        payNote.textContent = paid
+          ? 'Payment confirmed.'
+          : (paymentMethod === 'Cash on Delivery'
+            ? 'Pay in cash when your order arrives.'
+            : 'Demo checkout — no real charge was made. We\'ll confirm payment before shipping.');
+      }
       var modal = document.getElementById('orderConfirmModal');
       modal.style.display = 'flex';
       modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });

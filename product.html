@@ -15,6 +15,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -78,21 +79,25 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
+<section class="page-title hero-band compact">
 <div class="container">
-<div class="breadcrumbs">
+<nav class="crumbs" aria-label="Breadcrumb">
 <a href="homepage.html">Home</a>
-          / Product Details
-        </div>
-<h1>Product Details</h1>
-<p class="muted">View images, specifications, ratings, and stock information.</p>
+<span aria-hidden="true">/</span>
+<a href="products.html">Catalog</a>
+<span aria-hidden="true">/</span>
+<span aria-current="page">Product Details</span>
+</nav>
+<div class="eyebrow">Product details</div>
+<h1 id="crumbProductName">Product Details</h1>
+<p>Images, specifications, ratings, and live stock information.</p>
 </div>
 </section>
 <main class="section-sm">
 <div class="container">
 <div class="product-detail is-loading" id="productDetail" aria-busy="true">
 <section class="product-gallery" aria-label="Product image">
-<div class="product-gallery-main">
+<div class="product-gallery-main gallery-tint" id="detailGalleryMain">
 <span class="gallery-chip" id="detailGalleryChip">Oral Care</span>
 <img alt="Product image" id="detailImage" src="assets/products/oral-care.svg"/>
 </div>
@@ -176,7 +181,20 @@
 </div>
 </section>
 </div>
-</main><section aria-label="Shopping assurances" class="container">
+</main>
+<section class="section" aria-labelledby="relatedHeading" id="relatedSection">
+<div class="container">
+<div class="feat-band">
+<div class="eyebrow">Pairs well with</div>
+<h2 class="section-title" id="relatedHeading">Related Products</h2>
+<p class="section-copy">More in-stock picks from the same category.</p>
+<div class="grid grid-4" id="relatedGrid" aria-busy="true"></div>
+<p class="muted hidden" id="relatedEmpty" style="padding:12px 0 0;">No related products yet — browse the full catalog.</p>
+<div class="text-center section-sm"><a class="btn btn-light" href="products.html">Browse the catalog</a></div>
+</div>
+</div>
+</section>
+<section aria-label="Shopping assurances" class="container">
 <div class="trust-strip">
 <div class="trust-item"><strong>Secure checkout</strong><small>Protected account experience</small></div>
 <div class="trust-item"><strong>Fast delivery</strong><small>Metro Manila, Monday–Saturday</small></div>
@@ -230,20 +248,13 @@
 </div>
 </footer>
 <script src="js/common.js?v=6.3.0"></script>
+<script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/product.js?v=6.3.0"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
-
-<div id="stickyBuyNowBar" class="sticky-buy-now-bar hidden" hidden aria-hidden="true" aria-label="Quick purchase actions">
-  <div>
-    <strong id="stickyBuyNowName">Ready to order?</strong>
-    <span>Buy this item directly without clearing your cart.</span>
-  </div>
-  <button class="btn btn-buy-now" id="stickyBuyNowButton" type="button"><svg width="17" height="17" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg> <span class="btn-label">Buy Now</span></button>
-</div>
 
 <script src="js/final-polish.js?v=6.3.0"></script>
 </body>

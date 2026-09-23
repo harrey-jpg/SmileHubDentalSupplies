@@ -17,6 +17,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 </head>
 <body class="">
@@ -103,14 +104,14 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
+<section class="page-title hero-band compact">
 <div class="container">
-<div class="breadcrumbs">
-<a href="homepage.html">
-            Home
-          </a>
-          / Customer Profile
-        </div>
+<nav class="crumbs" aria-label="Breadcrumb">
+<a href="homepage.html">Home</a>
+<span aria-hidden="true">/</span>
+<span aria-current="page">Customer Profile</span>
+</nav>
+<div class="eyebrow">Your account</div>
 <h1>
           Customer Profile
         </h1>
@@ -142,8 +143,7 @@
 <section class="profile-zone" id="zone-identity"><div class="card profile-summary profile-hero-card">
 <div class="profile-photo-wrap">
   <img class="profile-photo" id="profilePhoto" alt="Profile photo" src="assets/profile-placeholder.svg">
-   <label class="profile-photo-edit hidden" for="profileImageInput" title="Change profile photo" aria-label="Change profile photo" aria-hidden="true">✎</label>
-  <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+  <input id="profileImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden aria-label="Choose profile photo file">
 </div>
 <div class="profile-summary-copy">
 <small class="muted">Signed in as</small>
@@ -161,9 +161,9 @@
   <div class="card profile-meter">
     <div class="meter-head">
       <h2 id="completenessTitle">Profile completeness</h2>
-      <span id="meterLabel" aria-live="polite">0 of 5 complete</span>
+      <span id="meterLabel" aria-live="polite">0 of 4 complete</span>
     </div>
-    <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="completenessTitle" aria-describedby="meterHint"><span id="meterFill"></span></div>
+    <div class="meter-track" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-labelledby="completenessTitle" aria-describedby="meterHint"><span id="meterFill"></span></div>
     <ul class="meter-items" id="meterItems" aria-label="Completeness checklist"></ul>
     <p class="muted" id="meterHint">Complete the items above for faster checkout.</p>
   </div>
@@ -214,7 +214,7 @@
 </div>
 <div class="form-group"><label for="profileDeliveryNotes">Delivery Instructions <span class="muted">(optional)</span></label><textarea id="profileDeliveryNotes" placeholder="Landmark, gate instructions, preferred delivery time"></textarea></div>
 <div class="profile-location-tools">
-  <button class="btn btn-light" id="profileUseCurrentLocation" type="button">📍 Use current location</button>
+  <button class="btn btn-light" id="profileUseCurrentLocation" type="button">Use current location</button>
   <a class="btn btn-light" id="profileOpenMaps" href="https://www.google.com/maps" target="_blank" rel="noopener">Open in Google Maps</a>
 </div>
 <div class="address-map-box profile-address-map" id="profileAddressMapBox">
@@ -264,22 +264,22 @@
 <label for="currentPassword">Current Password</label>
 <div class="password-wrap">
 <input autocomplete="current-password" id="currentPassword" required="" type="password"/>
-<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">Show</button>
 </div>
 </div>
 <div class="form-grid">
 <div class="form-group">
 <label for="newPassword">New Password</label>
 <div class="password-wrap">
-<input autocomplete="new-password" id="newPassword" minlength="6" required="" type="password"/>
-<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+<input autocomplete="new-password" id="newPassword" minlength="8" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">Show</button>
 </div>
 </div>
 <div class="form-group">
 <label for="confirmPassword">Confirm Password</label>
 <div class="password-wrap">
-<input autocomplete="new-password" id="confirmPassword" minlength="6" required="" type="password"/>
-<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">👁</button>
+<input autocomplete="new-password" id="confirmPassword" minlength="8" required="" type="password"/>
+<button class="password-toggle" onclick="togglePassword(this)" type="button" aria-label="Show password">Show</button>
 </div>
 </div>
 </div>
@@ -400,6 +400,7 @@
 </div>
 </footer>
 <script src="js/common.js?v=6.3.0"></script>
+<script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
@@ -433,7 +434,7 @@
         fill.style.width=nextWidth;
         list.innerHTML=nextHtml;
         var hint=document.getElementById('meterHint');
-        if(hint) hint.textContent=nextVal===5?'All set — checkout will be faster.':'Complete the items above for faster checkout.';
+        if(hint) hint.textContent=nextVal===4?'All set — checkout will be faster.':'Complete the items above for faster checkout. (A profile photo is optional and never blocks checkout.)';
         setTimeout(function(){ syncing=false; },0);
         return true;
       }
@@ -449,7 +450,6 @@
         var addrStreet=(document.getElementById('profileAddress')||{}).value||'', addrProv=(document.getElementById('profileProvince')||{}).value||'', addrCity=(document.getElementById('profileCity')||{}).value||'';
         var hasAddress=addrStreet.trim()&&addrProv&&addrCity&&addrProv!=='__other__'&&addrCity!=='__other__';
         var items=[
-          {done:!!hasPhoto, label:'Photo added', href:'#zone-identity'},
           {done:!!hasName, label:'Name complete', href:'#zone-personal'},
           {done:!!phoneDone, label:'Phone verified', href:'#zone-security'},
           {done:!!hasAddress, label:'Address saved', href:'#zone-address'},
@@ -461,7 +461,7 @@
           var text=it.done?'<span>'+it.label+'</span>':'<a href="'+it.href+'">'+it.label+'</a>';
           return '<li>'+dot+text+'</li>';
         }).join('');
-        render(nextHtml, doneCount+' of 5 complete', (doneCount/5*100)+'%', doneCount);
+        render(nextHtml, doneCount+' of 4 complete', (doneCount/4*100)+'%', doneCount);
         // accordion status
         var ps=document.getElementById('personalStatus'), as=document.getElementById('addressStatus'), ss=document.getElementById('securityStatus');
         if(ps) ps.textContent = hasName ? 'Complete' : 'Incomplete';

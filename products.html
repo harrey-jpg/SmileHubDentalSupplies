@@ -15,6 +15,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -78,19 +79,58 @@
 </div>
 </nav>
 </header>
-<section class="page-title">
+<section class="page-title hero-band compact">
 <div class="container">
-<div class="breadcrumbs">
+<nav class="crumbs" aria-label="Breadcrumb">
 <a href="homepage.html">Home</a>
-          / Product Catalog
-        </div>
+<span aria-hidden="true">/</span>
+<span aria-current="page">Product Catalog</span>
+</nav>
+<div class="eyebrow">Full catalog</div>
 <h1>Product Catalog</h1>
-<p class="muted">Search, filter, and sort 32 realistic dental products.</p>
+<p>Search, filter, and sort the full dental catalog for clinics, dentists, and students.</p>
 </div>
 </section>
+<div class="ticker" aria-label="Shop by category or brand"><div class="ticker-track">
+<a href="products.html?category=Oral%20Care">Oral Care</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Instruments">Instruments</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=PPE">PPE</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Restorative">Restorative</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Disposables">Disposables</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Impression">Impression</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Orthodontics">Orthodontics</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Rotary">Rotary</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Equipment">Equipment</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Cosmetic">Cosmetic</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=SmilePro">SmilePro</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Clinix">Clinix</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Restora">Restora</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=SafeTouch">SafeTouch</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=LumaDent">LumaDent</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Impressa">Impressa</a><span aria-hidden="true">✦</span>
+<span aria-hidden="true" style="display:contents;">
+<a href="products.html?category=Oral%20Care" tabindex="-1">Oral Care</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Instruments" tabindex="-1">Instruments</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=PPE" tabindex="-1">PPE</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Restorative" tabindex="-1">Restorative</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Disposables" tabindex="-1">Disposables</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Impression" tabindex="-1">Impression</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Orthodontics" tabindex="-1">Orthodontics</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Rotary" tabindex="-1">Rotary</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Equipment" tabindex="-1">Equipment</a><span aria-hidden="true">✦</span>
+<a href="products.html?category=Cosmetic" tabindex="-1">Cosmetic</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=SmilePro" tabindex="-1">SmilePro</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Clinix" tabindex="-1">Clinix</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Restora" tabindex="-1">Restora</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=SafeTouch" tabindex="-1">SafeTouch</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=LumaDent" tabindex="-1">LumaDent</a><span aria-hidden="true">✦</span>
+<a href="products.html?brand=Impressa" tabindex="-1">Impressa</a><span aria-hidden="true">✦</span>
+</span>
+</div></div>
 <main class="section-sm">
 <div class="container catalog-layout">
-<aside class="filters">
+<button class="btn btn-light btn-block filters-toggle" id="filtersToggle" type="button" aria-expanded="false" aria-controls="catalogFilters">Show filters</button>
+<aside class="filters" id="catalogFilters">
 <h2>Product Filters</h2>
 <div class="filter-group">
 <label for="catalogSearch">Search</label>
@@ -144,6 +184,19 @@
 <option value="price-high">Price: High to Low</option>
 <option value="name">Name: A to Z</option>
 </select>
+</div>
+<div class="tile-chips" id="tileChips" role="group" aria-label="Filter by category">
+<button class="tile-chip" data-cat="all" aria-pressed="true" type="button">All</button>
+<button class="tile-chip" data-cat="Oral Care" aria-pressed="false" type="button"><span class="swatch" style="background:#1565c0" aria-hidden="true"></span>Oral Care</button>
+<button class="tile-chip" data-cat="Instruments" aria-pressed="false" type="button"><span class="swatch" style="background:#7b1fa2" aria-hidden="true"></span>Instruments</button>
+<button class="tile-chip" data-cat="PPE" aria-pressed="false" type="button"><span class="swatch" style="background:#2e7d32" aria-hidden="true"></span>PPE</button>
+<button class="tile-chip" data-cat="Restorative" aria-pressed="false" type="button"><span class="swatch" style="background:#e65100" aria-hidden="true"></span>Restorative</button>
+<button class="tile-chip" data-cat="Disposables" aria-pressed="false" type="button"><span class="swatch" style="background:#ad1457" aria-hidden="true"></span>Disposables</button>
+<button class="tile-chip" data-cat="Impression" aria-pressed="false" type="button"><span class="swatch" style="background:#00838f" aria-hidden="true"></span>Impression</button>
+<button class="tile-chip" data-cat="Orthodontics" aria-pressed="false" type="button"><span class="swatch" style="background:#558b2f" aria-hidden="true"></span>Orthodontics</button>
+<button class="tile-chip" data-cat="Rotary" aria-pressed="false" type="button"><span class="swatch" style="background:#5c6bc0" aria-hidden="true"></span>Rotary</button>
+<button class="tile-chip" data-cat="Equipment" aria-pressed="false" type="button"><span class="swatch" style="background:#283593" aria-hidden="true"></span>Equipment</button>
+<button class="tile-chip" data-cat="Cosmetic" aria-pressed="false" type="button"><span class="swatch" style="background:#c2185b" aria-hidden="true"></span>Cosmetic</button>
 </div>
 <div class="grid grid-3" id="productGrid"></div>
 <div class="card empty-state hidden" id="noResults">
@@ -201,10 +254,47 @@
 </div>
 </footer>
 <script src="js/common.js?v=6.3.0"></script>
+<script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
 <script src="js/catalog.js?v=6.3.0"></script>
+<script>
+(function() {
+  var toggle = document.getElementById('filtersToggle');
+  var panel = document.getElementById('catalogFilters');
+  if (!toggle || !panel) return;
+  toggle.addEventListener('click', function() {
+    var open = panel.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.textContent = open ? 'Hide filters' : 'Show filters';
+  });
+})();
+</script>
+<script>
+(function() {
+  var chips = document.getElementById('tileChips');
+  var select = document.getElementById('categoryFilter');
+  if (!chips || !select) return;
+  function sync() {
+    chips.querySelectorAll('.tile-chip').forEach(function(c) {
+      c.setAttribute('aria-pressed', c.dataset.cat === select.value ? 'true' : 'false');
+    });
+  }
+  chips.addEventListener('click', function(e) {
+    var btn = e.target.closest ? e.target.closest('.tile-chip') : null;
+    if (!btn) return;
+    select.value = btn.dataset.cat;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    sync();
+  });
+  select.addEventListener('change', sync);
+  document.querySelectorAll('.clear-filters-btn').forEach(function(b) {
+    b.addEventListener('click', function() { setTimeout(sync, 0); });
+  });
+  sync();
+})();
+</script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script src="js/final-polish.js?v=6.3.0"></script>
