@@ -3363,6 +3363,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var pendingEl = document.getElementById('notifDropdownPending');
     if(!listEl) return;
     var logs = getAuditLogs() || [];
+    // Staff scope: own activity only (mirrors the Audit Trail decision).
+    // The pending-orders queue stays global — it is the fulfillment workload.
+    if (roleResolved && currentRole === 'staff') {
+      var me = staffUserName();
+      logs = logs.filter(function(l) { return (l.admin || '') === me; });
+    }
     var pending = 0;
     try { pending = getOrders().filter(function(o){ return o.status==='Pending'; }).length; } catch(e){}
     if(pendingEl){
