@@ -142,7 +142,8 @@ service cloud.firestore {
         && request.resource.data.email.size() >= 5 && request.resource.data.email.size() <= 254
         && request.resource.data.message.size() >= 1 && request.resource.data.message.size() <= 5000
         && (!('topic' in request.resource.data) || request.resource.data.topic.size() <= 120);
-      allow read, update, delete: if isStaff();
+      allow read, update: if isStaff();
+      allow delete: if isProductAdmin();
     }
     match /deleted_accounts/{email} {
       allow read, create, delete: if isProductAdmin();

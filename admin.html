@@ -34,11 +34,11 @@
 <span class="admin-sidebar-label">Manage</span>
 <nav class="admin-menu">
 <a data-role="admin,superadmin" href="#customers"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15c2.8.2 4.7 1.6 5.5 4.5"/></svg><span>Customers</span></a>
-<a data-role="admin,superadmin" href="#reports"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-9M21 21V8"/></svg><span>Reports</span></a>
+<a data-role="admin,staff,superadmin" href="#reports"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-9M21 21V8"/></svg><span>Reports</span></a>
 <a data-role="admin,superadmin" href="#cms"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg><span>CMS</span></a>
 <a data-role="admin,superadmin" href="#notifications"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span>Notifications</span></a>
-<a data-role="admin,superadmin" href="#audit"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Audit Trail</span></a>
-<a data-role="admin,superadmin" href="#messages"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a>
+<a data-role="admin,staff,superadmin" href="#audit"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Audit Trail</span></a>
+<a data-role="admin,staff,superadmin" href="#messages"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a>
 </nav>
 <div class="admin-sidebar-footer">
 <a class="sidebar-store-link" href="homepage.html"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>Return to Store</span></a>
@@ -727,7 +727,7 @@
 <div id="notifTemplates"></div>
 </section>
 <!-- ===== REPORTS SECTION ===== -->
-<section class="admin-section" data-role="admin,superadmin" id="reports" style="display:none;">
+<section class="admin-section" data-role="admin,staff,superadmin" id="reports" style="display:none;">
 <div class="admin-top">
 <div>
 <p class="ov-chart-eyebrow">Analytics</p>
@@ -741,8 +741,8 @@
 <option value="week">This Week</option>
 <option value="month">This Month</option>
 </select>
-<button class="btn btn-light" id="downloadReportBtn" type="button" title="CSV includes monthly breakdown + top 10 customers for the selected period and granularity"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Download report</span></button>
-<button class="btn btn-light" id="printReportBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M10 14h4"/></svg><span>Print</span></button>
+<button class="btn btn-light" id="downloadReportBtn" data-role-btn="admin,superadmin" type="button" title="CSV includes monthly breakdown + top 10 customers for the selected period and granularity"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Download report</span></button>
+<button class="btn btn-light" id="printReportBtn" data-role-btn="admin,superadmin" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M10 14h4"/></svg><span>Print</span></button>
 </div>
 </div>
 <p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: All Time • Granularity: Monthly • Export adds monthly breakdown + top 10 customers</p>
@@ -840,7 +840,7 @@
 </div>
 </section>
  <!-- ===== AUDIT TRAIL ===== -->
-<section class="admin-section" data-role="admin,superadmin" id="audit" style="display:none;">
+<section class="admin-section" data-role="admin,staff,superadmin" id="audit" style="display:none;">
 <div class="admin-top">
 <div>
 <p class="ov-chart-eyebrow">Compliance</p>
@@ -849,7 +849,7 @@
 </div>
 <div style="display:flex;gap:10px;align-items:center;">
 <button class="btn btn-light" id="exportAuditBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Export CSV</span></button>
-<button class="btn btn-light" id="clearAuditBtn" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Clear Log</span></button>
+<button class="btn btn-light" id="clearAuditBtn" data-role-btn="admin,superadmin" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span>Clear Log</span></button>
 </div>
 </div>
 <div class="admin-toolbar">
@@ -890,7 +890,7 @@
 </div>
 </section>
 <!-- ===== MESSAGES INBOX ===== -->
-<section class="admin-section" data-role="admin,superadmin" id="messages" style="display:none;">
+<section class="admin-section" data-role="admin,staff,superadmin" id="messages" style="display:none;">
 <div class="admin-top">
 <div>
 <p class="ov-chart-eyebrow">Inbox</p>

@@ -356,6 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderNotificationTemplates();
     }
     if (sectionId === '#audit') {
+      applyAuditScopeForRole();
       if (getAuditLogs().length === 0) {
         fetchAuditLogs(renderAuditLogs);
       } else {
@@ -3102,6 +3103,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function printReport() {
+    if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+      showToast('Only admins can print reports.', true);
+      return;
+    }
     var period = document.getElementById('reportPeriod');
     var label = period ? period.options[period.selectedIndex].text : 'All Time';
     var section = document.getElementById('reports');
@@ -3238,6 +3243,25 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     return colors[cat] || colors.other;
   }
+  function staffUserName() {
+    try {
+      var u = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+      return (u && u.name) || '';
+    } catch (e) { return ''; }
+  }
+  function applyAuditScopeForRole() {
+    var sel = document.getElementById('auditAdminFilter');
+    if (!sel) return;
+    if (roleResolved && currentRole === 'staff') {
+      var me = staffUserName();
+      sel.value = me || 'all';
+      sel.disabled = true;
+      sel.title = 'Staff view is limited to your own activity.';
+    } else {
+      sel.disabled = false;
+      sel.title = '';
+    }
+  }
   function populateAuditAdminFilter() {
     var sel = document.getElementById('auditAdminFilter');
     if (!sel) return;
@@ -3248,6 +3272,19 @@ document.addEventListener('DOMContentLoaded', function() {
       return '<option value="' + escapeHtml(a) + '">' + escapeHtml(a) + '</option>';
     }).join('');
     sel.innerHTML = opts;
+    if (roleResolved && currentRole === 'staff') {
+      var me = staffUserName();
+      if (me && admins[me]) { sel.value = me; }
+      else if (me) {
+        sel.innerHTML = opts + '<option value="' + escapeHtml(me) + '">' + escapeHtml(me) + '</option>';
+        sel.value = me;
+      }
+      sel.disabled = true;
+      sel.title = 'Staff view is limited to your own activity.';
+      return;
+    }
+    sel.disabled = false;
+    sel.title = '';
     if (admins[current] || current === 'all') sel.value = current;
   }
   function renderAuditLogs() {
@@ -3423,6 +3460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var countEl=document.getElementById('msgCount'); if(countEl) countEl.textContent=filtered.length+' of '+messagesCache.length;
     if(messagesCache.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No messages yet — contact form submissions will appear here.</td></tr>'; return; }
     if(filtered.length===0){ body.innerHTML='<tr><td colspan="7" class="text-center muted" style="padding:32px;">No matching messages.</td></tr>'; return; }
+    var canDeleteMessages = !roleResolved || !currentRole || isProductAdminRole(currentRole);
     body.innerHTML=filtered.map(function(m){
       var st=m.status||'new';
       var badge = st==='new' ? 'background:#fff3cd;color:#8a6d00;border:1px solid #ffe69c;' : st==='replied' ? 'background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;' : 'background:#e0f2fe;color:#075985;border:1px solid #bae6fd;';
@@ -3442,7 +3480,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '<a class="btn btn-primary" href="'+escapeHtml(safeMailto)+'?subject=Re:%20'+encodeURIComponent(m.topic||'')+'&body='+encodeURIComponent('Hi '+(m.name||'')+',\n\nThank you for contacting SmileHub.\n\n')+'" style="padding:4px 8px;font-size:0.78rem;text-decoration:none;">Reply</a>'+
           (st!=='replied' ? '<button class="btn btn-light msg-replied" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Mark Replied</button>' : '')+
           (st==='new' ? '<button class="btn btn-light msg-read" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Mark Read</button>' : '')+
-          '<button class="btn btn-danger msg-del" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>'+
+          (canDeleteMessages ? '<button class="btn btn-danger msg-del" data-id="'+escapeHtml(m._id)+'" style="padding:4px 8px;font-size:0.78rem;">Delete</button>' : '')+
         '</td></tr>';
     }).join('');
     body.querySelectorAll('.msg-view').forEach(function(btn){
@@ -3456,6 +3494,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     body.querySelectorAll('.msg-del').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+          showToast('Only admins can delete messages.', true);
+          return;
+        }
         var id=this.dataset.id;
         var msgObj = messagesCache.find(function(m){ return m._id===id; });
         showAuthoredConfirm({
@@ -3802,6 +3844,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if(tt) tt.addEventListener('change', function(){ reportTrendGranularity=this.value; renderReports((document.getElementById('reportPeriod')||{}).value||'all'); });
         var dl=document.getElementById('downloadReportBtn');
       if(dl) dl.addEventListener('click', function(){
+        if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+          showToast('Only admins can download reports.', true);
+          return;
+        }
         var period=(document.getElementById('reportPeriod')||{}).value||'all';
         var now=new Date();
         var filtered=getOrders().filter(function(o){
@@ -3940,11 +3986,16 @@ document.addEventListener('DOMContentLoaded', function() {
       if (auditAdminFilter) auditAdminFilter.value = 'all';
       if (auditActionFilter) auditActionFilter.value = 'all';
       if (auditDateFilter) auditDateFilter.value = 'all';
+      applyAuditScopeForRole();
       renderAuditLogs();
     });
     var exportAuditBtn = document.getElementById('exportAuditBtn');
     if (exportAuditBtn) exportAuditBtn.addEventListener('click', function() {
       var logs = getAuditLogs();
+      if (roleResolved && currentRole === 'staff') {
+        var me = staffUserName();
+        logs = logs.filter(function(l) { return (l.admin || '') === me; });
+      }
       if (!logs.length) { showToast('No logs to export', true); return; }
       var csv = 'Time,Admin,Action\n' + logs.map(function(l) {
         return [csvCell(l.time), csvCell(l.admin), csvCell(l.action)].join(',');
@@ -3958,6 +4009,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var clearAuditBtn = document.getElementById('clearAuditBtn');
     if (clearAuditBtn) {
       clearAuditBtn.addEventListener('click', function() {
+        if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
+          showToast('Only admins can clear the audit log.', true);
+          return;
+        }
         var count = getAuditLogs().length;
         if (!count) { showToast('No audit entries to clear', true); return; }
         var impact = 'Permanently deletes ' + count + ' entries. This destroys compliance evidence and cannot be recovered after 10 seconds. Export first to keep a copy.';
