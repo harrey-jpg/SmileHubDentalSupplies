@@ -405,6 +405,27 @@ body.dark .product-gallery-main.gallery-tint { background: #13212b; }
 .feat-band .product-card .muted { color: #9fc0bb !important; }
 .feat-band .btn-primary { background: #5eead4; border-color: #5eead4; color: #082f2d; }
 
+/* ===== LIGHT MODE homepage compatibility (dark bands become light) ===== */
+body:not(.dark) .feat-band { background: linear-gradient(135deg, #e6f7f3 0%, #f8fafc 100%); color: var(--text, #1e293b); border: 1px solid var(--border, #e2e8f0); }
+body:not(.dark) .feat-band .eyebrow { color: var(--teal, #047857); }
+body:not(.dark) .feat-band .section-title { color: var(--text, #1e293b); }
+body:not(.dark) .feat-band .section-copy { color: var(--muted, #475569); }
+body:not(.dark) .feat-band .product-card { background: #fff; border-color: var(--border, #e2e8f0); }
+body:not(.dark) .feat-band .product-card .muted { color: var(--muted, #475569) !important; }
+body:not(.dark) .feat-band .btn-primary { background: var(--teal, #047857); border-color: var(--teal, #047857); color: #fff; }
+body:not(.dark) .testi-band { background: linear-gradient(135deg, #eef6f4 0%, #f8fafc 100%); color: var(--text, #1e293b); border: 1px solid var(--border, #e2e8f0); }
+body:not(.dark) .testi-band .eyebrow { color: var(--teal, #047857); }
+body:not(.dark) .testi-band .section-title { color: var(--text, #1e293b); }
+body:not(.dark) .testi-band .testimonial { background: #fff; border-color: var(--border, #e2e8f0); color: var(--text, #1e293b); }
+body:not(.dark) .testi-band .testimonial p { color: var(--text, #1e293b); }
+body:not(.dark) .testi-band .testimonial strong { color: var(--text, #1e293b); }
+body:not(.dark) .testi-band .testimonial .muted { color: var(--muted, #475569) !important; }
+body:not(.dark) .testi-band .testi-more .btn-light { background: #fff; color: var(--text, #1e293b); border: 1.5px solid var(--border, #e2e8f0); }
+body:not(.dark) .quote-card { background: #fff; }
+body:not(.dark) .stat-band { border-top: 1px solid var(--border, #e2e8f0); border-bottom: 1px solid var(--border, #e2e8f0); }
+body:not(.dark) .search-bar { background: #fff; }
+body:not(.dark) .hero { padding: 40px 0; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 960px) {
   .need-grid { grid-template-columns: repeat(2, 1fr); }

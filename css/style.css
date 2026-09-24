@@ -1222,8 +1222,11 @@ body.dark #adminProductsBody tr:hover { background: rgba(255, 255, 255, 0.04); }
 /* Password visibility toggle */
 .password-wrap { position: relative; display: flex; align-items: center; }
 .password-wrap input { flex: 1; padding-right: 44px; }
-.password-toggle { position: absolute; right: 8px; background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 6px; line-height: 1; color: var(--muted); }
-.password-toggle:hover { color: var(--text); }
+.form-group .password-wrap input[type="password"], .form-group .password-wrap input[type="text"] { width: 100%; padding-right: 56px; }
+.password-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 6px; line-height: 1; color: var(--muted); border-radius: 10px; display: grid; place-items: center; width: 36px; height: 36px; z-index: 2; }
+.password-toggle:hover { color: var(--text); background: var(--muted-light); }
+.password-toggle:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.password-toggle svg { display: block; margin: 0; flex: 0 0 auto; }
 
 /* Skeleton loading */
 /* Cart / wishlist badge pulse */
@@ -1475,10 +1478,12 @@ body.dark .auth-panel { background:rgba(30,41,59,.72); border-color:#334155; }
 .float-field input:focus + label, .float-field input:not(:placeholder-shown) + label { top:9px; font-size:.68rem; line-height:1; text-transform:uppercase; letter-spacing:.08em; color:var(--blue); }
 /* Password field: override legacy .password-wrap flex so label floats and text clears the eye button */
 .auth-panel .password-wrap { position:relative; display:block; }
+.auth-panel .password-wrap input[type="password"], .auth-panel .password-wrap input[type="text"] { width: 100%; padding-right: 56px; }
+.auth-panel .float-field .password-toggle { top: 31px; }
 .float-field .password-wrap input { width:100%; padding-right:56px; }
 .float-field .password-wrap label { position:absolute; left:14px; top:19px; margin:0; font-size:.95rem; font-weight:600; color:var(--muted); pointer-events:none; transition:top .18s ease,font-size .18s ease,color .18s ease; }
 .float-field .password-wrap input:focus + label, .float-field .password-wrap input:not(:placeholder-shown) + label { top:9px; font-size:.68rem; line-height:1; text-transform:uppercase; letter-spacing:.08em; color:var(--blue); }
-.auth-panel .password-toggle { position:absolute; right:6px; top:31px; transform:translateY(-50%); border-radius:10px; display:grid; place-items:center; width:36px; height:36px; background:transparent; border:0; color:var(--muted); z-index:2; }
+.auth-panel .password-toggle { position:absolute; right:6px; top:50%; transform:translateY(-50%); border-radius:10px; display:grid; place-items:center; width:36px; height:36px; background:transparent; border:0; color:var(--muted); z-index:2; }
 .auth-panel .password-toggle:hover { color:var(--text); background:var(--muted-light); }
 .auth-panel .password-toggle:focus-visible { outline:3px solid var(--focus-ring); outline-offset:2px; }
 /* Validation states */
