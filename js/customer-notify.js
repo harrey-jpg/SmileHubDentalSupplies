@@ -219,6 +219,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', injectBell);
+  if (document.readyState !== 'loading') injectBell();
 
   window.CustomerNotify = {
     getAll: readList,
