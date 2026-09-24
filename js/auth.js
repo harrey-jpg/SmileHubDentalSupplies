@@ -14,6 +14,8 @@ function demoRoleFor(email) {
 }
 const RETURN_KEY = 'smilehub_return_page';
 const AUTH_KEY = 'smilehub_logged_in_user';
+var PENDING_ACTION_KEY = 'smilehub_pending_action';
+var PENDING_TOAST_KEY = 'smilehub_pending_toast';
 
 const PUBLIC_PAGES = [
   'index.html',
@@ -112,6 +114,93 @@ function getCurrentAccount() {
   return getCachedUser();
 }
 
+function isSuspendedData(data) {
+  return Boolean(data && data.status === 'suspended');
+}
+
+function fetchSuspendedStatus(email, uid) {
+  var emailKey = String(email || '').trim().toLowerCase();
+  if (!emailKey && !uid) return Promise.resolve(false);
+  var tasks = [];
+  try {
+    if (emailKey && window.firebase && firebase.firestore) {
+      tasks.push(
+        firebase.firestore().collection('accounts').doc(emailKey).get()
+          .then(function(doc) { return doc && doc.exists && isSuspendedData(doc.data()); })
+          .catch(function() { return false; })
+      );
+    }
+  } catch (e) {}
+  try {
+    if (uid && window.firebase && firebase.firestore) {
+      tasks.push(
+        firebase.firestore().collection('users').doc(uid).get()
+          .then(function(doc) { return doc && doc.exists && isSuspendedData(doc.data()); })
+          .catch(function() { return false; })
+      );
+    }
+  } catch (e) {}
+  if (!tasks.length) return Promise.resolve(false);
+  return Promise.all(tasks).then(function(results) {
+    return results.some(Boolean);
+  });
+}
+
+function ensureSuspendModal() {
+  var existing = document.getElementById('suspendModal');
+  if (existing) return existing;
+  var backdrop = document.createElement('div');
+  backdrop.id = 'suspendModal';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-labelledby', 'suspendModalTitle');
+  backdrop.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55);z-index:100000;';
+  backdrop.innerHTML = '<div style="width:min(480px,100%);max-height:85vh;overflow:auto;border-radius:20px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 25px 50px -12px rgba(0,0,0,.35);">'
+    + '<div style="padding:22px 22px 0;"><p style="margin:0 0 6px;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b91c1c;">Account suspended</p>'
+    + '<h3 id="suspendModalTitle" style="margin:0;font-size:1.15rem;color:#0f172a;">Your account is suspended while browsing</h3></div>'
+    + '<div style="padding:14px 22px 22px;"><p style="margin:0 0 18px;color:#475569;font-size:.92rem;">Contact support if you think this is a mistake. You have been signed out.</p>'
+    + '<div style="display:flex;justify-content:flex-end;gap:10px;"><a href="contact.html" style="display:inline-flex;align-items:center;padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;color:#0f172a;text-decoration:none;font-weight:600;">Contact support</a>'
+    + '<button id="suspendModalOk" type="button" style="padding:10px 16px;border-radius:10px;border:none;background:#0f172a;color:#fff;font-weight:700;cursor:pointer;">Go to login</button></div></div></div>';
+  document.body.appendChild(backdrop);
+  var ok = backdrop.querySelector('#suspendModalOk');
+  if (ok) {
+    ok.addEventListener('click', function() {
+      location.replace('login.html?message=suspended');
+    });
+    setTimeout(function() { try { ok.focus(); } catch (e) {} }, 50);
+  }
+  backdrop.addEventListener('keydown', function(e) {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      try { ok.focus(); } catch (err) {}
+    }
+  });
+  return backdrop;
+}
+
+function hardKickSuspended() {
+  if (window.__suspendKick) return;
+  window.__suspendKick = true;
+  try { ensureSuspendModal().style.display = 'flex'; } catch (e) {}
+  try { cacheUser(null); } catch (e) {}
+  try { SmileHubStorage.remove(AUTH_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
+  try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+  try { SmileHubStorage.remove(RETURN_KEY); } catch (e) {}
+  try { SmileHubStorage.remove(PENDING_ACTION_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(PENDING_TOAST_KEY); } catch (e) {}
+  try { localStorage.removeItem('smilehub_simple_cart'); sessionStorage.removeItem('smilehub_simple_cart'); } catch (e) {}
+  try { localStorage.removeItem('smilehub_simple_wishlist'); sessionStorage.removeItem('smilehub_simple_wishlist'); } catch (e) {}
+  try { localStorage.removeItem('smilehub_buy_now'); sessionStorage.removeItem('smilehub_buy_now'); } catch (e) {}
+  try { localStorage.removeItem('smilehub_coupon'); sessionStorage.removeItem('smilehub_coupon'); } catch (e) {}
+  try { localStorage.removeItem('smilehub_checkout_draft'); sessionStorage.removeItem('smilehub_checkout_draft'); } catch (e) {}
+  try {
+    if (window.firebase && firebase.auth) {
+      firebase.auth().signOut().catch(function() {});
+    }
+  } catch (e) {}
+}
+
 async function fetchUserProfile(uid) {
   try {
     const doc = await firebase.firestore().collection('users').doc(uid).get();
@@ -140,8 +229,8 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
 
     Promise.all([
       fetchUserProfile(firebaseUser.uid),
-      firebase.firestore().collection('user_registrations').doc(firebaseUser.email).get(),
-      firebase.firestore().collection('accounts').doc(firebaseUser.email).get()
+      firebase.firestore().collection('user_registrations').doc(String(firebaseUser.email || '').trim().toLowerCase()).get(),
+      firebase.firestore().collection('accounts').doc(String(firebaseUser.email || '').trim().toLowerCase()).get()
     ]).then(function(results) {
       var profile = results[0];
       var regDoc = results[1];
@@ -175,6 +264,14 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         name = acct.name || name;
       }
 
+      var suspendedNow = isSuspendedData(profile)
+        || (regDoc && regDoc.exists && isSuspendedData(regDoc.data()))
+        || (accountDoc && accountDoc.exists && isSuspendedData(accountDoc.data()));
+      if (suspendedNow) {
+        hardKickSuspended();
+        return;
+      }
+
       // Self-heal: ensure a users/{uid} profile doc exists so Firestore
       // rules (isAdmin) recognize this account. Without it, collection
       // reads like the accounts list are denied.
@@ -201,6 +298,7 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
         address: (profile && profile.address) || '',
         firstName: firstName,
         lastName: lastName,
+        status: 'active',
         password: ''
       });
       updateAccountLink();
@@ -273,17 +371,23 @@ function handleGoogleLogin() {
 
   function syncGoogleProfile(user) {
     var fallback = cacheFirebaseGoogleUser(user, 'customer', null);
+    var emailKey = String(user.email || '').trim().toLowerCase();
 
     // Authentication must not fail just because optional Firestore profile
     // reads or writes are unavailable. Profile syncing is best-effort only.
     return Promise.all([
       fetchUserProfile(user.uid),
-      firebase.firestore().collection('accounts').doc(user.email).get().catch(function() { return null; })
+      emailKey ? firebase.firestore().collection('accounts').doc(emailKey).get().catch(function() { return null; }) : Promise.resolve(null)
     ]).then(function(results) {
       var profile = results[0];
       var accountDoc = results[1];
-      var existingRole = accountDoc && accountDoc.exists
-        ? (accountDoc.data().role || 'customer')
+      var accountData = accountDoc && accountDoc.exists ? accountDoc.data() : null;
+      // Never overwrite a suspension: check before any write.
+      if (isSuspendedData(profile) || isSuspendedData(accountData)) {
+        return { suspended: true };
+      }
+      var existingRole = accountData
+        ? (accountData.role || 'customer')
         : 'customer';
 
       if (profile) {
@@ -311,13 +415,13 @@ function handleGoogleLogin() {
         phone: '',
         address: '',
         role: existingRole,
-        status: 'active'
+        status: (accountData && accountData.status) || 'active'
       };
 
       return Promise.all([
         firebase.firestore().collection('users').doc(user.uid).set(userProfile, { merge: true }).catch(function() {}),
-        user.email
-          ? firebase.firestore().collection('accounts').doc(user.email).set(accountProfile, { merge: true }).catch(function() {})
+        emailKey
+          ? firebase.firestore().collection('accounts').doc(emailKey).set(accountProfile, { merge: true }).catch(function() {})
           : Promise.resolve()
       ]);
     }).catch(function() {
@@ -333,8 +437,20 @@ function handleGoogleLogin() {
     cacheFirebaseGoogleUser(user, 'customer', null);
     showAuthMessage('Google sign-in successful. Redirecting...');
 
-    return syncGoogleProfile(user).then(function() {
-      redirectAfterLogin();
+    return syncGoogleProfile(user).then(function(syncResult) {
+      if (syncResult && syncResult.suspended) {
+        hardKickSuspended();
+        showAuthMessage('Your account is suspended while browsing. Contact support if you think this is a mistake.', true);
+        return;
+      }
+      return fetchSuspendedStatus(user.email, user.uid).then(function(suspended) {
+        if (suspended) {
+          hardKickSuspended();
+          showAuthMessage('Your account is suspended while browsing. Contact support if you think this is a mistake.', true);
+          return;
+        }
+        redirectAfterLogin();
+      });
     });
   }
 
@@ -386,9 +502,6 @@ function handleGoogleLogin() {
       showGoogleError(error);
     });
 }
-var PENDING_ACTION_KEY = 'smilehub_pending_action';
-var PENDING_TOAST_KEY = 'smilehub_pending_toast';
-
 function consumePendingAction() {
   var pending = SmileHubStorage.get(PENDING_ACTION_KEY, null);
   if (!pending || !pending.item || !pending.item.id) return null;
@@ -539,9 +652,19 @@ function handleLogin(event) {
 
   prepare.then(function() {
     return firebase.auth().signInWithEmailAndPassword(email, password);
-  }).then(function() {
-    showAuthMessage('Login successful! Redirecting...');
-    setTimeout(redirectAfterLogin, 300);
+  }).then(function(cred) {
+    var signedEmail = (cred && cred.user && cred.user.email) || email;
+    var signedUid = cred && cred.user ? cred.user.uid : null;
+    return fetchSuspendedStatus(signedEmail, signedUid).then(function(suspended) {
+      if (suspended) {
+        setLoginLoading(false);
+        hardKickSuspended();
+        showAuthMessage('Your account is suspended while browsing. Contact support if you think this is a mistake.', true);
+        return;
+      }
+      showAuthMessage('Login successful! Redirecting...');
+      setTimeout(redirectAfterLogin, 300);
+    });
   }).catch(function(error) {
     setLoginLoading(false);
     var message = 'Login failed. Please try again.';
@@ -692,6 +815,7 @@ function requireLogin(returnPage) {
 }
 
 function protectPage() {
+  try { if (window.__suspendKick) return; } catch (e) {}
   var user = getCachedUser();
 
   if (!PUBLIC_PAGES.includes(currentPage) && !user) {
@@ -866,7 +990,10 @@ window.SmileHubAuth = {
   logoutUser: logoutUser,
   showMessage: showAuthMessage,
   getAccounts: getAccounts,
-  saveAccounts: saveAccounts
+  saveAccounts: saveAccounts,
+  fetchSuspendedStatus: fetchSuspendedStatus,
+  hardKickSuspended: hardKickSuspended,
+  isSuspendedData: isSuspendedData
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -886,6 +1013,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var message = new URLSearchParams(location.search).get('message');
   if (message === 'signin') {
     showAuthMessage('Please sign in before using that feature.');
+  }
+  if (message === 'suspended') {
+    showAuthMessage('Your account is suspended while browsing. Contact support if you think this is a mistake.', true);
   }
   if (message === 'admin-only') {
     showAuthMessage('The admin dashboard is restricted to admin, staff, and super admin accounts.', true);

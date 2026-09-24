@@ -482,6 +482,29 @@ document.addEventListener('DOMContentLoaded', function() {
       SmileHubData.getOrders(function(orders) {
         clearTimeout(timeout);
         var user = typeof getCachedUser === 'function' ? getCachedUser() : null;
+        function showSuspendedEmpty() {
+          clearTimeout(timeout);
+          allOrders = [];
+          table.innerHTML = '';
+          if (emptyEl) {
+            emptyEl.classList.remove('hidden');
+            var h2 = emptyEl.querySelector('h2');
+            if (h2) h2.textContent = 'Account suspended';
+            var pEl = emptyEl.querySelector('p');
+            if (pEl) pEl.textContent = 'Your account is suspended while browsing. Contact support if you think this is a mistake.';
+          }
+          if (noMatchEl) noMatchEl.classList.add('hidden');
+        }
+        try {
+          if (window.__suspendKick) { showSuspendedEmpty(); return; }
+          if (user && user.status === 'suspended' && window.SmileHubAuth) { window.SmileHubAuth.hardKickSuspended(); showSuspendedEmpty(); return; }
+          if (user && user.email && window.SmileHubAuth && window.SmileHubAuth.fetchSuspendedStatus) {
+            window.SmileHubAuth.fetchSuspendedStatus(user.email, user.uid).then(function(suspended) {
+              if (suspended) { window.SmileHubAuth.hardKickSuspended(); showSuspendedEmpty(); }
+            }).catch(function() {});
+            if (window.__suspendKick) { showSuspendedEmpty(); return; }
+          }
+        } catch (e) {}
         var filtered = orders.filter(function(o) {
           var orderEmail = o.email || (o.customerObj && o.customerObj.email) || '';
           var orderName = o.customerName || o.customer || '';

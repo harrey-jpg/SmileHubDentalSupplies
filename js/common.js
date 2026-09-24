@@ -79,7 +79,45 @@ function showToast(message, isError, options) {
 function customerIsLoggedIn() {
   if (!window.SmileHubAuth) return false;
 
-  return Boolean(window.SmileHubAuth.getLoggedInUser());
+  var user = window.SmileHubAuth.getLoggedInUser();
+  if (user && user.status === 'suspended') {
+    window.SmileHubAuth.hardKickSuspended();
+    return false;
+  }
+  return Boolean(user);
+}
+
+function checkSuspensionNow() {
+  try {
+    if (!window.SmileHubAuth || !window.SmileHubAuth.fetchSuspendedStatus) return;
+    if (window.__suspendKick) return;
+    var user = window.SmileHubAuth.getLoggedInUser();
+    if (!user || !user.email) return;
+    if (user.status === 'suspended') {
+      window.SmileHubAuth.hardKickSuspended();
+      return;
+    }
+    window.SmileHubAuth.fetchSuspendedStatus(user.email, user.uid).then(function(suspended) {
+      if (suspended) window.SmileHubAuth.hardKickSuspended();
+    }).catch(function() {});
+  } catch (e) {}
+}
+
+function watchSuspension() {
+  if (window.__suspendWatchStarted) return;
+  window.__suspendWatchStarted = true;
+  setInterval(function() {
+    try {
+      if (document.hidden) return;
+      checkSuspensionNow();
+    } catch (e) {}
+  }, 60000);
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) checkSuspensionNow();
+  });
+  window.addEventListener('focus', checkSuspensionNow);
+  window.addEventListener('pageshow', checkSuspensionNow);
+  document.addEventListener('authReady', checkSuspensionNow);
 }
 
 function askUserToLogin(returnPage) {
@@ -150,6 +188,11 @@ function addToCart(button) {
     askUserToLogin(location.pathname.split('/').pop() + location.search);
     return;
   }
+  try {
+    var __u = window.SmileHubAuth.getLoggedInUser();
+    if (__u && __u.status === 'suspended') { window.SmileHubAuth.hardKickSuspended(); return; }
+  } catch (e) {}
+  if (window.__suspendKick) return;
 
   if (button.dataset.stock !== undefined && Number(button.dataset.stock) <= 0) {
     showToast('Sorry, this item is out of stock.', true);
@@ -218,6 +261,11 @@ function buyNow(button) {
     askUserToLogin(location.pathname.split('/').pop() + location.search);
     return;
   }
+  try {
+    var __ub = window.SmileHubAuth.getLoggedInUser();
+    if (__ub && __ub.status === 'suspended') { window.SmileHubAuth.hardKickSuspended(); return; }
+  } catch (e) {}
+  if (window.__suspendKick) return;
   if (button.dataset.stock !== undefined && Number(button.dataset.stock) <= 0) {
     showToast('Sorry, this item is out of stock.', true);
     return;
@@ -266,6 +314,11 @@ function toggleWishlist(button) {
     askUserToLogin(location.pathname.split('/').pop() + location.search);
     return;
   }
+  try {
+    var __uw = window.SmileHubAuth.getLoggedInUser();
+    if (__uw && __uw.status === 'suspended') { window.SmileHubAuth.hardKickSuspended(); return; }
+  } catch (e) {}
+  if (window.__suspendKick) return;
 
   const wishlist = getStoredList(WISH_KEY);
   const productId = Number(button.dataset.id);
@@ -427,6 +480,9 @@ function setupPageActions() {
   });
 
   upgradeHeaderChrome();
+
+  try { watchSuspension(); } catch (e) {}
+  try { checkSuspensionNow(); } catch (e) {}
 
   const themeButton = document.querySelector('.theme-button');
   const savedTheme = window.SmileHubStorage

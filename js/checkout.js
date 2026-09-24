@@ -340,6 +340,36 @@ document.addEventListener('DOMContentLoaded', function() {
     event.preventDefault();
     var form = this;
     if (form.dataset.submitting === '1') return;
+    if (window.__suspendKick) return;
+    var alreadyVerified = form.dataset.suspendVerified === '1';
+    if (alreadyVerified) { form.dataset.suspendVerified = ''; }
+    else {
+      try {
+        if (window.SmileHubAuth) {
+          var __su0 = window.SmileHubAuth.getLoggedInUser();
+          if (__su0 && __su0.status === 'suspended') { window.SmileHubAuth.hardKickSuspended(); return; }
+          if (__su0 && __su0.email && window.SmileHubAuth.fetchSuspendedStatus) {
+            form.dataset.submitting = '1';
+            if (typeof showToast === 'function') showToast('Verifying account…');
+            window.SmileHubAuth.fetchSuspendedStatus(__su0.email, __su0.uid).then(function(suspended) {
+              form.dataset.submitting = '';
+              if (suspended) { window.SmileHubAuth.hardKickSuspended(); return; }
+              form.dataset.suspendVerified = '1';
+              try {
+                if (typeof form.requestSubmit === 'function') form.requestSubmit();
+              } catch (e) {}
+            }).catch(function() {
+              form.dataset.submitting = '';
+              form.dataset.suspendVerified = '1';
+              try {
+                if (typeof form.requestSubmit === 'function') form.requestSubmit();
+              } catch (e) {}
+            });
+            return;
+          }
+        }
+      } catch (e) {}
+    }
     if (!cart.length) return showToast('Add products before checking out');
 
     var firstName = document.getElementById('checkoutFirstName').value.trim();
@@ -491,6 +521,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.originalLabel = submitBtn.textContent; submitBtn.textContent = 'Processing…'; }
 
     processPayment(order, total, function(paymentError, result) {
+      try {
+        if (window.__suspendKick) { form.dataset.submitting = ''; if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; } return; }
+        if (window.SmileHubAuth) {
+          var __su3 = window.SmileHubAuth.getLoggedInUser();
+          if (__su3 && __su3.status === 'suspended') {
+            window.SmileHubAuth.hardKickSuspended();
+            form.dataset.submitting = '';
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; }
+            return;
+          }
+        }
+      } catch (e) {}
       result = result || {};
       var paid = !paymentError && (paymentMethod === 'Credit Card' || paymentMethod === 'GCash') && result.status === 'paid';
       order.paymentStatus = paid ? 'paid' : 'unpaid';

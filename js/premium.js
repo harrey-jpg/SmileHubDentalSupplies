@@ -50,6 +50,7 @@
   }
 
   function breadcrumbs(){
+    return;
     if(document.body.classList.contains("admin-body")||["homepage.html","index.html","login.html","register.html"].includes(location.pathname.split("/").pop())) return;
     const main=$("main"); if(!main||$(".sh-breadcrumbs")) return;
     const page=(document.title.split("|")[0]||"Page").trim();
