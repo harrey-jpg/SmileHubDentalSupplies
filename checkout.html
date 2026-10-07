@@ -36,6 +36,7 @@
 .co-substep.is-done{border-color:#16a34a}
 .co-substep.is-done .co-substep-num{background:#16a34a}
 .co-substep.is-done .co-collapsible{display:none}
+.co-substep.is-done .co-edit{display:inline-block !important}
 .co-actions{margin-top:1rem}
 html.dark .co-substep.is-done,body.dark .co-substep.is-done{border-color:#16a34a}
 .co-disclosure{margin:1rem 0;padding:.4rem 1rem;border:1px dashed var(--border,#dbe4ee);border-radius:12px;background:transparent}
@@ -239,7 +240,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 </div>
   </div>
 </details>
-<div class="co-actions"><button type="button" class="btn btn-primary" data-co-next="C">Continue to delivery</button></div>
+<div class="co-actions"><button type="button" class="btn btn-light" id="previewMapBtn" onclick="var d=document.getElementById('addressMapDisclosure'); d.open=d.open?!1:1">Preview on map</button><button type="button" class="btn btn-primary" data-co-next="C">Continue to delivery</button></div>
 </div>
 </section>
 <section class="co-substep" id="coStepC" aria-labelledby="coDeliveryTitle">
@@ -248,16 +249,16 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <section class="form-card" id="deliverySection" style="margin-top:0; border-top:1px solid var(--border); padding-top:16px">
 <h2>Delivery Method</h2>
 <p class="muted" style="font-size:.88rem;margin:0 0 12px">Choose how your order arrives. Fees update live from your cart.</p>
-<div class="delivery-cards">
+<div class="delivery-option is-selected" data-delivery="Standard">
 <label class="delivery-card is-selected" data-delivery="Standard">
 <input type="radio" name="shippingMethod" value="Standard" checked>
 <div><strong>Standard delivery</strong><br><small class="muted">1–3 business days</small></div>
 <span class="delivery-fee" id="deliveryFeeStandard">₱150</span>
 </label>
 <label class="delivery-card" data-delivery="Express">
-<input type="radio" name="shippingMethod" value="Express">
+<input type="radio" name="shippingMethod" value="Express" disabled>
 <div><strong>Express delivery</strong><br><small class="muted">Same/next day where available</small></div>
-<span class="delivery-fee" id="deliveryFeeExpress">₱150</span>
+<span class="delivery-fee" id="deliveryFeeExpress">₱150</span><span class="delivery-note">Express unavailable in demo — arrives at Standard speed</span>
 </label>
 </div>
 <p class="muted" id="deliveryHint" style="font-size:.82rem;margin-top:8px"></p>
@@ -547,7 +548,6 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   updateDeliveryFees();
   window.addEventListener('storage', function(e){ if(e.key==='smilehub_simple_cart') updateDeliveryFees(); });
-  setInterval(updateDeliveryFees, 2000);
 
   // COD gate: block outside Metro Manila
   var provSel=document.getElementById('checkoutProvince');
@@ -566,17 +566,25 @@ document.addEventListener('DOMContentLoaded', function(){
       var other=document.getElementById('checkoutProvinceOther');
       prov=other ? other.value : '';
     }
-    var allow=isMetroManila(prov) || !prov;
+    var allow=prov ? isMetroManila(prov) : false;
     if(codInput){
-      if(!allow && codInput.checked){
+      if(prov && !allow && codInput.checked){
         var gcash=document.querySelector('input[name="payment"][value="GCash"]');
         if(gcash){ gcash.checked=true; gcash.dispatchEvent(new Event('change',{bubbles:true})); syncPayment(); }
       }
       codInput.disabled=!allow;
     }
     if(codCard) codCard.classList.toggle('is-disabled', !allow);
-    if(codHelper) codHelper.textContent = allow ? 'Metro Manila only • Pay to rider' : 'Not available outside Metro Manila — choose GCash or card';
-    if(codHelper) codHelper.style.color = allow ? '' : 'var(--danger)';
+    if(allow){
+      if(codHelper) codHelper.textContent = 'Metro Manila only • Pay to rider';
+      if(codHelper) codHelper.style.color = '';
+    } else if(!prov){
+      if(codHelper) codHelper.textContent = 'Select your province to see if cash on delivery is available';
+      if(codHelper) codHelper.style.color = '';
+    } else {
+      if(codHelper) codHelper.textContent = 'Not available outside Metro Manila — choose GCash or card';
+      if(codHelper) codHelper.style.color = 'var(--danger)';
+    }
   }
   if(provSel){
     provSel.addEventListener('change', syncCod);
@@ -797,6 +805,8 @@ document.addEventListener('DOMContentLoaded', function(){
   });
   // Express for returning customers: if step1 prefilled and valid, collapse and go to next incomplete
   function initExpress(){
+    // if user has already interacted with the form, don't auto-advance
+    if (userInteracted) return;
     // wait a bit for profile prefill
     setTimeout(function(){
       updateSummaries();
@@ -822,20 +832,20 @@ document.addEventListener('DOMContentLoaded', function(){
     }, 900);
   }
   initExpress();
+  var userInteracted = false;
   // keep summaries live
   form.addEventListener('input', updateSummaries);
   form.addEventListener('change', updateSummaries);
+  // guard: remember if user has started typing, so initExpress won't auto-advance
+  form.addEventListener('input', function() { userInteracted = true; });
+  form.addEventListener('change', function() { userInteracted = true; });
   // initial
   updateSummaries();
   updateIndicator(1);
   // layout: auto-expand map preview once a city is chosen
   var mapDisclosure = document.getElementById('addressMapDisclosure');
   var citySel = document.getElementById('checkoutCity');
-  if (mapDisclosure && citySel) {
-    citySel.addEventListener('change', function() {
-      if (citySel.value && citySel.value !== '__other__') mapDisclosure.open = true;
-    });
-  }
+  
   // gated A→B→C sub-steps inside Step 1 (progressive enhancement: no-JS shows all)
   var CO_A=['checkoutFirstName','checkoutLastName','checkoutEmail','checkoutPhone'];
   var CO_B=['checkoutAddress','checkoutProvince','checkoutCity','checkoutBarangay','checkoutPostal'];

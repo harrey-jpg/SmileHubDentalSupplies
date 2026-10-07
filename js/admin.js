@@ -1660,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch(e){}
     }
 
-    var FULFILL_FLOW = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+    var FULFILL_FLOW = ['Pending', 'Pending Payment', 'Pending Quotation', 'Processing', 'Shipped', 'Delivered'];
     var fulfillIdx = FULFILL_FLOW.indexOf(order.status || 'Pending');
     var fulfillNext = (fulfillIdx >= 0 && fulfillIdx < FULFILL_FLOW.length - 1) ? FULFILL_FLOW[fulfillIdx + 1] : null;
     var fulfillDots = FULFILL_FLOW.map(function(s, i) {
@@ -3015,8 +3015,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var statusLabels = Object.keys(statusCounts);
     var statusData = statusLabels.map(function(s) { return statusCounts[s]; });
     var statusColors = {
-      'Pending': '#f0a320', 'Processing': '#1261a0', 'Shipped': '#0f9d9a',
-      'Delivered': '#1e9b61', 'Cancelled': '#d64545', 'Returned': '#D97706', 'Refunded': '#7C3AED'
+      'Pending': '#f0a320', 'Pending Payment': '#f0a320', 'Pending Quotation': '#f0a320',
+      'Processing': '#1261a0', 'Shipped': '#0f9d9a', 'Delivered': '#1e9b61',
+      'Cancelled': '#d64545', 'Returned': '#D97706', 'Refunded': '#7C3AED'
     };
     var colors = statusLabels.map(function(s) { return statusColors[s] || '#6b7a8c'; });
 

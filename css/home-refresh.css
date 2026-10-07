@@ -254,6 +254,12 @@ body.dark .stat-band .stat + .stat::before { background: #314250; }
 .tile-chip[aria-pressed="true"] { background: var(--teal, #0f9d9a); border-color: var(--teal, #0f9d9a); color: #fff; }
 .tile-chip:hover { border-color: var(--teal, #0f9d9a); }
 
+/* chip row: show only on narrow viewport; on desktop the pill row is canonical */
+.tile-chips { display: none; }
+@media (max-width: 620px) {
+  .tile-chips { display: flex; }
+}
+
 /* ===== 4d. MOBILE FILTER TOGGLE (catalog) ===== */
 .filters-toggle { display: none; margin-bottom: 12px; }
 @media (max-width: 960px) {

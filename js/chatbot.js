@@ -25,7 +25,7 @@ function getLocalAnswer(text) {
     return 'Shipping is free on orders over ₱3,000. Metro Manila orders otherwise cost ₱150 and usually arrive within 1–3 business days; provincial deliveries may take 3–7 business days.';
   }
   if (/(order|track|status)/.test(q)) {
-    return 'Open Account → Orders to view current and past orders. Statuses include Pending, Processing, Shipped, Out for Delivery, Delivered, and Cancelled.';
+    return 'Open Account → Orders to view current and past orders. Statuses include Pending, Pending Payment, Pending Quotation, Processing, Shipped, Delivered, and Cancelled.';
   }
   if (/(checkout|can'?t checkout|place order|redirect|change password)/.test(q)) {
     return 'At checkout, complete the shipping fields and verify your phone directly on the checkout page. You should no longer be redirected to Change Password. If OTP fails, check the inline message for quota, domain, or code errors.';
