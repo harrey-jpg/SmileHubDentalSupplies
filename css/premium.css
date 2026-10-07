@@ -18,6 +18,7 @@ button,a,input,select,textarea{transition:.2s ease}
 @keyframes sh-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .sh-mobile-nav{display:none;position:fixed;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border:1px solid var(--sh-border);border-radius:18px;box-shadow:var(--sh-shadow);z-index:9990;padding:7px}
 .sh-mobile-nav a{flex:1;text-align:center;text-decoration:none;color:var(--sh-muted);font-size:11px;padding:7px 3px;border-radius:12px}.sh-mobile-nav a span{display:block;font-size:19px}.sh-mobile-nav a.active{background:var(--sh-soft);color:var(--sh-primary-dark)}
+@media(max-width:520px){.sh-mobile-nav{overflow-x:auto;scrollbar-width:none}.sh-mobile-nav::-webkit-scrollbar{display:none}.sh-mobile-nav a{flex:1 0 auto;min-width:64px}}
 .sh-mini-cart{position:fixed;top:0;right:-430px;width:min(420px,100vw);height:100vh;background:#fff;z-index:10000;box-shadow:-20px 0 50px rgba(0,0,0,.15);transition:right .28s ease;padding:22px;overflow:auto}
 .sh-mini-cart.open{right:0}.sh-drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:9999;opacity:0;pointer-events:none;transition:.25s}.sh-drawer-backdrop.open{opacity:1;pointer-events:auto}
 .sh-drawer-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--sh-border);padding-bottom:14px}.sh-icon-btn{border:0;background:var(--sh-soft);border-radius:12px;width:40px;height:40px;cursor:pointer}
