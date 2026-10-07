@@ -15,6 +15,34 @@ function canAttemptSeed(key) {
   return Boolean(firebase.auth().currentUser) && !seedAlreadyAttempted(key);
 }
 
+// Network-level failure detection: ad-blockers / privacy extensions abort
+// Firestore requests with ERR_BLOCKED_BY_CLIENT, which surfaces as a generic
+// TypeError ("Failed to fetch") or a Load-failed message — never as a
+// Firestore permission-denied code. Tag it distinctly so the UI can tell the
+// user to allowlist the domain instead of chasing Firestore rules.
+var _blockedByClientSeen = false;
+function isBlockedClientError(err) {
+  if (!err) return false;
+  var code = String((err && err.code) || '');
+  var msg = String((err && err.message) || err);
+  return /blocked[_-]?by[_-]?client|ERR_BLOCKED|Failed to fetch|Load failed|NetworkError|network request failed/i.test(code + ' ' + msg);
+}
+function noteLoadError(err) {
+  if (isBlockedClientError(err)) {
+    _blockedByClientSeen = true;
+    try { window.__shBlocked = true; } catch (e) {}
+    return 'blocked-by-client';
+  }
+  return (err && (err.code || err.message)) || 'load failed';
+}
+function wasBlocked() {
+  try { if (window.__shBlocked) return true; } catch (e) {}
+  return _blockedByClientSeen;
+}
+function blockedHint() {
+  return 'Live data is blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com — plus cdn.jsdelivr.net for charts — for this site, then hard-refresh.';
+}
+
 var defaultProducts = [
   { id: 1, sku: 'SH-OC-001', name: 'ProClean Soft Toothbrush 4-Pack', brand: 'SmilePro', category: 'Oral Care', price: 189, stock: 86, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Soft rounded bristles for gentle daily plaque removal and comfortable gum care.', specs: ['4 toothbrushes', 'Soft nylon bristles', 'Ergonomic non-slip handle'] },
   { id: 2, sku: 'SH-OC-002', name: 'SonicWave Electric Toothbrush', brand: 'Dentiva', category: 'Oral Care', price: 1299, stock: 24, status: 'Active', image: 'assets/products/oral-care.svg', description: 'Rechargeable sonic toothbrush with three cleaning modes and two-minute timer.', specs: ['3 cleaning modes', 'USB-C rechargeable', '2 brush heads included'] },
@@ -117,7 +145,8 @@ function getProducts(callback) {
     }
   }).catch(function(error) {
     console.warn('Could not load products from Firestore:', error);
-    callback(defaultProducts);
+    noteLoadError(error);
+    callback(defaultProducts, error);
   });
 }
 
@@ -131,7 +160,7 @@ function seedDefaultProducts(callback) {
     callback(defaultProducts);
   }).catch(function(error) {
     console.warn('Could not seed default products (requires admin):', error);
-    callback(defaultProducts);
+    callback(defaultProducts, error);
   });
 }
 
@@ -289,7 +318,7 @@ function getOrders(callback) {
     callback(orders, null);
   }).catch(function(error) {
     console.warn('Could not load orders from Firestore:', error);
-    callback(mergeOrders(local, []), error);
+    callback(mergeOrders(local, []), noteLoadError(error));
   });
 }
 
@@ -399,7 +428,11 @@ var SmileHubData = {
   getCms: getCms,
   saveCms: saveCms,
   categoryImages: categoryImages,
-  defaultProducts: defaultProducts
+  defaultProducts: defaultProducts,
+  isBlockedClientError: isBlockedClientError,
+  describeLoadError: noteLoadError,
+  wasBlocked: wasBlocked,
+  blockedHint: blockedHint
 };
 
 window.SmileHubData = SmileHubData;

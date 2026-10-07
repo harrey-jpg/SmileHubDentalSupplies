@@ -23,17 +23,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- LOAD PRODUCTS ---
   var _loadingProducts = false;
+  var productsReady = false;
+  var productsLoadError = null;
+  var ordersReady = false;
+  var ordersLoading = true;
+  var ordersUpdatedAt = null;
 
   function loadProducts(callback) {
-    if (!_loadingProducts) {
-      _loadingProducts = true;
-      SmileHubData.getProducts(function(data) {
-        products = normalizeProducts(data);
-        _loadingProducts = false;
-        if (callback) callback(products);
-      });
+    if (_loadingProducts) return products;
+    _loadingProducts = true;
+    productsLoadError = null;
+    renderDataStatus();
+    function finish(data, error) {
+      _loadingProducts = false;
+      productsLoadError = error ? describeLoadError(error) : null;
+      if (!error) { products = normalizeProducts(data || []); productsReady = true; }
+      updateDashboard();
+      if (callback) callback(products);
     }
-    return products || [];
+    try { SmileHubData.getProducts(finish); } catch (error) { finish(null, error); }
+    return products;
   }
 
   function saveProducts(data, callback) {
@@ -70,6 +79,63 @@ document.addEventListener('DOMContentLoaded', function() {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
+  }
+
+  // Blocked-client (ad-blocker) surfacing: Firestore reads aborted with
+  // ERR_BLOCKED_BY_CLIENT look identical to empty collections unless we
+  // name the cause. Helpers delegate to SmileHubData when available.
+  function isBlockedError(err) {
+    if (err === 'blocked-by-client') return true;
+    try {
+      if (window.SmileHubData && SmileHubData.isBlockedClientError) return SmileHubData.isBlockedClientError(err);
+    } catch (e) {}
+    return false;
+  }
+  function describeLoadError(err, fallback) {
+    try {
+      if (window.SmileHubData && SmileHubData.describeLoadError) {
+        var tagged = SmileHubData.describeLoadError(err);
+        if (tagged === 'blocked-by-client') return tagged;
+        if (typeof err === 'string' && err) return err;
+        return tagged;
+      }
+    } catch (e) {}
+    if (typeof err === 'string' && err) return err;
+    return (err && (err.code || err.message)) || fallback || 'load failed';
+  }
+  function blockedCopy() {
+    try {
+      if (window.SmileHubData && SmileHubData.blockedHint) return SmileHubData.blockedHint();
+    } catch (e) {}
+    return 'Live data is blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.';
+  }
+  function dataWasBlocked() {
+    try {
+      if (window.SmileHubData && SmileHubData.wasBlocked && SmileHubData.wasBlocked()) return true;
+    } catch (e) {}
+    return ordersLoadError === 'blocked-by-client' || accountsLoadError === 'blocked-by-client'
+      || (typeof messagesLoadError !== 'undefined' && messagesLoadError === 'blocked-by-client')
+      || (typeof auditLoadError !== 'undefined' && auditLoadError === 'blocked-by-client');
+  }
+  function maybeShowBlockedBanner() {
+    if (!dataWasBlocked()) return;
+    if (document.getElementById('dataBlockedBanner')) return;
+    var host = document.querySelector('main') || document.getElementById('dashboard');
+    if (!host) return;
+    var bar = document.createElement('div');
+    bar.id = 'dataBlockedBanner';
+    bar.setAttribute('role', 'alert');
+    bar.style.cssText = 'margin:0 0 14px;padding:12px 16px;border-radius:12px;background:#FEF2F2;border:1px solid #f3b8b8;color:#991B1B;font-size:.9rem;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;';
+    var msg = document.createElement('span');
+    msg.textContent = blockedCopy() + ' Tables below show cached/local data only.';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Dismiss';
+    btn.style.cssText = 'flex:0 0 auto;border:1px solid #f3b8b8;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;color:#991B1B;';
+    btn.addEventListener('click', function() { bar.remove(); });
+    bar.appendChild(msg);
+    bar.appendChild(btn);
+    host.insertBefore(bar, host.firstChild);
   }
 
   // CSV: quote + guard formula injection (=+-@) + flatten newlines
@@ -180,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!modal) return;
     try { lastFocusedElement = document.activeElement; } catch (e) { lastFocusedElement = null; }
     try { window.__lastAdminFocus = lastFocusedElement; } catch (e) {}
+    modal._returnFocus = lastFocusedElement;
     modal.style.display = 'flex';
     var focusTarget = modal.querySelector('input, select, textarea, button');
     if (focusTarget) {
@@ -189,9 +256,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function closeAdminModal(modal) {
     if (!modal) return;
     modal.style.display = 'none';
-    if (lastFocusedElement && document.contains(lastFocusedElement)) {
-      try { lastFocusedElement.focus({ preventScroll: true }); } catch (e) { try { lastFocusedElement.focus(); } catch (e2) {} }
+    var returnFocus = modal._returnFocus || lastFocusedElement;
+    if (!returnFocus || !document.contains(returnFocus)) returnFocus = document.querySelector('.admin-menu a.active');
+    if (returnFocus) {
+      try { returnFocus.focus({ preventScroll: true }); } catch (e) { try { returnFocus.focus(); } catch (e2) {} }
     }
+    modal._returnFocus = null;
     lastFocusedElement = null;
   }
   // Focus trap for modals and notification dropdown
@@ -311,9 +381,22 @@ document.addEventListener('DOMContentLoaded', function() {
     toast.appendChild(span);
     toast.appendChild(btn);
     document.body.appendChild(toast);
-    var timer = setTimeout(function(){ toast.remove(); }, ms);
-    toast.addEventListener('mouseenter', function(){ clearTimeout(timer); });
-    toast.addEventListener('mouseleave', function(){ timer = setTimeout(function(){ toast.remove(); }, 2000); });
+    var timer;
+    var pointerInside = false;
+    function pauseExpiry() { clearTimeout(timer); }
+    function resumeExpiry(ignoreCurrentFocus) {
+      pauseExpiry();
+      if (pointerInside || (!ignoreCurrentFocus && toast.contains(document.activeElement))) return;
+      timer = setTimeout(function() {
+        if (pointerInside || toast.contains(document.activeElement)) return;
+        toast.remove();
+      }, ms);
+    }
+    toast.addEventListener('mouseenter', function() { pointerInside = true; pauseExpiry(); });
+    toast.addEventListener('mouseleave', function() { pointerInside = false; resumeExpiry(); });
+    toast.addEventListener('focusin', pauseExpiry);
+    toast.addEventListener('focusout', function(e) { if (!toast.contains(e.relatedTarget)) resumeExpiry(true); });
+    resumeExpiry();
   }
   function navigateTo(sectionId) {
     sectionId = normalizeNavTarget(sectionId);
@@ -334,6 +417,8 @@ document.addEventListener('DOMContentLoaded', function() {
       focusSectionHeading(target);
     }
 
+    var dashboardHeader = document.getElementById('dashboardHeader');
+    if (dashboardHeader) dashboardHeader.hidden = sectionId !== '#dashboard';
     markActiveNav(sectionId);
 
     if (sectionId === '#products') {
@@ -401,6 +486,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedCat = catSelect ? catSelect.value : 'all';
     const stockSelect = document.getElementById('adminStockFilter');
     const selectedStock = stockSelect ? stockSelect.value : 'all';
+    var summary = document.getElementById('productFilterSummary');
+    var clear = document.getElementById('clearProductFilters');
+    var filterLabels = { low: 'Low stock', out: 'Out of stock', in: 'In stock' };
+    var activeFilters = [searchTerm ? 'Search: ' + (adminSearch ? adminSearch.value : searchTerm) : '',
+      selectedCat !== 'all' ? 'Category: ' + selectedCat : '', filterLabels[selectedStock] || ''].filter(Boolean);
+    if (summary) { summary.textContent = activeFilters.join(' · '); summary.hidden = !activeFilters.length; }
+    if (clear) clear.hidden = !activeFilters.length;
     const filtered = products.filter(function(p) {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm) ||
              p.sku.toLowerCase().includes(searchTerm) ||
@@ -429,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'out-of-stock';
       const checked = selectedProductIds.has(p.id) ? ' checked' : '';
       return `
-        <tr data-product="${escapeHtml(p.name)}">
+        <tr data-product-id="${p.id}" data-product="${escapeHtml(p.name)}">
           <td><input type="checkbox" class="product-select" data-id="${p.id}" aria-label="Select ${escapeHtml(p.name)}"${checked}></td>
           <td><img class="prod-thumb" src="${escapeHtml(p.image || 'assets/products/default.svg')}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/default.svg';"></td>
           <td><span class="sku-muted">${escapeHtml(p.sku)}</span></td>
@@ -536,6 +628,34 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- CRUD OPERATIONS ---
+  var productFormSaving = false;
+  function persistProductRecord(product, remove) {
+    var batch = db.batch();
+    var ref = db.collection('products').doc(String(product.id));
+    if (remove) batch.delete(ref); else batch.set(ref, product);
+    batch.set(db.collection('products_meta').doc('latest'), {
+      version: firebase.firestore.FieldValue.increment(1),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    return batch.commit();
+  }
+  async function saveProductForm(product, onSaved) {
+    productFormSaving = true;
+    var button = productForm ? productForm.querySelector('button[type="submit"]') : null;
+    var label = button ? button.textContent : '';
+    var error = document.getElementById('productFormError');
+    if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+    if (error) error.hidden = true;
+    try {
+      await persistProductRecord(product, false);
+      onSaved();
+    } catch (failure) {
+      if (error) { error.textContent = 'Product could not be saved. Your entries are preserved. Check your connection and access, then try Save again.'; error.hidden = false; }
+    } finally {
+      productFormSaving = false;
+      if (button) { button.disabled = false; if (error && !error.hidden) button.textContent = label; }
+    }
+  }
   function addProduct(data) {
     const newId = products.length > 0 ? Math.max(...products.map(function(p) { return p.id; })) + 1 : 1;
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
@@ -555,14 +675,16 @@ document.addEventListener('DOMContentLoaded', function() {
       description: data.description || '',
       specs: data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : []
     };
+    if (productFormSaving) return;
+    saveProductForm(newProduct, function() {
     products.push(newProduct);
-    saveProducts(products);
     try { invalidateBulkUndo(); } catch (e) {}
     renderProducts();
     updateDashboard();
     addAuditLog('Added product "' + newProduct.name + '" (' + newProduct.sku + ') with ' + stock + ' units');
     showToast('"' + newProduct.name + '" added with ' + stock + ' units', false, true);
     resetForm();
+    });
   }
 
   function editProduct(id) {
@@ -631,73 +753,100 @@ document.addEventListener('DOMContentLoaded', function() {
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
     const oldName = products[index].name;
     
-    products[index].name = data.name;
-    products[index].brand = data.brand || '';
-    products[index].category = data.category;
-    products[index].price = parseFloat(data.price);
-    products[index].image = image;
-    products[index].sku = data.sku || products[index].sku;
-    products[index].description = data.description || '';
-    products[index].specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
+    if (productFormSaving) return;
+    var updated = deepClone(products[index]);
+    updated.name = data.name;
+    updated.brand = data.brand || '';
+    updated.category = data.category;
+    updated.price = parseFloat(data.price);
+    updated.image = image;
+    updated.sku = data.sku || updated.sku;
+    updated.description = data.description || '';
+    updated.specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
     if (typeof data.stock === 'number') {
-      products[index].stock = data.stock;
+      updated.stock = data.stock;
     }
     if (typeof data.minStock === 'number' && data.minStock >= 0) {
-      products[index].minStock = data.minStock;
+      updated.minStock = data.minStock;
     }
-    products[index].status = stockStatus(products[index].stock, minOf(products[index]));
+    updated.status = stockStatus(updated.stock, minOf(products[index]));
     
-    saveProducts(products);
+    saveProductForm(updated, function() {
+    products[index] = updated;
     try { invalidateBulkUndo(); } catch (e) {}
     renderProducts();
     updateDashboard();
-    addAuditLog('Updated product "' + products[index].name + '"');
+    addAuditLog('Updated product "' + updated.name + '"');
     showToast('Product "' + oldName + '" updated!', false, true);
     resetForm();
+    });
   }
 
-  var lastProductDeleteSnapshot = null;
-  var lastProductDeleteId = null;
+  var productWrites = new Set();
+  function showProductWriteError(message) {
+    var error = document.getElementById('adminProductWriteError');
+    if (error) { error.textContent = message; error.hidden = false; }
+  }
   function deleteProduct(id) {
     if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
-      showToast('Only admins can delete products.', true);
-      return;
+      showToast('Only admins can delete products.', true); return;
     }
     const product = products.find(function(p) { return p.id === id; });
-    if (!product) return;
-    var impact = 'Removes it from the store. Stock: ' + product.stock + ' units · ' + product.category + ' · This can be undone for 7 seconds.';
+    if (!product || productWrites.has(id)) return;
     showAuthoredConfirm({
-      eyebrow: 'Delete product',
-      title: 'Delete "' + product.name + '"?',
+      eyebrow: 'Delete product', title: 'Delete "' + product.name + '"?',
       message: 'Delete "' + product.name + '" (' + product.sku + ')?',
-      impact: impact,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel'
-    }).then(function(ok){
-      if (!ok) return;
-      lastProductDeleteSnapshot = deepClone(products);
-      lastProductDeleteId = id;
+      impact: 'Removes it from the store. Stock: ' + product.stock + ' units. Undo is available for 7 seconds after deletion succeeds.',
+      confirmLabel: 'Delete', cancelLabel: 'Cancel'
+    }).then(async function(ok) {
+      if (!ok || productWrites.has(id)) return;
+      productWrites.add(id);
       var deleted = deepClone(product);
-      products = products.filter(function(p) { return p.id !== id; });
-      saveProducts(products);
-      try { invalidateBulkUndo(); } catch (e) {}
-      try { db.collection('products').doc(String(id)).delete().catch(function() {}); } catch(e){}
-      renderProducts();
-      updateDashboard();
-      addAuditLog('Deleted product "' + deleted.name + '"');
-      showUndoToast('Product "' + deleted.name + '" deleted', function(){
-        if (!lastProductDeleteSnapshot) return;
-        products = deepClone(lastProductDeleteSnapshot);
-        saveProducts(products);
-        try { db.collection('products').doc(String(lastProductDeleteId)).set(deleted).catch(function(){}); } catch(e){}
-        renderProducts();
-        updateDashboard();
-        addAuditLog('Restored product "' + deleted.name + '" (undo delete)');
-        showToast('Product restored', false, true);
-        lastProductDeleteSnapshot = null;
-        lastProductDeleteId = null;
-      }, 7000);
+      try {
+        await persistProductRecord(product, true);
+        products = products.filter(function(p) { return p.id !== id; });
+        invalidateBulkUndo(); renderProducts(); updateDashboard();
+        var error = document.getElementById('adminProductWriteError'); if (error) error.hidden = true;
+        addAuditLog('Deleted product "' + deleted.name + '"');
+        showUndoToast('Product "' + deleted.name + '" deleted', async function() {
+          if (productWrites.has(id)) return;
+          productWrites.add(id);
+          try {
+            await persistProductRecord(deleted, false);
+            if (!products.some(function(p) { return p.id === id; })) products.push(deleted);
+            renderProducts(); updateDashboard();
+            addAuditLog('Restored product "' + deleted.name + '" (undo delete)');
+            showToast('Product restored', false, true);
+          } catch (error) {
+            showProductWriteError('Product restoration could not be saved. Check your connection and access, then retry.');
+            offerRestoreRetry(deleted);
+          } finally { productWrites.delete(id); }
+        }, 7000);
+      } catch (error) {
+        showProductWriteError('Product could not be deleted. It is still in the catalog. Check your connection and access, then try deleting again.');
+      } finally { productWrites.delete(id); }
     });
+  }
+  function offerRestoreRetry(deleted) {
+    var error = document.getElementById('adminProductWriteError');
+    if (!error) return;
+    var retry = document.createElement('button');
+    retry.type = 'button'; retry.className = 'btn btn-light'; retry.textContent = 'Retry restoration';
+    retry.addEventListener('click', function() { deleteRestore(deleted); });
+    error.appendChild(retry);
+  }
+  async function deleteRestore(deleted) {
+    if (productWrites.has(deleted.id)) return;
+    productWrites.add(deleted.id);
+    try {
+      await persistProductRecord(deleted, false);
+      if (!products.some(function(p) { return p.id === deleted.id; })) products.push(deleted);
+      renderProducts(); updateDashboard(); showToast('Product restored', false, true);
+      var error = document.getElementById('adminProductWriteError'); if (error) error.hidden = true;
+    } catch (error) {
+      showProductWriteError('Product restoration could not be saved. Check your connection and access, then retry.');
+      offerRestoreRetry(deleted);
+    } finally { productWrites.delete(deleted.id); }
   }
 
   function resetForm() {
@@ -727,6 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     updateKPIs();
+    renderDataStatus();
     renderRecentOrders();
     renderInventoryAlerts();
     renderCharts();
@@ -759,20 +909,20 @@ document.addEventListener('DOMContentLoaded', function() {
       var ts = orderTime(o);
       return ts && new Date(ts).toDateString() === todayStr && isActiveOrder(o.status);
     });
-    // "Collected" means confirmed revenue — exclude Pending (uncollected).
-    const todaySales = todayValid.filter(function(o) { return o.status !== 'Pending'; })
+    // Payment confirmation is independent of fulfillment status.
+    const todaySales = todayValid.filter(isPaymentConfirmed)
       .reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
-    const pending = orders.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing' || o.status === 'Shipped'; });
+    const pending = orders.filter(needsOrderWork);
     const pendingCountLabel = pending.length;
     const pendingValue = pending.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
     const nowTs = Date.now();
-    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isActiveOrder(o.status) && o.status !== 'Pending'; });
+    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isPaymentConfirmed(o); });
     const collected = in30.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     const prev30 = orders.filter(function(o) {
       var t = orderTime(o);
-      return t >= nowTs - 60 * 86400000 && t < nowTs - 30 * 86400000 && isActiveOrder(o.status);
+      return t >= nowTs - 60 * 86400000 && t < nowTs - 30 * 86400000 && isPaymentConfirmed(o);
     });
     const prevRev = prev30.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     const delivered30 = orders.filter(function(o) {
@@ -780,7 +930,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).length;
 
     setText('kpiTodayOrders', String(todayValid.length).padStart(2, '0'));
-    setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' collected');
+    setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' confirmed paid');
     setText('kpiPendingNow', String(pendingCountLabel).padStart(2, '0'));
     setText('kpiPendingSub', pendingCountLabel + ' in the queue');
     setText('kpiTotalProducts', String(total).padStart(2, '0'));
@@ -789,7 +939,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setText('kpiLowStockDetail', low + ' low • ' + out + ' out of stock');
 
     setText('mCollected', '₱' + collected.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-    setText('mCollectedSub', in30.length + ' payments taken');
+    setText('mCollectedSub', in30.length + ' orders with confirmed payment');
     var badge = document.getElementById('mCollectedBadge');
     if (badge) {
       if (prevRev > 0) {
@@ -813,11 +963,34 @@ document.addEventListener('DOMContentLoaded', function() {
     syncWelcome();
     var sub = document.getElementById('adminDateSubtitle');
     if (sub) {
-      sub.textContent = (!orders.length && ordersLoadError)
-        ? 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.'
-        : 'Today at a glance, and how the last 30 days have gone.';
+      sub.textContent = 'Today at a glance, and how the last 30 days have gone.';
     }
+    maybeShowBlockedBanner();
     updateInventoryStats();
+  }
+
+  function renderDataStatus() {
+    var orderUnavailable = !ordersReady || !!ordersLoadError;
+    var productUnavailable = !productsReady || !!productsLoadError;
+    var orderMessage = ordersLoading ? 'Loading orders…' : 'Orders unavailable. Try again.';
+    if (ordersReady && ordersLoadError) orderMessage = 'Showing previously loaded orders. Refresh failed.';
+    var productMessage = _loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Try again.';
+    if (productsReady && productsLoadError) productMessage = 'Showing previously loaded inventory. Refresh failed.';
+    if (!ordersReady) {
+      ['kpiTodayOrders', 'kpiPendingNow'].forEach(function(id) { setText(id, '—'); });
+      setText('kpiTodaySales', orderMessage); setText('kpiPendingSub', orderMessage);
+    }
+    if (!productsReady) {
+      ['kpiTotalProducts', 'kpiLowStock'].forEach(function(id) { setText(id, '—'); });
+      setText('kpiTotalRevenue', productMessage); setText('kpiLowStockDetail', productMessage);
+    }
+    var status = document.getElementById('adminDataStatus');
+    if (status) {
+      status.textContent = [orderUnavailable ? orderMessage : '', productUnavailable ? productMessage : '',
+        ordersUpdatedAt ? 'Orders last loaded at ' + ordersUpdatedAt.toLocaleTimeString('en-PH', {hour:'2-digit', minute:'2-digit'}) + '.' : ''].filter(Boolean).join(' ');
+    }
+    var retry = document.getElementById('adminDataRetry');
+    if (retry) { retry.hidden = !(ordersLoadError || productsLoadError); retry.disabled = ordersLoading || _loadingProducts; }
   }
 
   function setText(id, value) {
@@ -828,12 +1001,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderRecentOrders() {
     var body = document.getElementById('dashRecentOrders');
     if (!body) return;
-    var orders = getOrders();
+    var orders = getOrders().filter(needsOrderWork);
     if (!orders || orders.length === 0) {
-      body.innerHTML = '<tr><td colspan="4" class="text-center muted">No orders yet</td></tr>';
+      body.innerHTML = '<tr><td colspan="4" class="text-center muted">' + (!ordersReady ? (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') : 'No orders need work right now') + '</td></tr>';
       return;
     }
-    var sorted = orders.slice().sort(function(a, b) { return orderTime(b) - orderTime(a); });
+    var sorted = orders.slice().sort(function(a, b) { return orderTime(a) - orderTime(b); });
     var recent = sorted.slice(0, 5);
 
     body.innerHTML = recent.map(function(o) {
@@ -852,6 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderInventoryAlerts() {
     const container = document.getElementById('dashInventoryAlerts');
     if (!container) return;
+    if (!productsReady) { container.innerHTML = '<p class="muted dash-empty">' + (_loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Use Retry above.') + '</p>'; return; }
     const alerts = products.filter(function(p) { return p.stock <= minOf(p); }).sort(function(a, b) { return a.stock - b.stock; });
 
     if (alerts.length === 0) {
@@ -862,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = alerts.slice(0, 6).map(function(p) {
       const label = p.stock === 0 ? 'Out of stock' : p.stock + ' left (min ' + minOf(p) + ')';
       const cls = p.stock === 0 ? 'low' : p.stock <= 5 ? 'low' : 'processing';
-      return '<div class="inventory-alert-item" data-product="' + escapeHtml(p.name) + '" role="button" tabindex="0" title="Open in inventory">' +
+      return '<div class="inventory-alert-item" data-product-id="' + escapeHtml(p.id) + '" data-stock-filter="' + (p.stock === 0 ? 'out' : 'low') + '" data-product="' + escapeHtml(p.name) + '" role="button" tabindex="0" title="Open in inventory">' +
         '<span class="status ' + cls + '">' + escapeHtml(label) + '</span><span>' + escapeHtml(p.name) + '</span>' +
         '</div>';
     }).join('');
@@ -909,6 +1083,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function isTerminalStatus(status) {
     return ['Delivered','Cancelled','Returned','Refunded'].indexOf(status) !== -1;
   }
+  function isPaymentConfirmed(order) {
+    return order.paymentStatus === 'paid' && isActiveOrder(order.status);
+  }
+  function needsOrderWork(order) {
+    return ['Pending', 'Pending Payment', 'Pending Quotation', 'Processing', 'Shipped'].indexOf(order.status) !== -1;
+  }
   function isActiveOrder(status) {
     return ['Cancelled','Returned','Refunded'].indexOf(status) === -1;
   }
@@ -935,6 +1115,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const inStock = products.filter(function(p) { return p.stock > minOf(p); }).length;
     const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= minOf(p); }).length;
     const outStock = products.filter(function(p) { return p.stock === 0; }).length;
+    var stockBody = document.getElementById('stockChartDataBody');
+    if (stockBody) stockBody.innerHTML = productsReady
+      ? [['In stock', inStock], ['Low stock', lowStock], ['Out of stock', outStock]].map(function(row) { return '<tr><th scope="row">' + row[0] + '</th><td>' + row[1] + '</td></tr>'; }).join('')
+      : '<tr><td colspan="2">' + (_loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Use Retry above.') + '</td></tr>';
 
     // Category value data
     var catMap = {};
@@ -996,20 +1180,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var canvas = document.getElementById('salesChartReal');
     var empty = document.getElementById('salesChartEmpty');
     if (!canvas) return;
-    if (typeof Chart === 'undefined') return;
-    if (chartSales) { chartSales.destroy(); chartSales = null; }
-
     var now = new Date();
     var months = [];
     var totals = [0, 0, 0, 0, 0, 0];
     for (var i = 5; i >= 0; i--) {
       var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(d.toLocaleDateString('en-PH', { month: 'short' }));
+      months.push(d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }));
     }
     var orders = getOrders() || [];
     var hasData = false;
     orders.forEach(function(o) {
-      if (!isActiveOrder(o.status)) return;
+      if (!isPaymentConfirmed(o)) return;
       var t = orderTime(o);
       var dt = new Date(t);
       var diff = (now.getFullYear() - dt.getFullYear()) * 12 + (now.getMonth() - dt.getMonth());
@@ -1020,6 +1201,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
+    var salesBody = document.getElementById('salesChartDataBody');
+    if (salesBody) salesBody.innerHTML = ordersReady
+      ? months.map(function(month, i) { return '<tr><th scope="row">' + month + '</th><td>₱' + totals[i].toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td></tr>'; }).join('')
+      : '<tr><td colspan="2">' + (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') + '</td></tr>';
+    if (typeof Chart === 'undefined') {
+      if (empty) { empty.textContent = 'Chart unavailable. Monthly values are available below.'; empty.classList.remove('hidden'); }
+      canvas.style.display = 'none';
+      return;
+    }
+    if (chartSales) { chartSales.destroy(); chartSales = null; }
     if (empty) empty.classList.toggle('hidden', hasData);
     canvas.style.display = hasData ? '' : 'none';
     var periodTotalEl = document.getElementById('salesPeriodTotal');
@@ -1041,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data: {
         labels: months,
         datasets: [{
-          label: 'Revenue (₱)',
+          label: 'Confirmed paid (₱)',
           data: totals,
           backgroundColor: totals.map(function(v, i) { return i === peakIdx ? peak : track; }),
           hoverBackgroundColor: totals.map(function(v, i) { return i === peakIdx ? peak : hoverBar; }),
@@ -1273,14 +1464,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function fetchOrders(callback) {
     ordersLoadError = null;
+    ordersLoading = true;
+    renderDataStatus();
     try {
       SmileHubData.getOrders(function(data, err) {
-        ordersCache = data || [];
-        if (err) ordersLoadError = (err && (err.code || err.message)) || 'load failed';
+        ordersLoading = false;
+        if (err) ordersLoadError = describeLoadError(err);
+        else { ordersCache = data || []; ordersReady = true; ordersUpdatedAt = new Date(); }
+        updateDashboard();
         if (callback) callback(ordersCache);
       });
     } catch (e) {
-      ordersLoadError = (e && (e.code || e.message)) || 'load failed';
+      ordersLoading = false;
+      ordersLoadError = describeLoadError(e);
+      updateDashboard();
       if (callback) callback(ordersCache);
     }
   }
@@ -1384,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var dateVal = (document.getElementById('orderDateFilter') || {}).value || 'all';
     let filtered = orders.filter(function(o){
       if (statusVal === 'active') {
-        if (['Pending', 'Processing', 'Shipped'].indexOf(o.status) === -1) return false;
+        if (!needsOrderWork(o)) return false;
       }
       else if (statusVal !== 'all' && o.status !== statusVal) return false;
       if (!orderMatchesDate(o, dateVal)) return false;
@@ -1404,11 +1601,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fc) fc.textContent = filtered.length + ' of ' + orders.length;
 
     if (filtered.length === 0) {
-      if (orders.length === 0 && ordersLoadError) {
-        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Couldn\'t load orders (' + escapeHtml(ordersLoadError) + '). Sign in over localhost or hosting as staff, then Refresh.</td></tr>';
+      if (orders.length === 0 && ordersLoadError === 'blocked-by-client') {
+        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Live orders are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>';
+      } else if (orders.length === 0 && ordersLoadError) {
+        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Orders could not load. Check your connection and staff access, then Refresh.</td></tr>';
       } else {
         body.innerHTML = orders.length === 0
-          ? `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders yet — new store orders will appear here.</td></tr>`
+          ? '<tr><td colspan="8" class="text-center muted" style="padding:40px;">' + (ordersLoading ? 'Loading orders…' : 'No orders yet — new store orders will appear here.') + '</td></tr>'
           : `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders match — try a different search or filter.</td></tr>`;
       }
       updateOrderStats(orders);
@@ -1929,12 +2128,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- MAKE DASHBOARD CLICKABLE ---
+  function openStockProducts(stockFilter, productName) {
+    if (adminSearch) adminSearch.value = productName || '';
+    var category = document.getElementById('adminCategoryFilter');
+    var stock = document.getElementById('adminStockFilter');
+    if (category) category.value = 'all';
+    if (stock) stock.value = stockFilter;
+    navigateTo('#products');
+  }
   function makeDashboardClickable() {
     document.querySelectorAll('.kpi-card.clickable, .stat-plain[data-target]').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e && e.preventDefault && card.tagName === 'A') e.preventDefault();
         const target = this.dataset.target;
-        if (target) navigateTo(target);
+        if (this.dataset.stockFilter) openStockProducts(this.dataset.stockFilter);
+        else if (target) navigateTo(target);
       });
     });
     var alertsContainer = document.getElementById('dashInventoryAlerts');
@@ -1942,17 +2150,14 @@ document.addEventListener('DOMContentLoaded', function() {
       alertsContainer.addEventListener('click', function(e) {
         var item = e.target.closest('.inventory-alert-item');
         if (!item) return;
-        var name = item.dataset.product;
-        navigateTo('#products');
-        setTimeout(function() {
-          document.querySelectorAll('#adminProductsBody tr').forEach(function(row) {
-            var rowName = row.querySelector('td:nth-child(4)')?.textContent || row.dataset.product || '';
-            if (rowName.includes(name)) {
-              row.classList.add('row-flash');
-              setTimeout(function() { row.classList.remove('row-flash'); }, 5000);
-            }
-          });
-        }, 300);
+        openStockProducts(item.dataset.stockFilter, item.dataset.product);
+        var row = Array.from(document.querySelectorAll('#adminProductsBody tr')).find(function(row) {
+          return row.dataset.productId === item.dataset.productId;
+        });
+        if (row) {
+          row.classList.add('row-flash');
+          setTimeout(function() { row.classList.remove('row-flash'); }, 5000);
+        }
       });
       alertsContainer.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -2429,7 +2634,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!body) return;
 
     if (accounts.length === 0) {
-      body.innerHTML = accountsLoadError
+      body.innerHTML = accountsLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="7" class="text-center muted" style="padding:40px;">Accounts are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : accountsLoadError
         ? '<tr><td colspan="7" class="text-center muted" style="padding:40px;">Couldn\'t load accounts (' + escapeHtml(accountsLoadError) + '). Sign in over localhost or hosting as an admin, then reopen Customers.</td></tr>'
         : '<tr><td colspan="7" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
       updateAccountStats(accounts);
@@ -3044,12 +3251,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (summary) {
       var validRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
       var totalVal = validRows.reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var pendingVal = filtered.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var completedVal = filtered.filter(function(o) { return o.status === 'Delivered'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var pendingVal = validRows.filter(function(o) { return !isPaymentConfirmed(o); }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var completedVal = validRows.filter(isPaymentConfirmed).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
       summary.innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Total Revenue (excl. cancelled)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Pending / Processing</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Fulfilled (Delivered)</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Order value (excl. cancelled, returned, refunded)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Payment not confirmed (unpaid or no record)</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Confirmed paid</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
         '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Orders Count</span><strong>' + filtered.length + '</strong></div>';
     }
     // Reports header sub + scope disclosure
@@ -3059,7 +3266,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var granForSub = reportTrendGranularity === 'annually' ? 'Annually' : 'Monthly';
     if (repSub) {
       if (!orders.length && ordersLoadError) {
-        repSub.textContent = 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.';
+        repSub.textContent = 'Orders could not load. Check your connection and staff access, then refresh orders.';
       } else {
         repSub.textContent = labelForSub + ' • ' + granForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
       }
@@ -3094,7 +3301,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if(diff>=0 && diff<6){
             var idx=5-diff;
             var val=Number(o.total)||0;
-            if(o.status==='Pending') pending[idx]+=val; else collected[idx]+=val;
+            if(isPaymentConfirmed(o)) collected[idx]+=val; else pending[idx]+=val;
             if(val>0) hasData=true;
           }
         });
@@ -3109,8 +3316,8 @@ document.addEventListener('DOMContentLoaded', function() {
         reportStackedInstance = new Chart(canvas, {
           type:'bar',
           data:{ labels: labels, datasets:[
-            { label:'Collected', data: collected, backgroundColor: tealLight, borderRadius: 6, stack:'s' },
-            { label:'Pending', data: pending, backgroundColor: amber, borderRadius: 6, stack:'s' }
+            { label:'Confirmed paid', data: collected, backgroundColor: tealLight, borderRadius: 6, stack:'s' },
+            { label:'Payment not confirmed', data: pending, backgroundColor: amber, borderRadius: 6, stack:'s' }
           ]},
           options:{
             responsive:true, maintainAspectRatio:false,
@@ -3167,7 +3374,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var fillColor = isDarkReports ? 'rgba(226,232,240,0.08)' : 'rgba(30,41,59,0.06)';
         reportLineInstance = new Chart(canvas, {
           type:'line',
-          data:{ labels: labels, datasets:[{ label:'Revenue', data: data, borderColor: lineColor, backgroundColor: fillColor, fill:true, tension:0.35, borderWidth:2, pointRadius:3, pointHoverRadius:5 }]},
+          data:{ labels: labels, datasets:[{ label:'Order value', data: data, borderColor: lineColor, backgroundColor: fillColor, fill:true, tension:0.35, borderWidth:2, pointRadius:3, pointHoverRadius:5 }]},
           options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ return ' ₱' + Number(c.parsed.y).toLocaleString('en-PH',{minimumFractionDigits:2}); } } } },
@@ -3260,7 +3467,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var lines = ['SmileHub Sales Report — ' + label + ' — Generated ' + new Date().toLocaleString()];
     lines.push('Totals: Orders ' + ((document.getElementById('reportTotalOrders') || {}).textContent || '') +
-      ', Revenue ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
+      ', Order value ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
       ', Avg ' + ((document.getElementById('reportAvgOrder') || {}).textContent || '') +
       ', Units ' + ((document.getElementById('reportItemsSold') || {}).textContent || ''));
     Array.prototype.forEach.call(section.querySelectorAll('#reportProductBody tr'), function(tr) { lines.push(' - ' + rowText(tr)); });
@@ -3323,6 +3530,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- AUDIT TRAIL ---
   var auditLogsCache = [];
+  var auditLoadError = null;
 
   function addAuditLog(action) {
     try {
@@ -3349,6 +3557,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function fetchAuditLogs(callback) {
+    auditLoadError = null;
     firebase.firestore().collection('audit_logs').orderBy('timestamp', 'desc').limit(200).get().then(function(snapshot) {
       auditLogsCache = [];
       snapshot.forEach(function(doc) {
@@ -3357,7 +3566,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       // Empty means empty — never seed fake entries into the real log.
       if (callback) callback(auditLogsCache);
-    }).catch(function() {
+    }).catch(function(err) {
+      auditLoadError = describeLoadError(err, 'permission denied');
+      maybeShowBlockedBanner();
       if (callback) callback(auditLogsCache || []);
     });
   }
@@ -3464,7 +3675,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var headerSub = document.getElementById('auditHeaderSub');
     if (headerSub) headerSub.textContent = logs.length + ' entries • ' + filtered.length + ' matching' + (q || adminF!=='all' || catF!=='all' || dateF!=='all' ? ' • filtered' : '');
     if (logs.length === 0) {
-      body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
+      body.innerHTML = auditLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="3" class="text-center muted" style="padding:40px;">Audit log is blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
       return;
     }
     if (filtered.length === 0) {
@@ -3512,7 +3725,7 @@ document.addEventListener('DOMContentLoaded', function() {
       logs = logs.filter(function(l) { return (l.admin || '') === me; });
     }
     var pending = 0;
-    try { pending = getOrders().filter(function(o){ return ['Pending', 'Processing', 'Shipped'].indexOf(o.status) !== -1; }).length; } catch(e){}
+    try { pending = getOrders().filter(needsOrderWork).length; } catch(e){}
     if(pendingEl){
       pendingEl.textContent = pending + ' order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention →';
       pendingEl.style.display = pending ? '' : 'none';
@@ -3562,7 +3775,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var lastMsgDeleteSnapshot = null;
+  var messagesLoadError = null;
   function fetchMessages(callback) {
+    messagesLoadError = null;
     firebase.firestore().collection('contact_messages').orderBy('createdAt','desc').limit(100).get().then(function(snap){
       messagesCache = [];
       snap.forEach(function(doc){
@@ -3575,8 +3790,12 @@ document.addEventListener('DOMContentLoaded', function() {
       renderMessages();
     }).catch(function(err){
       console.warn('Could not load messages:', err);
+      messagesLoadError = describeLoadError(err, 'permission denied');
       var body = document.getElementById('messagesBody');
-      if (body) body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      if (body) body.innerHTML = messagesLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Messages are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      maybeShowBlockedBanner();
       if (callback) callback([]);
     });
   }
@@ -3702,10 +3921,10 @@ document.addEventListener('DOMContentLoaded', function() {
           '<button class="btn btn-light" id="msgModalReplied">Mark Replied</button>'+
         '</div>'+
       '</div>';
-    modal.style.display='flex';
+    openAdminModal(modal);
     if (title) { if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1'); try { title.focus({ preventScroll: true }); } catch (e) {} }
-    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); modal.style.display='none'; };
-    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); modal.style.display='none'; };
+    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); closeAdminModal(modal); };
+    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); closeAdminModal(modal); };
     // Auto-mark new as read when opened
     if((m.status||'new')==='new') updateMsgStatus(id,'read');
   }
@@ -3849,6 +4068,12 @@ document.addEventListener('DOMContentLoaded', function() {
         openNewProductModal();
       });
     }
+    var dataRetry = document.getElementById('adminDataRetry');
+    if (dataRetry) dataRetry.addEventListener('click', function() {
+      loadProducts(function() { renderProducts(); updateDashboard(); });
+      fetchOrders(function() { renderOrders(); updateDashboard(); });
+    });
+    updateDashboard();
     var productsLoaded = false;
     var ordersLoaded = false;
     function tryRenderDashboard() {
@@ -3876,7 +4101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         db.collection('orders').onSnapshot(function(snap){
           var live = [];
           snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; live.push(d); });
-          if (!live.length && ordersCache.length) return;
+          ordersReady = true; ordersLoading = false; ordersUpdatedAt = new Date();
           ordersCache = live;
           ordersLoadError = null;
           try { renderOrders((document.getElementById('orderStatusFilter')||{}).value||'all'); } catch(e){}
@@ -3891,8 +4116,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           } catch(e){}
         }, function(err){
-          ordersLoadError = (err && (err.code || err.message)) || 'permission denied';
+          ordersLoadError = describeLoadError(err, 'permission denied');
+          ordersLoading = false;
+          updateDashboard();
           console.warn('Orders live sync denied:', err);
+          maybeShowBlockedBanner();
         });
       }
     } catch(e){}
@@ -4023,12 +4251,12 @@ document.addEventListener('DOMContentLoaded', function() {
           return [csvCell(o.number), csvCell(o.customer), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
         }).join('\n');
         // Add monthly summary
-        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(o.status==='Pending') months[key].pending+=v; else if(isActiveOrder(o.status)) months[key].collected+=v; months[key].count+=1; });
-        csv+='\n\nMonth,Collected,Pending,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
+        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(isPaymentConfirmed(o)) months[key].collected+=v; else if(isActiveOrder(o.status)) months[key].pending+=v; months[key].count+=1; });
+        csv+='\n\nMonth,Confirmed paid,Payment not confirmed,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
         // Top customers (group by email when available to avoid same-name merges)
         var map={}; filtered.forEach(function(o){ var key=String(o.email||o.customer||'Unknown').toLowerCase(); if(!map[key]) map[key]={label:(o.customer||o.email||'Unknown'), orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
         var top=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,10);
-        csv+='\n\nTop Customers,Orders,Revenue\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
+        csv+='\n\nTop Customers,Orders,Order value\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
         downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+period+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
       });
     })();
@@ -4099,7 +4327,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.SmileHubAuth) {
         accountsLoadError = null;
         window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(err){
-          accountsLoadError = (err && (err.code || err.message)) || 'permission denied';
+          accountsLoadError = describeLoadError(err, 'permission denied');
+          maybeShowBlockedBanner();
           renderAccounts();
         });
       }
@@ -4112,8 +4341,9 @@ document.addEventListener('DOMContentLoaded', function() {
         accounts = a;
         renderAccounts();
       }).catch(function(error) {
-        accountsLoadError = (error && (error.code || error.message)) || 'permission denied';
+        accountsLoadError = describeLoadError(error, 'permission denied');
         console.warn('Could not load accounts (check users/{uid} role doc / Firestore rules):', error);
+        maybeShowBlockedBanner();
         renderAccounts();
       });
     } else {
@@ -4132,7 +4362,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (refreshMessagesBtn) refreshMessagesBtn.addEventListener('click', function(){ fetchMessages(); showToast('Messages refreshed', false, false); });
     // Close msg modal on backdrop click
     var msgModal = document.getElementById('msgModal');
-    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) msgModal.style.display='none'; });
+    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) closeAdminModal(msgModal); });
 
     // Report period filter
     var periodSelect = document.getElementById('reportPeriod');
@@ -4249,6 +4479,15 @@ document.addEventListener('DOMContentLoaded', function() {
       catFilter.addEventListener('change', function() { renderProducts(); });
     }
 
+    var clearProductFilters = document.getElementById('clearProductFilters');
+    if (clearProductFilters) clearProductFilters.addEventListener('click', function() {
+      if (adminSearch) adminSearch.value = '';
+      if (catFilter) catFilter.value = 'all';
+      var stock = document.getElementById('adminStockFilter');
+      if (stock) stock.value = 'all';
+      renderProducts();
+    });
+
     // Stock status filter
     var stockFilter = document.getElementById('adminStockFilter');
     if (stockFilter) {
@@ -4263,7 +4502,15 @@ document.addEventListener('DOMContentLoaded', function() {
       var oModal = document.getElementById('orderModal');
       if (oModal && oModal.style.display !== 'none' && oModal.style.display !== '') { closeOrderModal(); return; }
       var mModal = document.getElementById('msgModal');
-      if (mModal && mModal.style.display !== 'none' && mModal.style.display !== '') mModal.style.display = 'none';
+      if (mModal && mModal.style.display !== 'none' && mModal.style.display !== '') closeAdminModal(mModal);
+    });
+
+    document.querySelectorAll('[data-close-admin-modal]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var modal = document.getElementById(button.dataset.closeAdminModal);
+        if (modal && modal.id === 'productModal') resetForm();
+        else closeAdminModal(modal);
+      });
     });
 
     // Modal close - order modal
@@ -4323,7 +4570,7 @@ document.addEventListener('DOMContentLoaded', function() {
       refreshOrders: function(filter) {
         fetchOrders(function() {
           renderOrders(filter);
-          showToast('Orders refreshed.', false, false);
+          showToast(ordersLoadError ? 'Orders could not refresh. Check your connection and staff access, then try again.' : 'Orders refreshed.', !!ordersLoadError, false);
         });
       }
     };

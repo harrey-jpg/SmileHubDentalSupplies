@@ -21,7 +21,7 @@
 <script defer="" src="js/auth.js?v=6.3.0"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/admin-overview.css?v=6.3.3">
+<link rel="stylesheet" href="css/admin-overview.css?v=6.3.5">
 </head>
 <body class="admin-body">
 <a class="skip-link" href="#adminMain">Skip to main content</a>
@@ -47,6 +47,7 @@
 <a data-role="admin,superadmin" href="#notifications"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span>Notifications</span></a>
 </nav>
 <div class="admin-sidebar-footer">
+<div class="admin-account-actions"><button aria-label="Toggle dark mode" aria-pressed="false" class="theme-button" title="Toggle dark mode" type="button">◐</button><button class="btn btn-light" id="logoutButton" type="button">Logout</button></div>
 <a class="sidebar-store-link" href="homepage.html"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>Return to Store</span></a>
 <span class="admin-user-badge">
 <span class="admin-avatar" id="adminAvatar">A</span>
@@ -59,16 +60,7 @@
 </aside>
 <main class="admin-main" id="adminMain" tabindex="-1">
 <div id="fileOriginBanner" class="notice-box" hidden style="margin-bottom:14px;padding:12px 16px;background:#fff3cd;border:1px solid #ffe69c;border-radius:10px;font-size:0.9rem;color:#664d03;">You opened Admin from a local file (file://). Sign-in and private data (orders, accounts, messages, audit) need http(s) — run a localhost server or open the hosted URL, then sign in as staff.</div>
-<div class="admin-top admin-dash-top">
-<div>
-<p class="eyebrow" id="greetEyebrow">Good day</p>
-<h1 class="welcome-title"><span id="welcomeName">Admin</span>, here is the store</h1>
-<p class="muted admin-subtitle" id="adminDateSubtitle">Today at a glance, and how the last 30 days have gone.</p>
-</div>
-<div class="admin-top-actions">
-<button class="btn btn-primary" data-role-btn="admin,staff,superadmin" id="dashStartFulfillment" type="button" data-pending-link><span>Start fulfillment →</span></button>
-<button class="btn btn-dark" data-role-btn="admin,superadmin" id="dashAddProduct" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add Product</span></button>
-<div class="notif-bell-wrap" style="position:relative;">
+<div class="admin-utility-bar"><div class="notif-bell-wrap" style="position:relative;">
 <button aria-label="Recent activity" class="icon-btn dash-bell" id="notifBellBtn" aria-haspopup="true" aria-expanded="false" aria-controls="notifDropdown" title="Recent activity" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span class="bell-badge hidden" id="dashBellCount">0</span></button>
 <div id="notifDropdown" class="notif-dropdown hidden" role="dialog" aria-modal="false" aria-labelledby="notifBellBtn" aria-label="Recent activity" style="display:none;">
 <div class="notif-dropdown-head">
@@ -84,33 +76,43 @@
 <button class="dash-link" data-notif-pending type="button" id="notifDropdownPending">0 pending orders need attention →</button>
 </div>
 </div>
+</div></div>
+<div class="admin-top admin-dash-top" id="dashboardHeader">
+<div>
+<h1 class="welcome-title">Dashboard</h1>
+<p class="muted admin-subtitle" id="adminDateSubtitle">Today at a glance, and how the last 30 days have gone.</p>
 </div>
-<button aria-label="Toggle dark mode" aria-pressed="false" class="theme-button" title="Toggle dark mode" type="button">◐</button>
-<button class="btn btn-light" id="logoutButton" type="button">Logout</button>
+<div class="admin-top-actions">
+<button class="btn btn-primary" data-role-btn="admin,staff,superadmin" id="dashStartFulfillment" type="button" data-pending-link><span>Start fulfillment →</span></button>
+
+
+
+
 </div>
 </div>
 <!-- ===== DASHBOARD SECTION ===== -->
 <section data-role="all" id="dashboard">
+<div role="status" aria-live="polite"><span id="adminDataStatus">Loading orders and inventory…</span> <button class="btn btn-light" type="button" id="adminDataRetry" hidden>Retry</button></div>
 <div class="today-cards admin-section">
 <a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" aria-label="View orders — Orders today">
 <span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span class="muted kpi-label">Orders today</span><span class="kpi-more" aria-hidden="true">...</span></span>
-<strong id="kpiTodayOrders">0</strong>
-<small class="kpi-sub" id="kpiTodaySales">₱0.00 collected</small>
+<strong id="kpiTodayOrders">—</strong>
+<small class="kpi-sub" id="kpiTodaySales">Loading orders…</small>
 </a>
 <a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" data-pending-link aria-label="View orders needing work">
-<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M7 3h10v5l-5 4-5-4z"/><path d="M7 21h10v-5l-5-4-5 4z"/></svg></span><span class="muted kpi-label">Pending now</span><span class="kpi-more" aria-hidden="true">...</span></span>
-<strong id="kpiPendingNow">0</strong>
-<small class="kpi-sub" id="kpiPendingSub">Need attention</small>
+<span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M7 3h10v5l-5 4-5-4z"/><path d="M7 21h10v-5l-5-4-5 4z"/></svg></span><span class="muted kpi-label">Needs work</span><span class="kpi-more" aria-hidden="true">...</span></span>
+<strong id="kpiPendingNow">—</strong>
+<small class="kpi-sub" id="kpiPendingSub">Loading orders…</small>
 </a>
 <a class="card kpi-card clickable today-card" data-target="#products" href="#products" aria-label="Manage products">
 <span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span><span class="muted kpi-label">Products</span><span class="kpi-more" aria-hidden="true">...</span></span>
-<strong id="kpiTotalProducts">0</strong>
-<small class="kpi-sub" id="kpiTotalRevenue">₱0 inventory value</small>
+<strong id="kpiTotalProducts">—</strong>
+<small class="kpi-sub" id="kpiTotalRevenue">Loading inventory…</small>
 </a>
-<a class="card kpi-card clickable today-card" data-target="#products" href="#products" aria-label="View low stock products">
+<a class="card kpi-card clickable today-card" data-target="#products" href="#products" data-stock-filter="low" aria-label="View low stock products">
 <span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18.5h.01"/></svg></span><span class="muted kpi-label">Low stock</span><span class="kpi-more" aria-hidden="true">...</span></span>
-<strong id="kpiLowStock">0</strong>
-<small class="kpi-sub" id="kpiLowStockDetail">Needs restocking</small>
+<strong id="kpiLowStock">—</strong>
+<small class="kpi-sub" id="kpiLowStockDetail">Loading inventory…</small>
 </a>
 </div>
 
@@ -119,27 +121,17 @@
 <button class="rail-link" onclick="window.navigateTo('#products')" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span>Manage Stock</span></button>
 <button class="rail-link" onclick="window.location.href='homepage.html'" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>View Store</span></button>
 </div>
-<div class="chart-band admin-section">
-<div class="dash-card-head">
-<p class="ov-chart-eyebrow">Collected per month</p>
-<span class="ov-period-total" id="salesPeriodTotal" role="status" aria-live="polite"></span>
-</div>
-<div class="dash-chart-wrap">
-<canvas aria-label="Collected per month chart" id="salesChartReal" role="img"></canvas>
-</div>
-<p class="muted dash-empty hidden" id="salesChartEmpty">No sales data yet &mdash; new orders will appear here.</p>
-</div>
 <div class="grid grid-2 admin-section">
 <article class="card form-card dash-card">
 <div class="dash-card-head">
 <div>
-<h2>Recent Orders</h2>
-<p class="muted dash-card-sub">Latest 5 orders</p>
+<h2>Orders needing work</h2>
+<p class="muted dash-card-sub">Oldest 5 awaiting payment, quotation or fulfillment</p>
 </div>
-<button class="dash-link" onclick="window.navigateTo('#orders')" type="button">View all &rarr;</button>
+<button class="dash-link" data-pending-link type="button">View work queue &rarr;</button>
 </div>
 <div class="table-wrap dash-table-wrap">
-<table class="dash-table"><caption class="sr-only">Recent orders</caption><thead>
+<table class="dash-table"><caption class="sr-only">Orders needing work</caption><thead>
 <tr>
 <th scope="col">Order</th>
 <th scope="col">Customer</th>
@@ -148,7 +140,7 @@
 </tr>
 </thead>
 <tbody id="dashRecentOrders">
-<tr><td class="text-center muted" colspan="4">No orders yet</td></tr>
+<tr><td class="text-center muted" colspan="4">Loading orders…</td></tr>
 </tbody>
 </table>
 </div>
@@ -162,9 +154,21 @@
 <button class="dash-link" onclick="window.navigateTo('#products')" type="button">Manage &rarr;</button>
 </div>
 <div class="dash-alerts" id="dashInventoryAlerts">
-<p class="muted dash-empty">All items well-stocked</p>
+<p class="muted dash-empty">Loading inventory…</p>
 </div>
 </article>
+</div>
+<div class="chart-band admin-section">
+<div class="dash-card-head">
+<p class="ov-chart-eyebrow">Confirmed payments by order month</p>
+<span class="ov-period-total" id="salesPeriodTotal" role="status" aria-live="polite"></span>
+</div>
+<p class="muted dash-card-sub">Based on recorded payment confirmation, grouped by order date.</p>
+<div class="dash-chart-wrap">
+<canvas aria-label="Confirmed payments by order month chart" id="salesChartReal" role="img" aria-describedby="salesChartData"></canvas>
+</div>
+<details class="chart-data"><summary>View monthly payment values</summary><div class="table-wrap"><table id="salesChartData"><caption>Confirmed payments by order month</caption><thead><tr><th scope="col">Month</th><th scope="col">Confirmed paid</th></tr></thead><tbody id="salesChartDataBody"><tr><td colspan="2">Loading orders…</td></tr></tbody></table></div></details>
+<p class="muted dash-empty hidden" id="salesChartEmpty">No confirmed payments yet &mdash; orders with confirmed payment will appear here.</p>
 </div>
 <article class="card form-card dash-card admin-section">
 <div class="dash-card-head">
@@ -176,20 +180,21 @@
 </div>
 <div class="inventory-panel">
 <div class="dash-chart-wrap dash-chart-sm inventory-donut">
-<canvas aria-label="Stock status chart" id="chartStockStatus" role="img"></canvas>
+<canvas aria-label="Stock status chart" id="chartStockStatus" role="img" aria-describedby="stockChartData"></canvas>
 </div>
-<div class="cat-bars" id="catBars"></div>
+<div><div class="cat-bars" id="catBars"></div><details class="chart-data"><summary>View stock status counts</summary><div class="table-wrap"><table id="stockChartData"><caption>Products by stock status</caption><thead><tr><th scope="col">Stock status</th><th scope="col">Products</th></tr></thead><tbody id="stockChartDataBody"><tr><td colspan="2">Loading inventory…</td></tr></tbody></table></div></details></div>
 </div>
 </article>
 </section>
 <!-- ===== PRODUCTS SECTION ===== -->
 <section class="admin-section" data-role="all" id="products" style="display:none;">
+<p id="adminProductWriteError" role="alert" hidden></p>
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Catalog</p>
-<h2>Product Management</h2>
+<h1>Product Management</h1>
 <p class="muted dash-card-sub" id="productCount">Loading products…</p>
 </div>
+<div class="admin-top-actions"><button class="btn btn-dark" data-role-btn="admin,superadmin" id="dashAddProduct" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add Product</span></button></div>
 </div>
 <div id="productModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="productModalTitle" style="display:none;">
 <div class="modal-card" style="max-width:640px;">
@@ -201,10 +206,11 @@
 <h3 id="productModalTitle" class="modal-title">Add Product</h3>
 </div>
 </div>
-<button class="modal-close" onclick="document.getElementById('productModal').style.display='none'" type="button" aria-label="Close product dialog">✕</button>
+<button class="modal-close" data-close-admin-modal="productModal" type="button" aria-label="Close product dialog">✕</button>
 </div>
 <div class="modal-body">
 <form class="form-card" id="productFormBox" style="padding:0;margin:0;border:0;box-shadow:none;background:transparent;">
+<p id="productFormError" role="alert" hidden></p>
 <div id="adminProductForm">
 <input name="productId" type="hidden" value=""/>
 <div class="product-grid">
@@ -280,7 +286,7 @@
 </div>
 <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
 <button class="btn btn-primary" id="productFormSubmit" style="padding:10px 28px;" type="submit">Save Product</button>
-<button class="btn btn-light" onclick="document.getElementById('productModal').style.display='none'" style="padding:10px 24px;" type="button">Cancel</button>
+<button class="btn btn-light" data-close-admin-modal="productModal" style="padding:10px 24px;" type="button">Cancel</button>
 </div>
 </div>
 </form>
@@ -302,6 +308,8 @@
 <option value="Equipment">Equipment</option>
 <option value="Cosmetic">Cosmetic</option>
 </select>
+<span id="productFilterSummary" class="muted" role="status" aria-live="polite" hidden></span>
+<button id="clearProductFilters" class="btn btn-light" type="button" hidden>Clear filters</button>
 <select id="adminStockFilter" aria-label="Filter by stock status">
 <option value="all">All stock levels</option>
 <option value="in">In stock</option>
@@ -371,8 +379,7 @@
 <section class="admin-section" data-role="all" id="orders" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Sales · fulfillment</p>
-<h2>Order Management</h2>
+<h1>Order Management</h1>
 <p class="muted dash-card-sub">Search, filter and act on fulfillment</p>
 </div>
 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -408,7 +415,7 @@
 <input id="orderSearch" aria-label="Search orders" placeholder="Order, customer or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <select id="orderStatusFilter" aria-label="Filter orders by status" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Statuses</option>
-<option value="active">Needs work (Pending → Shipped)</option>
+<option value="active">Needs work (payment, quotation &amp; fulfillment)</option>
 <option value="Pending">Pending</option>
 <option value="Pending Payment">Pending Payment</option>
 <option value="Pending Quotation">Pending Quotation</option>
@@ -516,8 +523,7 @@
 <section class="admin-section" data-role="admin,superadmin" id="customers" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">People</p>
-<h2>Account Management</h2>
+<h1>Account Management</h1>
 <p class="muted dash-card-sub" id="customersSub">Search, filter and manage accounts</p>
 </div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -638,8 +644,7 @@
 <section class="admin-section" data-role="admin,superadmin" id="cms" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Storefront</p>
-<h2>Content Management</h2>
+<h1>Content Management</h1>
 <p class="muted dash-card-sub" id="cmsSub">Live storefront copy — changes apply on reload</p>
 </div>
 <div style="display:flex;gap:10px;align-items:center;">
@@ -707,8 +712,7 @@
 <section class="admin-section" data-role="admin,superadmin" id="notifications" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Messaging</p>
-<h2>Notification Templates</h2>
+<h1>Notification Templates</h1>
 <p class="muted dash-card-sub" id="notifSub">4 events • placeholders: {{customer}}, {{order_number}}, {{total}}, {{address}}</p>
 </div>
 <div style="display:flex;gap:10px;align-items:center;">
@@ -721,9 +725,8 @@
 <section class="admin-section" data-role="admin,staff,superadmin" id="reports" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Analytics</p>
-<h2>Reports</h2>
-<p class="muted dash-card-sub" id="reportsSub">Real-time sales overview</p>
+<h1>Reports</h1>
+<p class="muted dash-card-sub" id="reportsSub">Order values and confirmed payments. Orders without a payment record are not counted as paid.</p>
 </div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
 <select id="reportPeriod" aria-label="Report period" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
@@ -744,9 +747,9 @@
 <small>In selected period</small>
 </article>
 <article class="card kpi-card">
-<span class="muted">Revenue</span>
+<span class="muted">Order value</span>
 <strong id="reportRevenue">₱0</strong>
-<small>Total sales</small>
+<small>Excludes cancelled, returned and refunded orders</small>
 </article>
 <article class="card kpi-card">
 <span class="muted">Avg Order Value</span>
@@ -762,22 +765,22 @@
 <div class="grid grid-2" style="margin-bottom:20px;">
 <article class="card form-card">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;">
-<h3 style="margin:0;font-size:0.95rem;">Collected vs Pending by Month</h3>
+<h3 style="margin:0;font-size:0.95rem;">Payment confirmation by order month</h3>
 <span class="muted" style="font-size:0.75rem;">Last 6 months</span>
 </div>
-<div style="position:relative;height:220px;"><canvas id="reportStackedBar" role="img" aria-label="Collected vs Pending by month chart"></canvas></div>
+<div style="position:relative;height:220px;"><canvas id="reportStackedBar" role="img" aria-label="Payment confirmation by order month chart"></canvas></div>
 <p class="muted hidden" id="reportStackedEmpty" style="text-align:center;padding:12px 0 0;">No sales in this period.</p>
-<div style="display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:0.78rem;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;display:inline-block;"></span> Collected</span><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block;"></span> Pending</span></div>
+<div style="display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:0.78rem;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#0ea5e9;display:inline-block;"></span> Confirmed paid</span><span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block;"></span> Payment not confirmed</span></div>
 </article>
 <article class="card form-card">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;">
-<h3 style="margin:0;font-size:0.95rem;">Sales Performance</h3>
+<h3 style="margin:0;font-size:0.95rem;">Order value over time</h3>
 <select id="reportTrendToggle" aria-label="Trend granularity" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);font-size:0.85rem;">
 <option value="monthly">Monthly</option>
 <option value="annually">Annually</option>
 </select>
 </div>
-<div style="position:relative;height:220px;"><canvas id="reportRevenueLine" role="img" aria-label="Revenue trend chart"></canvas></div>
+<div style="position:relative;height:220px;"><canvas id="reportRevenueLine" role="img" aria-label="Order value trend chart"></canvas></div>
 <p class="muted hidden" id="reportLineEmpty" style="text-align:center;padding:12px 0 0;">No revenue yet.</p>
 </article>
 <article class="card form-card">
@@ -786,7 +789,7 @@
 <span class="muted" style="font-size:0.75rem;" id="reportTopCustomersSub"></span>
 </div>
 <div class="table-wrap" style="box-shadow:none;border:none;">
-<table><caption class="sr-only">Data table</caption><thead><tr><th scope="col">Customer</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">Share</th></tr></thead>
+<table><caption class="sr-only">Data table</caption><thead><tr><th scope="col">Customer</th><th scope="col">Orders</th><th scope="col">Order value</th><th scope="col">Share</th></tr></thead>
 <tbody id="reportTopCustomersBody"><tr><td colspan="4" class="text-center muted" style="padding:24px;">No customers yet</td></tr></tbody>
 </table>
 </div>
@@ -808,7 +811,7 @@
 <th scope="col">Product</th>
 <th scope="col">Orders</th>
 <th scope="col">Units Sold</th>
-<th scope="col">Revenue</th>
+<th scope="col">Order value</th>
 </tr>
 </thead>
 <tbody id="reportProductBody">
@@ -834,8 +837,7 @@
 <section class="admin-section" data-role="admin,staff,superadmin" id="audit" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Compliance</p>
-<h2>Audit Trail</h2>
+<h1>Audit Trail</h1>
 <p class="muted dash-card-sub" id="auditHeaderSub">Live record of admin actions</p>
 </div>
 <div style="display:flex;gap:10px;align-items:center;">
@@ -884,8 +886,7 @@
 <section class="admin-section" data-role="admin,staff,superadmin" id="messages" style="display:none;">
 <div class="admin-top">
 <div>
-<p class="ov-chart-eyebrow">Inbox</p>
-<h2>Messages</h2>
+<h1>Messages</h1>
 <p class="muted dash-card-sub" id="messagesHeaderSub">Live inbox — reply via email</p>
 </div>
 <div style="display:flex;gap:10px;align-items:center;">
@@ -954,7 +955,7 @@
 <h3 id="msgModalTitle" class="modal-title">Message</h3>
 </div>
 </div>
-<button class="modal-close" onclick="document.getElementById('msgModal').style.display='none'" type="button" aria-label="Close message dialog">✕</button>
+<button class="modal-close" data-close-admin-modal="msgModal" type="button" aria-label="Close message dialog">✕</button>
 </div>
 <div class="modal-body">
 <div id="msgModalContent"></div>
