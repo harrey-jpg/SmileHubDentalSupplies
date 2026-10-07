@@ -14,8 +14,8 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
-<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.3">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -91,7 +91,7 @@
 <p>Search, filter, and sort the full dental catalog for clinics, dentists, and students.</p>
 </div>
 </section>
-<div class="ticker" aria-label="Shop by category or brand"><div class="ticker-track">
+<div class="ticker" aria-label="Shop by category"><div class="ticker-track">
 <a href="products.html?category=Oral%20Care">Oral Care</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Instruments">Instruments</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=PPE">PPE</a><span aria-hidden="true">✦</span>
@@ -102,12 +102,6 @@
 <a href="products.html?category=Rotary">Rotary</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Equipment">Equipment</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Cosmetic">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa">Impressa</a><span aria-hidden="true">✦</span>
 <span aria-hidden="true" style="display:contents;">
 <a href="products.html?category=Oral%20Care" tabindex="-1">Oral Care</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Instruments" tabindex="-1">Instruments</a><span aria-hidden="true">✦</span>
@@ -119,12 +113,6 @@
 <a href="products.html?category=Rotary" tabindex="-1">Rotary</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Equipment" tabindex="-1">Equipment</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Cosmetic" tabindex="-1">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro" tabindex="-1">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix" tabindex="-1">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora" tabindex="-1">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch" tabindex="-1">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent" tabindex="-1">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa" tabindex="-1">Impressa</a><span aria-hidden="true">✦</span>
 </span>
 </div></div>
 <main class="section-sm">
@@ -185,18 +173,11 @@
 <option value="name">Name: A to Z</option>
 </select>
 </div>
-<div class="tile-chips" id="tileChips" role="group" aria-label="Filter by category">
+<div class="tile-chips" id="tileChips" role="group" aria-label="Quick picks — full list in the Category filter">
 <button class="tile-chip" data-cat="all" aria-pressed="true" type="button">All</button>
-<button class="tile-chip" data-cat="Oral Care" aria-pressed="false" type="button"><span class="swatch" style="background:#1565c0" aria-hidden="true"></span>Oral Care</button>
-<button class="tile-chip" data-cat="Instruments" aria-pressed="false" type="button"><span class="swatch" style="background:#7b1fa2" aria-hidden="true"></span>Instruments</button>
-<button class="tile-chip" data-cat="PPE" aria-pressed="false" type="button"><span class="swatch" style="background:#2e7d32" aria-hidden="true"></span>PPE</button>
-<button class="tile-chip" data-cat="Restorative" aria-pressed="false" type="button"><span class="swatch" style="background:#e65100" aria-hidden="true"></span>Restorative</button>
-<button class="tile-chip" data-cat="Disposables" aria-pressed="false" type="button"><span class="swatch" style="background:#ad1457" aria-hidden="true"></span>Disposables</button>
-<button class="tile-chip" data-cat="Impression" aria-pressed="false" type="button"><span class="swatch" style="background:#00838f" aria-hidden="true"></span>Impression</button>
-<button class="tile-chip" data-cat="Orthodontics" aria-pressed="false" type="button"><span class="swatch" style="background:#558b2f" aria-hidden="true"></span>Orthodontics</button>
-<button class="tile-chip" data-cat="Rotary" aria-pressed="false" type="button"><span class="swatch" style="background:#5c6bc0" aria-hidden="true"></span>Rotary</button>
-<button class="tile-chip" data-cat="Equipment" aria-pressed="false" type="button"><span class="swatch" style="background:#283593" aria-hidden="true"></span>Equipment</button>
-<button class="tile-chip" data-cat="Cosmetic" aria-pressed="false" type="button"><span class="swatch" style="background:#c2185b" aria-hidden="true"></span>Cosmetic</button>
+<button class="tile-chip" data-cat="Disposables" aria-pressed="false" type="button" aria-label="Quick pick Restock the clinic — shows Disposables"><span class="swatch" style="background:#ad1457" aria-hidden="true"></span>Restock the clinic <small>Disposables</small></button>
+<button class="tile-chip" data-cat="Oral Care" aria-pressed="false" type="button" aria-label="Quick pick Student kit — shows Oral Care"><span class="swatch" style="background:#1565c0" aria-hidden="true"></span>Student kit <small>Oral Care</small></button>
+<button class="tile-chip" data-cat="Equipment" aria-pressed="false" type="button" aria-label="Quick pick Equipment workhorses — shows Equipment"><span class="swatch" style="background:#283593" aria-hidden="true"></span>Equipment workhorses <small>Equipment</small></button>
 </div>
 <div class="grid grid-3" id="productGrid"></div>
 <div class="card empty-state hidden" id="noResults">
@@ -207,18 +188,6 @@
 </section>
 </div>
 </main>
-<section class="newsletter">
-<div class="container newsletter-box">
-<div>
-<h2>Dental deals in your inbox</h2>
-<p>Receive product updates, clinic essentials, and student-friendly offers.</p>
-</div>
-<form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>Subscribe</button>
-</form>
-</div>
-</section>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">

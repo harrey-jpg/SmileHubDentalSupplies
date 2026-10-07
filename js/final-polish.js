@@ -91,17 +91,18 @@
   function ensureBuyNow(){
     document.querySelectorAll('.product-card').forEach(function(card){
       // Cards rendered by catalog.js/homepage templates already ship a working
-      // .buy-now button; only fill in cards that have none of the variants.
-      if(card.querySelector('[data-buy-now],.buy-now-btn,.buy-now')) return;
+      // quiet Buy Now link; only fill in cards that have none of the variants.
+      // Quiet teal link only — no solid Buy Now anywhere.
+      if(card.querySelector('[data-buy-now],.buy-now-btn,.buy-now,.buy-now-link')) return;
       var id=card.dataset.productId||card.getAttribute('data-id');
       var price=card.dataset.price;
       var actions=card.querySelector('.product-actions');
       if(!actions||!id||!price) return;
       var b=document.createElement('button');
-      b.type='button'; b.className='btn buy-now-btn'; b.dataset.buyNow=id;
+      b.type='button'; b.className='buy-now-link buy-now'; b.dataset.buyNow=id;
       b.dataset.id=id; b.dataset.name=card.dataset.name||'Product'; b.dataset.price=price;
       b.dataset.image=card.dataset.image||'assets/products/default.svg';
-      b.innerHTML='<svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg> Buy Now';
+      b.textContent='Buy Now →';
       b.addEventListener('click',function(){ if(window.buyNow) window.buyNow(b); });
       actions.appendChild(b);
     });

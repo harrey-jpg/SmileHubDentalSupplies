@@ -18,12 +18,45 @@
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
 <style>
+.co-substep{margin:0 0 1.25rem;padding:1rem;border:1px solid var(--border,#dbe4ee);border-radius:14px;background:var(--surface,#fff)}
+.co-substep-title{display:flex;align-items:center;gap:.6rem;margin:0 0 .9rem;font-size:1rem}
+.co-substep-num{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;background:var(--teal,#0f9d9a);color:#fff;font-size:.8rem;font-weight:800;flex-shrink:0}
+.co-substep.is-locked{display:none}
+.co-substep-head{display:flex;align-items:center;gap:.6rem;margin:0 0 .9rem;flex-wrap:wrap}
+.co-substep-head .co-substep-title{margin:0}
+.co-summary{font-size:.85rem;color:var(--muted,#64748b);display:none}
+.co-substep.is-done .co-summary{display:inline}
+#coStepC .co-summary{display:inline}
+.co-substep.is-done{border-color:#16a34a}
+.co-substep.is-done .co-substep-num{background:#16a34a}
+.co-substep.is-done .co-collapsible{display:none}
+.co-actions{margin-top:1rem}
+html.dark .co-substep.is-done,body.dark .co-substep.is-done{border-color:#16a34a}
+.co-disclosure{margin:1rem 0;padding:.4rem 1rem;border:1px dashed var(--border,#dbe4ee);border-radius:12px;background:transparent}
+.co-disclosure summary{cursor:pointer;padding:.7rem 0;list-style:none}
+.co-disclosure summary::-webkit-details-marker{display:none}
+.co-disclosure summary::before{content:'+ ';font-weight:800;color:var(--teal,#0f9d9a)}
+.co-disclosure[open] summary::before{content:'− '}
+.co-disclosure-body{padding-bottom:1rem}
 .checkout-phone-verify-card{margin:1rem 0;padding:1rem;border:1px solid var(--border,#dbe4ee);border-radius:14px;background:var(--surface,#fff)}
 .checkout-phone-verify-card.is-complete{border-color:#16a34a}
+details.checkout-phone-verify-card{padding:.4rem 1rem}
+details.checkout-phone-verify-card .co-disclosure-body{padding-bottom:1rem}
 .checkout-otp-actions{display:grid;grid-template-columns:auto minmax(140px,1fr) auto;gap:.75rem;align-items:center}
 .checkout-otp-actions input{min-height:44px}
 @media(max-width:700px){.checkout-otp-actions{grid-template-columns:1fr}.checkout-otp-actions .btn{width:100%}}
 html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{background:#12202b;border-color:#334155;color:#e5eef7}
+html.dark .co-substep,body.dark .co-substep{background:#12202b;border-color:#334155;color:#e5eef7}
+html.dark .co-disclosure,body.dark .co-disclosure{border-color:#334155}
+html.dark .co-substep-num,body.dark .co-substep-num{background:#0d7670}
+.order-timeline{list-style:none;margin:18px 0 4px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.order-timeline li{position:relative;border:1px solid var(--border,#dbe4ee);border-radius:12px;padding:10px 6px;background:var(--surface,#fff)}
+.order-timeline li strong{display:block;font-size:.82rem}
+.order-timeline li small{color:var(--muted,#64748b);font-size:.72rem}
+.order-timeline li.is-done{border-color:#16a34a;background:#f0fdf4}
+.order-timeline li.is-done strong{color:#15803d}
+html.dark .order-timeline li,body.dark .order-timeline li{background:#12202b;border-color:#334155}
+html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{background:rgba(22,163,74,.12);border-color:#16a34a}
 </style>
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
@@ -141,34 +174,45 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 <div class="step-body">
 <h2>Shipping Information</h2>
 <div id="checkoutPhoneVerification" class="checkout-verified-note is-warning">Phone verification is recommended. Checkout will still work if SMS is unavailable.</div>
+<section class="co-substep" id="coStepA" aria-labelledby="coContactTitle">
+<div class="co-substep-head"><h3 class="co-substep-title" id="coContactTitle"><span class="co-substep-num" aria-hidden="true">A</span> Contact</h3><span class="co-summary" id="coASummary"></span><button type="button" class="link-button co-edit hidden" data-co-edit="A">Edit</button></div>
+<div class="co-collapsible">
 <div class="form-grid">
 <div class="form-group">
 <label for="checkoutFirstName">First Name</label>
-<input id="checkoutFirstName" name="firstName" required=""/>
+<input id="checkoutFirstName" name="firstName" required="" autocomplete="given-name"/>
 </div>
 <div class="form-group">
 <label for="checkoutLastName">Last Name</label>
-<input id="checkoutLastName" name="lastName" required=""/>
+<input id="checkoutLastName" name="lastName" required="" autocomplete="family-name"/>
 </div>
 <div class="form-group">
 <label for="checkoutEmail">Email</label>
-<input id="checkoutEmail" name="email" required="" type="email"/>
+<input id="checkoutEmail" name="email" required="" type="email" autocomplete="email"/>
 </div>
 <div class="form-group">
 <label for="checkoutPhone">Phone</label>
-<input id="checkoutPhone" name="phone" required="" type="tel"/>
+<input id="checkoutPhone" name="phone" required="" type="tel" autocomplete="tel"/>
 </div>
 </div>
-<section class="checkout-phone-verify-card" id="checkoutPhoneVerifyCard" aria-labelledby="checkoutPhoneVerifyTitle">
-  <h3 id="checkoutPhoneVerifyTitle">Phone Verification <span class="muted">(optional)</span></h3>
+<details class="co-disclosure checkout-phone-verify-card" id="checkoutPhoneVerifyCard">
+  <summary><strong>Verify phone for delivery updates</strong> <span class="muted">(optional)</span></summary>
+  <div class="co-disclosure-body">
   <p class="muted">Verify the number above for more reliable delivery updates. Checkout will still work if SMS is unavailable.</p>
   <button class="btn btn-light" id="checkoutSendOtp" type="button">Send OTP</button>
   <p id="checkoutOtpStatus" class="muted verification-inline-message" role="status" aria-live="polite"></p>
   <div id="checkoutRecaptcha" class="recaptcha-host" aria-hidden="true"></div>
+  </div>
+</details>
+<div class="co-actions"><button type="button" class="btn btn-primary" data-co-next="B">Continue to address</button></div>
+</div>
 </section>
+<section class="co-substep" id="coStepB" aria-labelledby="coAddressTitle">
+<div class="co-substep-head"><h3 class="co-substep-title" id="coAddressTitle"><span class="co-substep-num" aria-hidden="true">B</span> Delivery address</h3><span class="co-summary" id="coBSummary"></span><button type="button" class="link-button co-edit hidden" data-co-edit="B">Edit</button></div>
+<div class="co-collapsible">
 <div class="form-group">
 <label for="checkoutAddress">Street Address</label>
-<textarea id="checkoutAddress" name="address" placeholder="House number and street" required=""></textarea>
+<textarea id="checkoutAddress" name="address" placeholder="House number and street" required="" autocomplete="street-address"></textarea>
 </div>
 <div class="form-grid">
 <div class="form-group"><label for="checkoutProvince">Province</label><select id="checkoutProvince" required><option value="">Select province</option></select><input id="checkoutProvinceOther" class="hidden" placeholder="Enter province"></div>
@@ -176,6 +220,9 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 <div class="form-group"><label for="checkoutBarangay">Barangay</label><select id="checkoutBarangay" required><option value="">Select barangay</option></select><input id="checkoutBarangayOther" class="hidden" placeholder="Enter barangay"></div>
 <div class="form-group"><label for="checkoutPostal">Postal Code</label><select id="checkoutPostal" required><option value="">Select postal code</option></select><input id="checkoutPostal_other" class="hidden" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Enter 4-digit code"></div>
 </div>
+<details class="co-disclosure" id="addressMapDisclosure">
+  <summary><strong>Preview on map</strong> <span class="muted">(optional)</span></summary>
+  <div class="co-disclosure-body">
 <div class="address-map-tools">
   <button class="btn btn-light" id="useCurrentLocation" type="button">Use current location</button>
   <a class="btn btn-light" id="openAddressInMaps" href="https://www.google.com/maps" target="_blank" rel="noopener">Open Google Maps</a>
@@ -184,8 +231,15 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
   <iframe id="addressMapFrame" title="Selected delivery location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.openstreetmap.org/export/embed.html?bbox=120.85%2C14.45%2C121.15%2C14.75&amp;layer=mapnik"></iframe>
   <p class="muted" id="addressMapStatus">Use current location to preview the delivery area.</p>
 </div>
-<label style="display:flex;gap:9px;align-items:flex-start;margin:12px 0 20px"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
-<section class="form-card" id="deliverySection" style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px">
+  </div>
+</details>
+<div class="co-actions"><button type="button" class="btn btn-primary" data-co-next="C">Continue to delivery</button></div>
+</div>
+</section>
+<section class="co-substep" id="coStepC" aria-labelledby="coDeliveryTitle">
+<div class="co-substep-head"><h3 class="co-substep-title" id="coDeliveryTitle"><span class="co-substep-num" aria-hidden="true">C</span> Delivery speed</h3><span class="co-summary" id="coCSummary"></span></div>
+<div class="co-collapsible">
+<section class="form-card" id="deliverySection" style="margin-top:0; border-top:1px solid var(--border); padding-top:16px">
 <h2>Delivery Method</h2>
 <p class="muted" style="font-size:.88rem;margin:0 0 12px">Choose how your order arrives. Fees update live from your cart.</p>
 <div class="delivery-cards">
@@ -201,6 +255,8 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 </label>
 </div>
 <p class="muted" id="deliveryHint" style="font-size:.82rem;margin-top:8px"></p>
+</section>
+</div>
 </section>
 </div>
 <button type="button" class="btn btn-primary" data-next="2">Continue to Payment</button>
@@ -271,6 +327,7 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 <div class="step-body">
 <div id="reviewSummary" style="margin-bottom:16px"></div>
 <p class="muted" style="font-size:.88rem;margin-bottom:16px">Review your details above. By placing your order you agree to the demo terms.</p>
+<label style="display:flex;gap:9px;align-items:flex-start;margin:0 0 16px"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
 <button class="btn btn-primary btn-block" type="submit">Place Order</button>
 <div style="display:flex;gap:12px;margin-top:12px"><button type="button" class="btn btn-light" data-prev="2">Back</button></div>
 </div>
@@ -296,14 +353,19 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
 </div>
 </aside>
 <div class="modal-overlay" id="orderConfirmModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-<div class="card" style="max-width:420px;width:90%;padding:30px;text-align:center;">
+<div class="card" style="max-width:440px;width:90%;padding:30px;text-align:center;">
 <div style="font-size:48px;margin-bottom:10px;">✓</div>
 <h2>Order Placed!</h2>
 <p class="muted">Your order <strong id="confirmOrderNumber"></strong> has been placed successfully.</p>
 <p class="muted" id="confirmPaymentNote"></p>
 <p class="muted">We'll send a confirmation to <strong id="confirmEmail"></strong>.</p>
-<div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
-<a class="btn btn-primary" href="orders.html">View Orders</a>
+<ol class="order-timeline" aria-label="What happens next">
+<li class="is-done"><strong>Placed</strong><small>Just now</small></li>
+<li><strong>Processing</strong><small>Mon–Sat</small></li>
+<li><strong>Ships in 1–3 days</strong><small>Free over ₱3,000</small></li>
+</ol>
+<div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+<a class="btn btn-primary" href="orders.html">Track in Orders</a>
 <a class="btn btn-light" href="products.html">Continue Shopping</a>
 </div>
 </div>
@@ -341,24 +403,6 @@ html.dark .checkout-phone-verify-card,body.dark .checkout-phone-verify-card{back
   </section>
 </div>
 
-<section class="newsletter">
-<div class="container newsletter-box">
-<div>
-<h2>
-            Dental deals in your inbox
-          </h2>
-<p>
-            Receive product updates, clinic essentials, and student-friendly offers.
-          </p>
-</div>
-<form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>
-            Subscribe
-          </button>
-</form>
-</div>
-</section>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
@@ -692,6 +736,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var shipR=document.querySelector('input[name="shippingMethod"]:checked');
       reviewSummary.innerHTML='<p><strong>Ship to:</strong> '+(fullAddr||'—')+'</p><p><strong>Delivery:</strong> '+(shipR?shipR.value:'Standard')+' • <strong>Payment:</strong> '+(payR?payR.value:'GCash')+'</p><p><strong>Total:</strong> '+(totalEl?totalEl.textContent:'—')+'</p>';
     }
+    if(typeof coSummaries==='function') coSummaries();
   }
   function goToStep(n, opts){
     opts=opts||{};
@@ -777,6 +822,99 @@ document.addEventListener('DOMContentLoaded', function(){
   // initial
   updateSummaries();
   updateIndicator(1);
+  // layout: auto-expand map preview once a city is chosen
+  var mapDisclosure = document.getElementById('addressMapDisclosure');
+  var citySel = document.getElementById('checkoutCity');
+  if (mapDisclosure && citySel) {
+    citySel.addEventListener('change', function() {
+      if (citySel.value && citySel.value !== '__other__') mapDisclosure.open = true;
+    });
+  }
+  // gated A→B→C sub-steps inside Step 1 (progressive enhancement: no-JS shows all)
+  var CO_A=['checkoutFirstName','checkoutLastName','checkoutEmail','checkoutPhone'];
+  var CO_B=['checkoutAddress','checkoutProvince','checkoutCity','checkoutBarangay','checkoutPostal'];
+  function coVal(id){
+    var el=document.getElementById(id);
+    if(!el) return true;
+    var v=el.value.trim();
+    if(el.tagName==='SELECT' && v==='__other__'){
+      var o=document.getElementById(id+'Other')||document.getElementById(id+'_other');
+      v=o?o.value.trim():'';
+    }
+    if(!v) return false;
+    if(el.hasAttribute('required') && !el.checkValidity()) return false;
+    return true;
+  }
+  function coValid(list){ for(var ci=0;ci<list.length;ci++){ if(!coVal(list[ci])) return false; } return true; }
+  function coGet(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+  function coSummaries(){
+    var a=document.getElementById('coASummary');
+    if(a){ var fn=coGet('checkoutFirstName'), ln=coGet('checkoutLastName'), em=coGet('checkoutEmail'); a.textContent=(fn||ln)?((fn+' '+ln).trim()+(em?' • '+em:'')):''; }
+    var b=document.getElementById('coBSummary');
+    if(b){
+      var pv=coGet('checkoutProvince'), cv=coGet('checkoutCity');
+      if(pv==='__other__'){ var po=document.getElementById('checkoutProvinceOther'); pv=po?po.value.trim():''; }
+      if(cv==='__other__'){ var co=document.getElementById('checkoutCityOther'); cv=co?co.value.trim():''; }
+      b.textContent=cv?(cv+(pv?', '+pv:'')+' ✓'):'';
+    }
+    var csum=document.getElementById('coCSummary');
+    if(csum){ var ship=document.querySelector('input[name="shippingMethod"]:checked'); csum.textContent=ship?(ship.value+' ✓'):''; }
+  }
+  function coComplete(which){
+    var sec=document.getElementById('coStep'+which);
+    if(!sec||sec.classList.contains('is-done')) return;
+    sec.classList.add('is-done');
+    var edit=sec.querySelector('[data-co-edit]');
+    if(edit) edit.classList.remove('hidden');
+  }
+  function coUnlock(which){ var sec=document.getElementById('coStep'+which); if(sec) sec.classList.remove('is-locked'); }
+  function coFocusInvalid(list){
+    for(var fi=0;fi<list.length;fi++){
+      if(!coVal(list[fi])){
+        var el=document.getElementById(list[fi]);
+        if(el){ el.focus(); if(el.reportValidity) el.reportValidity(); }
+        return true;
+      }
+    }
+    return false;
+  }
+  function coSync(){
+    var aOk=coValid(CO_A), bOk=coValid(CO_B);
+    var sb=document.getElementById('coStepB'), sc=document.getElementById('coStepC');
+    if(aOk){ coComplete('A'); coUnlock('B'); } else if(sb && !sb.classList.contains('is-done')) sb.classList.add('is-locked');
+    if(aOk&&bOk){ coComplete('B'); coUnlock('C'); } else if(sc) sc.classList.add('is-locked');
+    coSummaries();
+  }
+  document.querySelectorAll('[data-co-next]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var next=btn.getAttribute('data-co-next');
+      var list=next==='B'?CO_A:CO_B;
+      var cur=next==='B'?'A':'B';
+      if(!coValid(list)){
+        coFocusInvalid(list);
+        if(typeof showToast==='function') showToast('Please complete this section first', true);
+        return;
+      }
+      coComplete(cur); coUnlock(next); coSummaries();
+      var sec=document.getElementById('coStep'+next);
+      if(sec) sec.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+  document.querySelectorAll('[data-co-edit]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var w=btn.getAttribute('data-co-edit');
+      var sec=document.getElementById('coStep'+w);
+      if(sec){
+        sec.classList.remove('is-done');
+        btn.classList.add('hidden');
+        sec.scrollIntoView({behavior:'smooth',block:'start'});
+        var first=sec.querySelector('input,textarea,select');
+        if(first) first.focus({preventScroll:true});
+      }
+    });
+  });
+  coSync();
+  setTimeout(coSync, 1500);
 });
 </script>
 <script src="js/frontend-enhancements.js"></script>

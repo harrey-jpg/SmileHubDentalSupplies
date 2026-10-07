@@ -14,8 +14,8 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
-<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.3">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -114,7 +114,7 @@
 </div>
 </div>
 </section>
-<div class="ticker" aria-label="Shop by category or brand"><div class="ticker-track">
+<div class="ticker" aria-label="Shop by category"><div class="ticker-track">
 <a href="products.html?category=Oral%20Care">Oral Care</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Instruments">Instruments</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=PPE">PPE</a><span aria-hidden="true">✦</span>
@@ -125,12 +125,6 @@
 <a href="products.html?category=Rotary">Rotary</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Equipment">Equipment</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Cosmetic">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa">Impressa</a><span aria-hidden="true">✦</span>
 <span aria-hidden="true" style="display:contents;">
 <a href="products.html?category=Oral%20Care" tabindex="-1">Oral Care</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Instruments" tabindex="-1">Instruments</a><span aria-hidden="true">✦</span>
@@ -142,12 +136,6 @@
 <a href="products.html?category=Rotary" tabindex="-1">Rotary</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Equipment" tabindex="-1">Equipment</a><span aria-hidden="true">✦</span>
 <a href="products.html?category=Cosmetic" tabindex="-1">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro" tabindex="-1">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix" tabindex="-1">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora" tabindex="-1">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch" tabindex="-1">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent" tabindex="-1">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa" tabindex="-1">Impressa</a><span aria-hidden="true">✦</span>
 </span>
 </div></div>
 <section class="section-sm stat-band" style="background: var(--sky);">
@@ -173,82 +161,43 @@
 </div>
 </section>
 <section class="section">
-<div class="container">
+<div class="container cat-head">
+<div>
 <div class="eyebrow">Browse by category</div>
 <h2 class="section-title">Popular Dental Categories</h2>
 <p class="section-copy">Quick access to the products clinics and students use most.</p>
 </div>
-<div class="category-grid tiles">
-<a class="category-card cat-oral-care" href="products.html?category=Oral%20Care" data-category="Oral Care" data-count="6">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 40c-11 0-21.7 3.7-30.4 10.5C80 64.6 56 82.6 56 132c0 32.8 11.7 56.3 21.1 72.6 8.7 15.2 12.9 27.4 14.5 45.9 1.2 13.4 2.7 31.5 11.3 31.5 11.1 0 6.3-27.1 13.1-45 4-10.6 8-14.8 15-14.8s11 4.2 15 14.8c6.8 17.9 2 45 13.1 45 8.6 0 10.1-18.1 11.3-31.5 1.6-18.5 5.8-30.7 14.5-45.9C195.3 188.3 207 164.8 207 132c0-49.4-24-67.4-41.6-81.5C156.7 43.7 139 40 128 40Z" fill="currentColor" opacity=".9"/></svg></div>
-<div class="category-content">
-<h3>Oral Care</h3>
-<p>Toothbrushes, floss, toothpaste, mouthwash</p>
+<a class="btn btn-light cat-viewall" href="products.html">View all products →</a>
 </div>
-<span class="category-count">6 products</span>
+<div class="container">
+<div class="cat-pills" role="list" aria-label="All categories">
+<a class="cat-pill" role="listitem" href="products.html?category=Oral%20Care" data-category="Oral Care"><i class="swatch sw-oral-care" aria-hidden="true"></i><span>Oral Care</span><b class="cat-pill-count">7</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Instruments" data-category="Instruments"><i class="swatch sw-instruments" aria-hidden="true"></i><span>Instruments</span><b class="cat-pill-count">6</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=PPE" data-category="PPE"><i class="swatch sw-ppe" aria-hidden="true"></i><span>PPE</span><b class="cat-pill-count">6</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Restorative" data-category="Restorative"><i class="swatch sw-restorative" aria-hidden="true"></i><span>Restorative</span><b class="cat-pill-count">6</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Disposables" data-category="Disposables"><i class="swatch sw-disposables" aria-hidden="true"></i><span>Disposables</span><b class="cat-pill-count">7</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Impression" data-category="Impression"><i class="swatch sw-impression" aria-hidden="true"></i><span>Impression</span><b class="cat-pill-count">5</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Orthodontics" data-category="Orthodontics"><i class="swatch sw-orthodontics" aria-hidden="true"></i><span>Orthodontics</span><b class="cat-pill-count">5</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Rotary" data-category="Rotary"><i class="swatch sw-rotary" aria-hidden="true"></i><span>Rotary</span><b class="cat-pill-count">5</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Equipment" data-category="Equipment"><i class="swatch sw-equipment" aria-hidden="true"></i><span>Equipment</span><b class="cat-pill-count">5</b></a>
+<a class="cat-pill" role="listitem" href="products.html?category=Cosmetic" data-category="Cosmetic"><i class="swatch sw-cosmetic" aria-hidden="true"></i><span>Cosmetic</span><b class="cat-pill-count">5</b></a>
+</div>
+<div class="cat-featured job-3" aria-label="Shop by need">
+<a class="cat-feat feat-clinic" href="products.html?category=Disposables" data-category="Disposables">
+<span class="feat-count">7 products</span>
+<span class="feat-art"><img alt="" src="assets/products/disposable.svg" loading="lazy" decoding="async"/></span>
+<span class="feat-body"><h3>Restock the clinic</h3><p>Disposables, PPE and daily-use essentials in one run.</p><span class="feat-link">Stock up <span aria-hidden="true">→</span></span></span>
 </a>
-<a class="category-card cat-instruments" href="products.html?category=Instruments" data-category="Instruments" data-count="4">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="96" cy="88" r="48" stroke="currentColor" stroke-width="18"/><path d="M130 122 200 208" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
-<div class="category-content">
-<h3>Instruments</h3>
-<p>Mirrors, explorers, scalers, forceps</p>
-</div>
-<span class="category-count">4 products</span>
+<a class="cat-feat feat-student" href="products.html?category=Oral%20Care" data-category="Oral Care">
+<span class="feat-count">7 products</span>
+<span class="feat-art"><img alt="" src="assets/products/oral-care.svg" loading="lazy" decoding="async"/></span>
+<span class="feat-body"><h3>Student kit</h3><p>Oral care and instruments for class and clinic duty.</p><span class="feat-link">Build kit <span aria-hidden="true">→</span></span></span>
 </a>
-<a class="category-card cat-ppe" href="products.html?category=PPE" data-category="PPE" data-count="5">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 24 200 56v72c0 48-30 84-72 104-42-20-72-56-72-104V56l72-32Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M104 128l18 18 32-36" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-<div class="category-content">
-<h3>PPE</h3>
-<p>Gloves, masks, and face shields</p>
-</div>
-<span class="category-count">5 products</span>
+<a class="cat-feat feat-equip" href="products.html?category=Equipment" data-category="Equipment">
+<span class="feat-count">5 products</span>
+<span class="feat-art"><img alt="" src="assets/products/equipment.svg" loading="lazy" decoding="async"/></span>
+<span class="feat-body"><h3>Equipment workhorses</h3><p>Chairs, lights and sterilization that last.</p><span class="feat-link">Shop equipment <span aria-hidden="true">→</span></span></span>
 </a>
-<a class="category-card cat-restorative" href="products.html?category=Restorative" data-category="Restorative" data-count="3">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M128 24l16 72 72 16-72 16-16 72-16-72-72-16 72-16 16-72Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M200 176l7 30 30 7-30 7-7 30-7-30-30-7 30-7 7-30Z" fill="currentColor"/></svg></div>
-<div class="category-content">
-<h3>Restorative</h3>
-<p>Composite, bonding, etchant, cements</p>
-</div>
-<span class="category-count">3 products</span>
-</a>
-<a class="category-card cat-disposables" href="products.html?category=Disposables" data-category="Disposables" data-count="6">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M32 96l96-48 96 48v80l-96 48-96-48V96Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/><path d="M32 96l96 48 96-48M128 144v80" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/></svg></div>
-<div class="category-content">
-<h3>Disposables</h3>
-<p>Bibs, syringes, rolls, microbrushes</p>
-</div>
-<span class="category-count">6 products</span>
-</a>
-<a class="category-card cat-impression" href="products.html?category=Impression" data-category="Impression" data-count="2">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><path d="M104 24h48M112 24v72l-64 112a24 24 0 0 0 21 36h118a24 24 0 0 0 21-36l-64-112V24" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/><path d="M84 160h88" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
-<div class="category-content">
-<h3>Impression</h3>
-<p>Alginate and VPS materials</p>
-</div>
-<span class="category-count">2 products</span>
-</a>
-<a class="category-card cat-orthodontics" href="products.html?category=Orthodontics" data-category="Orthodontics" data-count="2">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="96" stroke="currentColor" stroke-width="18"/><path d="M72 150c14 26 34 40 56 40s42-14 56-40" stroke="currentColor" stroke-width="18" stroke-linecap="round"/><circle cx="96" cy="104" r="10" fill="currentColor"/><circle cx="160" cy="104" r="10" fill="currentColor"/></svg></div>
-<div class="category-content">
-<h3>Orthodontics</h3>
-<p>Wax, elastics, and accessories</p>
-</div>
-<span class="category-count">2 products</span>
-</a>
-<a class="category-card cat-equipment" href="products.html?category=Equipment" data-category="Equipment" data-count="4">
-<div class="category-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 256 256" fill="none"><circle cx="128" cy="128" r="36" stroke="currentColor" stroke-width="18"/><path d="M128 32v32M128 192v32M32 128h32M192 128h32M60 60l23 23M173 173l23 23M196 60l-23 23M83 173l-23 23" stroke="currentColor" stroke-width="18" stroke-linecap="round"/></svg></div>
-<div class="category-content">
-<h3>Equipment</h3>
-<p>Curing lights, scalers, autoclaves</p>
-</div>
-<span class="category-count">4 products</span>
-</a>
-</div>
-<div class="need-grid" aria-label="Shop by need" style="margin-top:28px;">
-<a class="need-card need-oral" href="products.html?category=Oral%20Care"><span class="need-art"><img alt="" src="assets/products/oral-care.svg"/></span><h3>Oral Care</h3><p>Daily hygiene essentials for every routine.</p><span class="need-go" aria-hidden="true">→</span></a>
-<a class="need-card need-ortho" href="products.html?category=Orthodontics"><span class="need-art"><img alt="" src="assets/products/orthodontic.svg"/></span><h3>Orthodontics</h3><p>Braces &amp; aligner accessories that stay put.</p><span class="need-go" aria-hidden="true">→</span></a>
-<a class="need-card need-rest" href="products.html?category=Restorative"><span class="need-art"><img alt="" src="assets/products/restorative.svg"/></span><h3>Restorative</h3><p>Fillings, bonding &amp; cements that last.</p><span class="need-go" aria-hidden="true">→</span></a>
-<a class="need-card need-equip" href="products.html?category=Equipment"><span class="need-art"><img alt="" src="assets/products/equipment.svg"/></span><h3>Equipment</h3><p>Chairs, lights &amp; sterilization workhorses.</p><span class="need-go" aria-hidden="true">→</span></a>
 </div>
 <div class="path-strip" aria-label="How ordering works">
 <div class="path-step"><span class="path-num" aria-hidden="true">1</span><div><strong>Browse the catalog</strong><p>Filter 57 products across 10 dental categories.</p></div></div>
@@ -308,17 +257,18 @@
 </section>
 <section class="section">
 <div class="container">
+<div class="rail-head">
+<div>
 <div class="eyebrow">Just arrived</div>
 <h2 class="section-title">Latest Products</h2>
-<div class="grid grid-4" id="latestProducts" aria-busy="true"><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article><article class="card product-card" aria-hidden="true"><div class="product-image"><div class="skeleton catalog-skel-img"></div></div><div class="product-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-desc"></div></div></article></div>
+<p class="section-copy">Newest in-stock picks — swipe or use the arrows.</p>
 </div>
-</section>
-<section class="section hidden" id="restockSection" aria-label="Out of stock products">
-<div class="container">
-<div class="eyebrow">Back soon</div>
-<h2 class="section-title">Out of stock right now</h2>
-<p class="section-copy">Tap Notify me and we'll flag it in your profile when it returns.</p>
-<div class="grid grid-4" id="restockRail"></div>
+<div class="rail-nav">
+<button class="rail-btn" id="latestPrev" type="button" aria-label="Scroll latest products back" aria-controls="latestProducts">‹</button>
+<button class="rail-btn" id="latestNext" type="button" aria-label="Scroll latest products forward" aria-controls="latestProducts">›</button>
+</div>
+</div>
+<div class="latest-strip" id="latestProducts" aria-busy="true"><article class="card mini-card" aria-hidden="true"><div class="mini-image"><div class="skeleton catalog-skel-img"></div></div><div class="mini-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-price"></div></div></article><article class="card mini-card" aria-hidden="true"><div class="mini-image"><div class="skeleton catalog-skel-img"></div></div><div class="mini-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-price"></div></div></article><article class="card mini-card" aria-hidden="true"><div class="mini-image"><div class="skeleton catalog-skel-img"></div></div><div class="mini-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-price"></div></div></article><article class="card mini-card" aria-hidden="true"><div class="mini-image"><div class="skeleton catalog-skel-img"></div></div><div class="mini-body"><div class="skeleton skeleton-text skeleton-title"></div><div class="skeleton skeleton-text skeleton-price"></div></div></article></div>
 </div>
 </section>
 <section class="section">
@@ -331,38 +281,33 @@
 <div class="grid grid-3">
 <article class="card testimonial">
 <div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
-<p>"The catalog is easy to browse and the checkout steps are clear."</p>
+<p>"Composite and bonding that actually matches the shade guide. My Class II restorations have never finished faster."</p>
 <strong>Dr. Angela Reyes</strong>
-<div class="muted">General Dentist</div>
+<div class="muted">General Dentist · <span class="verified-tag">✓ Verified order · Restorative</span></div>
 </article>
 <article class="card testimonial">
 <div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
-<p>"Useful product choices for our clinic and student requirements."</p>
+<p>"Built my whole requirements kit — mirror, explorer, and hygiene essentials — without breaking my allowance. Sizing exchanges were painless."</p>
 <strong>Mark Dela Cruz</strong>
-<div class="muted">Dental Student</div>
+<div class="muted">Dental Student · <span class="verified-tag">✓ Verified order · Student kit</span></div>
 </article>
 <article class="card testimonial">
 <div class="stars stars-svg" role="img" aria-label="Rated 4.5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
-<p>"The order timeline makes tracking simple and understandable."</p>
+<p>"Restocked PPE and disposables for our 30-chair clinic in two days — with a proper invoice for accounting and 7-day returns behind it."</p>
 <strong>SmileCare Clinic</strong>
-<div class="muted">Quezon City</div>
+<div class="muted">Quezon City · <span class="verified-tag">✓ Verified order · PPE restock</span></div>
 </article>
 </div>
-<div class="testi-more"><a class="btn btn-light" href="about.html">Read More About Us</a></div>
+<div class="testi-more"><a class="link-button" href="about.html">Read more about us →</a></div>
 </div>
 </div>
 </section>
-<section class="section-sm">
+<section class="section hidden" id="restockSection" aria-label="Out of stock products">
 <div class="container">
-<h2 class="section-title text-center">Dental Brands</h2>
-<div class="brand-row">
-<div class="brand-pill"><a href="products.html?brand=SmilePro"><span class="brand-logo">SP</span><span class="brand-name">SmilePro</span></a></div>
-<div class="brand-pill"><a href="products.html?brand=Clinix"><span class="brand-logo">CL</span><span class="brand-name">Clinix</span></a></div>
-<div class="brand-pill"><a href="products.html?brand=Restora"><span class="brand-logo">RE</span><span class="brand-name">Restora</span></a></div>
-<div class="brand-pill"><a href="products.html?brand=SafeTouch"><span class="brand-logo">ST</span><span class="brand-name">SafeTouch</span></a></div>
-<div class="brand-pill"><a href="products.html?brand=LumaDent"><span class="brand-logo">LD</span><span class="brand-name">LumaDent</span></a></div>
-<div class="brand-pill"><a href="products.html?brand=Impressa"><span class="brand-logo">IM</span><span class="brand-name">Impressa</span></a></div>
-</div>
+<div class="eyebrow">Back soon</div>
+<h2 class="section-title">Out of stock right now</h2>
+<p class="section-copy">Tap Notify me and we'll flag it in your profile when it returns.</p>
+<div class="grid grid-4" id="restockRail"></div>
 </div>
 </section>
 </main>
@@ -377,6 +322,9 @@
 <a class="quote-card accent" href="tel:+639175550142"><small>Phone number</small><strong>+63 917 555 0142</strong></a>
 <a class="quote-card" href="contact.html"><small>Full form</small><strong>Contact page with order topics →</strong></a>
 </div>
+<details class="co-disclosure quote-disclosure">
+<summary><strong>Request a bulk quote</strong> <span class="muted">(form — we reply within one business day)</span></summary>
+<div class="co-disclosure-body">
 <form class="card form-card quote-form" id="quoteForm" novalidate="">
 <div class="form-grid">
 <div class="form-group"><label for="quoteName">Name</label><input id="quoteName" name="name" maxlength="120" autocomplete="name" required="" type="text"/><p class="field-error" id="quoteNameError" role="alert"></p></div>
@@ -386,25 +334,15 @@
 <button class="btn btn-primary" id="quoteSubmit" type="submit"><span class="btn-label">Send quote request</span></button>
 <p class="field-error" id="quoteSendError" role="alert"></p>
 </form>
+</div>
+</details>
 <div class="card form-card quote-ok hidden" id="quoteDone" role="status"><h3>Request received</h3><p class="muted">Reference: <strong id="quoteTicket">—</strong><br/>We reply within one business day. For urgent needs, call the number above.</p><button class="btn btn-light" id="quoteAgain" type="button">Send another request</button></div>
 </div>
 </div>
 </section>
-<section class="newsletter">
-<div class="container newsletter-box">
-<div>
-<h2>Dental deals in your inbox</h2>
-<p>Receive product updates, clinic essentials, and student-friendly offers.</p>
-</div>
-<form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>Subscribe</button>
-</form>
-</div>
-</section>
 <footer class="footer">
 <div class="container">
-<div class="footer-grid">
+<div class="footer-grid has-brands">
 <div>
 <h2>SmileHub Dental Supplies</h2>
 <p>Your reliable online dental supply partner for clinics, professionals, and students across the Philippines.</p>
@@ -428,6 +366,17 @@
 <a href="privacy.html">Privacy Policy</a>
 <a href="terms.html">Terms and Conditions</a>
 <a href="profile.html">Customer Profile</a>
+</div>
+<div>
+<h3>Brands</h3>
+<div class="footer-brands">
+<a href="products.html?brand=SmilePro">SmilePro</a>
+<a href="products.html?brand=Clinix">Clinix</a>
+<a href="products.html?brand=Restora">Restora</a>
+<a href="products.html?brand=SafeTouch">SafeTouch</a>
+<a href="products.html?brand=LumaDent">LumaDent</a>
+<a href="products.html?brand=Impressa">Impressa</a>
+</div>
 </div>
 </div>
 <div class="footer-bottom">
@@ -495,7 +444,6 @@
           'Equipment': 'assets/products/equipment.svg', 'Cosmetic': 'assets/products/cosmetic.svg'
         };
         var HEART_SVG_HOME = '<svg class="heart-icon" width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        var BOLT_SVG_HOME = '<svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg>';
 
         function productCard(p, badge) {
           var img = p.image || categoryImages[p.category] || 'assets/products/default.svg';
@@ -503,7 +451,6 @@
           var inStock = stockCount > 0;
           var statusClass = !inStock ? 'stock out' : (stockCount <= 5 ? 'stock low' : 'stock');
           var statusText = !inStock ? 'Out of stock' : (stockCount <= 5 ? 'Only ' + stockCount + ' left' : stockCount + ' in stock');
-          var buyDisabled = inStock ? '' : ' disabled title="Out of stock"';
           var alt = ((p.brand || 'SmileHub') + ' ' + p.name).replace(/"/g, '&quot;');
           return '<article class="card product-card">' +
             (badge ? '<span class="badge">' + badge + '</span>' : '') +
@@ -518,22 +465,36 @@
             '<div class="product-actions">' +
             (inStock
               ? '<button class="btn btn-primary add-cart" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '">Add to Cart</button>' +
-                '<button class="btn buy-now btn-quiet" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '">' + BOLT_SVG_HOME + ' Buy Now</button>'
+                '<button class="buy-now-link buy-now" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '" type="button">Buy Now →</button>'
               : '<button class="btn btn-light notify-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" type="button">Notify me when back</button>') +
-            '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
             '</div></div></article>';
+        }
+
+        function miniProductCard(p) {
+          var img = p.image || categoryImages[p.category] || 'assets/products/default.svg';
+          var stockCount = Number(p.stock) || 0;
+          var alt = ((p.brand || 'SmileHub') + ' ' + p.name).replace(/"/g, '&quot;');
+          return '<article class="card mini-card">' +
+            '<span class="badge">New</span>' +
+            '<button class="wish-button add-wishlist" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" title="Add to wishlist" aria-label="Add ' + alt + ' to wishlist">' + HEART_SVG_HOME + '</button>' +
+            '<a class="mini-image" href="product.html?id=' + p.id + '"><img src="' + img + '" alt="' + alt + '" loading="lazy" decoding="async" width="200" height="120"></a>' +
+            '<div class="mini-body"><div class="product-category">' + p.category + '</div>' +
+            '<a href="product.html?id=' + p.id + '"><h3>' + p.name + '</h3></a>' +
+            '<div class="price-row"><span class="price">₱' + Number(p.price).toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</span></div>' +
+            '<button class="btn btn-primary add-cart" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" data-image="' + img + '" data-stock="' + stockCount + '">Add</button>' +
+            '</div></article>';
         }
 
         var featured = document.getElementById('featuredProducts');
         if (featured) {
-          var picks = products.filter(function(p) { return p.stock > 0; }).slice(0, 8);
+          var picks = products.filter(function(p) { return p.stock > 0; }).slice(0, 4);
           featured.innerHTML = picks.map(function(p) { return productCard(p, 'Featured'); }).join('');
         }
 
         var latest = document.getElementById('latestProducts');
         if (latest) {
           var newest = products.filter(function(p) { return p.stock > 0; }).slice().reverse().slice(0, 4);
-          latest.innerHTML = newest.map(function(p) { return productCard(p, 'New'); }).join('');
+          latest.innerHTML = newest.map(function(p) { return miniProductCard(p); }).join('');
           latest.setAttribute('aria-busy', 'false');
         }
         if (featured) featured.setAttribute('aria-busy', 'false');
@@ -555,11 +516,23 @@
           var c = p.category || 'General';
           catCounts[c] = (catCounts[c] || 0) + 1;
         });
-        document.querySelectorAll('.category-card[data-category]').forEach(function(card) {
+        document.querySelectorAll('.cat-pill[data-category], .cat-feat[data-category]').forEach(function(card) {
           var n = catCounts[card.dataset.category] || 0;
-          var badge = card.querySelector('.category-count');
-          if (badge) badge.textContent = n + (n === 1 ? ' product' : ' products');
+          if (!card.dataset.origHref) card.dataset.origHref = card.getAttribute('href');
+          var pillBadge = card.querySelector('.cat-pill-count');
+          if (pillBadge) pillBadge.textContent = n === 0 ? 'Back soon' : n;
+          var featBadge = card.querySelector('.feat-count');
+          if (featBadge) featBadge.textContent = n === 0 ? 'Back soon' : n + (n === 1 ? ' product' : ' products');
           card.dataset.count = n;
+          if (n === 0) {
+            card.classList.add('is-empty');
+            card.setAttribute('href', '#restockSection');
+            card.setAttribute('title', 'Back soon — tap to see restock alerts');
+          } else {
+            card.classList.remove('is-empty');
+            if (card.dataset.origHref) card.setAttribute('href', card.dataset.origHref);
+            card.removeAttribute('title');
+          }
         });
         var viewAll = document.getElementById('viewAllProducts');
         if (viewAll) viewAll.textContent = 'View All ' + products.length + ' Products';
@@ -612,6 +585,7 @@
         document.querySelectorAll('#featuredProducts .buy-now, #latestProducts .buy-now').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); nb.addEventListener('click', function() { buyNow(this); }); });
         document.querySelectorAll('#featuredProducts .add-wishlist, #latestProducts .add-wishlist').forEach(function(b) { var nb = b.cloneNode(true); b.parentNode.replaceChild(nb, b); var wl = getStoredList('smilehub_simple_wishlist'); var wished = wl.some(function(i){return i.id===Number(nb.dataset.id)}); if (typeof paintHeart === 'function') { paintHeart(nb, wished); } else { nb.classList.toggle('wished', wished); } nb.setAttribute('aria-pressed', wished ? 'true' : 'false'); nb.addEventListener('click', function() { toggleWishlist(this); var list = getStoredList('smilehub_simple_wishlist'); var now = list.some(function(i){return i.id===Number(nb.dataset.id)}); if (typeof paintHeart === 'function') { paintHeart(nb, now); } nb.setAttribute('aria-pressed', now ? 'true' : 'false'); }); });
         homeRailsDone = true;
+        try { window.dispatchEvent(new Event('resize')); } catch (e) {}
       });
         } catch (err) {
           homeRailsError();
@@ -625,7 +599,7 @@
     // --- Lively animations ---
     (function() {
       // Add reveal class to sections/cards FIRST
-      document.querySelectorAll('.section > .container, .category-card, .feature, .testimonial, .brand-pill, .stat, .trust-stats .stat, .need-card, .path-step, .quote-card, .feat-band').forEach(function(el, i) {
+      document.querySelectorAll('.section > .container, .cat-pill, .cat-feat, .feature, .testimonial, .stat, .trust-stats .stat, .path-step, .quote-card, .feat-band').forEach(function(el, i) {
         el.classList.add('reveal');
         el.classList.add('reveal-delay-' + ((i % 4) + 1));
       });
@@ -687,6 +661,31 @@
         var badge = document.querySelector('.wishlist-count');
         if (badge) { badge.classList.add('pulse'); setTimeout(function() { badge.classList.remove('pulse'); }, 400); }
       });
+
+      // Latest strip arrow controls
+      (function() {
+        var strip = document.getElementById('latestProducts');
+        var prev = document.getElementById('latestPrev');
+        var next = document.getElementById('latestNext');
+        if (!strip || !prev || !next) return;
+        function paint() {
+          var max = strip.scrollWidth - strip.clientWidth - 4;
+          prev.disabled = strip.scrollLeft <= 4;
+          next.disabled = strip.scrollLeft >= max;
+        }
+        function step(dir) {
+          var card = strip.querySelector('.mini-card, .product-card');
+          var w = card ? card.getBoundingClientRect().width + 14 : 260;
+          var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          strip.scrollBy({ left: dir * w, behavior: reduce ? 'auto' : 'smooth' });
+        }
+        prev.addEventListener('click', function() { step(-1); });
+        next.addEventListener('click', function() { step(1); });
+        strip.addEventListener('scroll', paint, { passive: true });
+        window.addEventListener('resize', paint);
+        setTimeout(paint, 500);
+        setTimeout(paint, 2500);
+      })();
     })();
     // --- End lively animations ---
 

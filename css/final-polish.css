@@ -68,21 +68,7 @@ body.otp-modal-open { overflow:hidden; }
 
 .product-card .product-actions,
 .product-actions-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; }
-.product-card .buy-now-btn,
-.buy-now-btn,
-[data-buy-now] {
-  background:#f97316 !important;
-  color:#fff !important;
-  border-color:#f97316 !important;
-  font-weight:800 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  gap:8px !important;
-}
-.product-card .buy-now-btn:hover,
-.buy-now-btn:hover,
-[data-buy-now]:hover { background:#ea580c !important; border-color:#ea580c !important; }
+/* Solid-orange Buy Now retired: one quiet teal link everywhere (see .buy-now-link below). */
 
 .sh-toast-stack, .toast-container { pointer-events:none; }
 .sh-toast, .toast { pointer-events:auto; }
@@ -211,13 +197,63 @@ body.dark .profile-photo-help {
 }
 
 
-/* v6.5.2 — calmer product actions and persistent-cart polish */
+/* v6.5.2 — calmer product actions and persistent-cart polish
+   v6.3.1 quieter: one solid Add per card, Buy Now as quiet text link (no View button).
+   Quiet teal link only — solid-orange Buy Now retired (see release-hardening.css note). */
 .product-card .product-actions {
   display: grid !important;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) !important;
-  gap: 10px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 8px !important;
   align-items: stretch;
 }
+.product-card .buy-now-link {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--teal-dark, #0b6e6b) !important;
+  font-size: .88rem !important;
+  font-weight: 700 !important;
+  min-height: 44px;
+  width: 100%;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: 8px !important;
+}
+.product-card .buy-now-link:hover {
+  text-decoration: underline;
+  background: rgba(15, 157, 154, .08) !important;
+}
+.product-card .buy-now-link:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+body.dark .product-card .buy-now-link { color: #5eead4 !important; }
+body.dark .product-card .buy-now-link:hover { background: rgba(94, 234, 212, .1) !important; }
+/* One Buy Now language everywhere: detail buy-row shares the quiet link treatment. */
+.buy-row .buy-now-link {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--teal-dark, #0b6e6b);
+  font-size: .92rem;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.buy-row .buy-now-link:hover { text-decoration: underline; background: rgba(15, 157, 154, .08); }
+.buy-row .buy-now-link:disabled { opacity: .55; cursor: not-allowed; text-decoration: none; }
+body.dark .buy-row .buy-now-link { color: #5eead4; }
+body.dark .buy-row .buy-now-link:hover { background: rgba(94, 234, 212, .1); }
 
 .product-card .product-actions .btn {
   min-height: 44px;
@@ -304,7 +340,7 @@ body.dark .product-card .compare-toggle {
 
 @media (max-width: 520px) {
   .product-card .product-actions {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
   }
   .product-card .product-actions .btn {
     font-size: .86rem !important;

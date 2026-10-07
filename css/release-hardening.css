@@ -48,7 +48,7 @@ body.dark .form-card input:not([readonly]),body.dark .form-card textarea,body.da
 body.dark .form-card input::placeholder,body.dark .form-card textarea::placeholder{color:#7d8fa1}
 body.dark .form-card select option{background:#0f172a;color:#e8eef4}
 .form-card input:not([readonly]):focus,.form-card textarea:focus,.form-card select:focus{border-color:#0f8f91;box-shadow:0 0 0 3px rgba(15,143,145,.13)}
-.btn-buy-now{background:#fff2ec;color:#d94b12;border:1px solid #f06a34;font-weight:800}.btn-buy-now:hover{background:#f06a34;color:white}
+/* Retired: orange Buy Now replaced by one quiet teal .buy-now-link (final-polish.css). */
 .product-actions{flex-wrap:wrap}.product-actions .btn{flex:1 1 120px}
 .toast{display:flex!important;align-items:center;gap:10px;max-width:min(390px,calc(100vw - 28px));padding:12px 16px!important;border-radius:12px!important;box-shadow:0 14px 40px rgba(0,0,0,.18)!important}
 .toast-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#e4f8ef;color:#137550;font-weight:900}.toast-error .toast-icon{background:#ffe9e9;color:#b42318}
@@ -68,27 +68,10 @@ body.dark .form-card select option{background:#0f172a;color:#e8eef4}
 .address-map-box{margin-top:.75rem;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--card)}
 .address-map-box iframe{display:block;width:100%;height:260px;border:0}
 .address-map-box p{margin:.65rem .8rem}
-.btn-buy-now{display:inline-flex!important;visibility:visible!important;opacity:1!important;background:var(--warning)!important;color:#fff!important;border-color:var(--warning)!important}
-.product-actions .btn-buy-now,.buy-row .btn-buy-now{min-width:120px}
+/* Retired: .btn-buy-now + .sticky-buy-now-bar removed — no markup references. */
 
 
 /* v5.2 critical visibility fixes */
-.sticky-buy-now-bar{
-  position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
-  width:min(760px,calc(100% - 24px));z-index:999;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:14px 16px;border:1px solid rgba(255,106,0,.35);
-  border-radius:16px;background:rgba(255,255,255,.97);
-  box-shadow:0 14px 38px rgba(15,23,42,.22);backdrop-filter:blur(12px)
-}
-.sticky-buy-now-bar div{display:flex;flex-direction:column;gap:2px}
-.sticky-buy-now-bar span{font-size:.88rem;color:#64748b}
-.sticky-buy-now-bar .btn-buy-now{min-width:160px;justify-content:center}
-@media (max-width:640px){
-  .sticky-buy-now-bar{bottom:74px}
-  .sticky-buy-now-bar div{display:none}
-  .sticky-buy-now-bar .btn-buy-now{width:100%}
-}
 
 
 /* v6.1: Shopee-style Philippine phone field */
