@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!sectionEl) return;
     if (!sectionEl.hasAttribute('tabindex')) sectionEl.setAttribute('tabindex', '-1');
     try { sectionEl.focus({ preventScroll: true }); } catch (e) { try { sectionEl.focus(); } catch (e2) {} }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }
   function markActiveNav(sectionId) {
     sectionId = normalizeNavTarget(sectionId);
