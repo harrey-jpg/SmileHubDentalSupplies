@@ -128,12 +128,12 @@ body.dark {
 .row-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .icon-btn.row-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 9px;
 }
 
@@ -415,7 +415,7 @@ body.dark #dashboard .mom-badge.down {
 .admin-toolbar .btn,
 .admin-toolbar input,
 .admin-toolbar select {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -589,8 +589,11 @@ body.dark .notif-dropdown-item:hover{ background:#1e293b; }
 }
 #productsBulkBar.floating select,
 #productsBulkBar.floating input,
-#ordersBulkBar.floating select {
-  min-height: 38px;
+#ordersBulkBar.floating select,
+#ordersBulkBar.floating input,
+#ordersBulkBar.floating .btn,
+#productsBulkBar.floating .btn {
+  min-height: 44px;
 }
 @media (max-width: 640px) {
   #productsBulkBar.floating,
@@ -646,8 +649,8 @@ body.dark .notif-dropdown-item:hover{ background:#1e293b; }
 }
 .modal-close {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--white);
@@ -974,3 +977,37 @@ body.dark #orders .orders-rail .form-card {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Fulfill stepper (order modal): one primary next step, terminal states quiet. */
+.fulfill-box {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--sky);
+}
+.fulfill-box h3 { margin: 0 0 10px; font-size: 1rem; }
+.fulfill-steps {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fulfill-step {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--white);
+}
+.fulfill-step.is-past { border-color: #16a34a; color: #15803d; background: #f0fdf4; }
+.fulfill-step.is-current { border-color: var(--teal, #0f9d9a); color: #fff; background: var(--teal, #0f9d9a); }
+.fulfill-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+body.dark .fulfill-box { background: #13212b; }
+body.dark .fulfill-step { background: #17232e; }
+body.dark .fulfill-step.is-past { background: rgba(22, 163, 74, .14); color: #68e89a; }
+body.dark .fulfill-step.is-current { background: #0d7670; color: #fff; }

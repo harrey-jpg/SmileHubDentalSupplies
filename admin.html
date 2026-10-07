@@ -6,16 +6,16 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Admin Dashboard | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
-<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.1" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.1" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js?v=6.3.0"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/admin-overview.css?v=6.3.0">
+<link rel="stylesheet" href="css/admin-overview.css?v=6.3.2">
 </head>
 <body class="admin-body">
 <a class="skip-link" href="#adminMain">Skip to main content</a>
@@ -28,17 +28,17 @@
 <span class="admin-sidebar-label">Overview</span>
 <nav class="admin-menu">
 <a class="active" data-role="all" href="#dashboard"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="7" rx="1.5" width="7" x="3" y="3"/><rect height="7" rx="1.5" width="7" x="14" y="3"/><rect height="7" rx="1.5" width="7" x="3" y="14"/><rect height="7" rx="1.5" width="7" x="14" y="14"/></svg><span>Dashboard</span></a>
-<a data-role="all" href="#products"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span>Products</span></a>
 <a data-role="all" href="#orders"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><rect height="17" rx="2" width="14" x="5" y="4"/><path d="M9 4a3 3 0 0 1 6 0"/><path d="M9 11h6M9 15h4"/></svg><span>Orders</span></a>
+<a data-role="admin,staff,superadmin" href="#messages"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a>
+<a data-role="all" href="#products"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg><span>Products</span></a>
 </nav>
 <span class="admin-sidebar-label">Manage</span>
 <nav class="admin-menu">
-<a data-role="admin,superadmin" href="#customers"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15c2.8.2 4.7 1.6 5.5 4.5"/></svg><span>Customers</span></a>
+<a data-role="admin,staff,superadmin" href="#audit"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Audit Trail</span></a>
 <a data-role="admin,staff,superadmin" href="#reports"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 21v-7M11 21V5M16 21v-9M21 21V8"/></svg><span>Reports</span></a>
+<a data-role="admin,superadmin" href="#customers"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5 6.5-5s5.7 1.5 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15c2.8.2 4.7 1.6 5.5 4.5"/></svg><span>Customers</span></a>
 <a data-role="admin,superadmin" href="#cms"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg><span>CMS</span></a>
 <a data-role="admin,superadmin" href="#notifications"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span>Notifications</span></a>
-<a data-role="admin,staff,superadmin" href="#audit"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Audit Trail</span></a>
-<a data-role="admin,staff,superadmin" href="#messages"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Messages</span></a>
 </nav>
 <div class="admin-sidebar-footer">
 <a class="sidebar-store-link" href="homepage.html"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg><span>Return to Store</span></a>
@@ -60,6 +60,7 @@
 <p class="muted admin-subtitle" id="adminDateSubtitle">Today at a glance, and how the last 30 days have gone.</p>
 </div>
 <div class="admin-top-actions">
+<button class="btn btn-primary" data-role-btn="admin,staff,superadmin" id="dashStartFulfillment" type="button" data-pending-link><span>Start fulfillment →</span></button>
 <button class="btn btn-dark" data-role-btn="admin,superadmin" id="dashAddProduct" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Add Product</span></button>
 <div class="notif-bell-wrap" style="position:relative;">
 <button aria-label="Recent activity" class="icon-btn dash-bell" id="notifBellBtn" aria-haspopup="true" aria-expanded="false" aria-controls="notifDropdown" title="Recent activity" type="button"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg><span class="bell-badge hidden" id="dashBellCount">0</span></button>
@@ -90,7 +91,7 @@
 <strong id="kpiTodayOrders">0</strong>
 <small class="kpi-sub" id="kpiTodaySales">₱0.00 collected</small>
 </a>
-<a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" aria-label="View orders — Pending now">
+<a class="card kpi-card clickable today-card" data-target="#orders" href="#orders" data-pending-link aria-label="View orders needing work">
 <span class="stat-top"><span class="kpi-icon"><svg aria-hidden="true" class="dash-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M7 3h10v5l-5 4-5-4z"/><path d="M7 21h10v-5l-5-4-5 4z"/></svg></span><span class="muted kpi-label">Pending now</span><span class="kpi-more" aria-hidden="true">...</span></span>
 <strong id="kpiPendingNow">0</strong>
 <small class="kpi-sub" id="kpiPendingSub">Need attention</small>
@@ -420,6 +421,7 @@
 <input id="orderSearch" aria-label="Search orders" placeholder="Order, customer or email..." style="flex:1 1 200px;min-width:160px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <select id="orderStatusFilter" aria-label="Filter orders by status" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 <option value="all">All Statuses</option>
+<option value="active">Needs work (Pending → Shipped)</option>
 <option value="Pending">Pending</option>
 <option value="Processing">Processing</option>
 <option value="Shipped">Shipped</option>
@@ -436,8 +438,8 @@
 </select>
 <span class="toolbar-count" id="orderFilterCount" style="font-size:0.85rem;color:var(--muted);"></span>
 </div>
-<!-- Orders Layout: table + right rail -->
-<div class="orders-layout" style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;">
+<!-- Orders Layout: table + right rail (stacks ≤1024px via admin-overview.css) -->
+<div class="orders-layout" style="display:grid;gap:18px;align-items:start;">
 <div>
 <div class="table-wrap">
 <table><caption class="sr-only">Data table</caption><thead>
@@ -1004,7 +1006,7 @@
 <script src="js/firestore-data.js"></script>
 <script src="js/common.js?v=6.3.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
-<script src="js/admin.js?v=6.4.0"></script>
+<script src="js/admin.js?v=6.4.2"></script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.3.0"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script src="js/final-polish.js?v=6.3.0"></script>

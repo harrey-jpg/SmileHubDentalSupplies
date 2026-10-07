@@ -490,6 +490,10 @@ body.dark .feat-link { color: #5eead4; }
   .cat-feat { min-height: 0; }
   .feat-art { padding: 18px 0 8px; }
   .feat-art img { max-width: 110px; max-height: 110px; }
+  .hero-band .trust-strip { gap: 8px; }
+  .hero-band .trust-item { padding: 10px; font-size: .85rem; }
+  .float-card.fc-ship { right: 4px; }
+  .float-card.fc-rate { left: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cat-pill, .cat-feat, .feat-link span { transition: none; }
@@ -509,25 +513,27 @@ body.dark .feat-student { background: #13212b; border-color: #2c4350; color: #e8
   margin-bottom: 4px;
 }
 .rail-nav { display: flex; gap: 8px; flex-shrink: 0; }
+.rail-nav.is-hidden { display: none; }
 .rail-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 1px solid var(--border, #dce5ec);
+  border: 1.5px solid var(--teal, #0f9d9a);
   background: var(--white, #fff);
-  color: var(--text, #203047);
-  font-size: 1.3rem;
+  color: #0b6e6b;
+  font-size: 1.5rem;
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: border-color .15s ease, transform .15s ease, opacity .15s ease;
+  transition: border-color .15s ease, transform .15s ease, opacity .15s ease, background-color .15s ease;
 }
-.rail-btn:hover { border-color: var(--teal, #0f9d9a); transform: translateY(-1px); }
+.rail-btn:hover { background: #e6f7f3; transform: translateY(-1px); }
 .rail-btn:disabled { opacity: .35; cursor: default; transform: none; }
 .rail-btn:focus-visible { outline: 3px solid var(--focus-ring, #7dd3fc); outline-offset: 2px; }
-body.dark .rail-btn { background: #17232e; border-color: #314250; color: #edf6fb; }
+body.dark .rail-btn { background: #13212b; border-color: #5eead4; color: #5eead4; }
+body.dark .rail-btn:hover { background: rgba(94, 234, 212, .12); }
 .latest-strip {
   display: grid;
   grid-auto-flow: column;
@@ -571,7 +577,7 @@ body.dark .rail-btn { background: #17232e; border-color: #314250; color: #edf6fb
 .mini-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
 .mini-body h3 { margin: 0; font-size: .95rem; min-height: 40px; }
 .mini-body .price-row { margin: 2px 0 4px; }
-.mini-body .add-cart { width: 100%; min-height: 40px; }
+.mini-body .add-cart { width: 100%; min-height: 44px; }
 body.dark .mini-image { background: #0f1a23; }
 body.dark .mini-card { background: #13212b; border-color: #2c4350; }
 @media (max-width: 960px) {

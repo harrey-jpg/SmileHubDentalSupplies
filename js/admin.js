@@ -1216,11 +1216,22 @@ document.addEventListener('DOMContentLoaded', function() {
         var impact = bulkImpactForIds(selectedProductIds, type, qty);
         if (applyBtn.disabled) return;
         var destructive = type === 'set' || impact.count >= 20;
+        var needKeyword = destructive && impact.count >= 20;
         var detail = 'Apply ' + type + ' ' + qty + ' to ' + impact.count + ' selected products?';
-        if (!window.confirm(detail + '\nUnits change: ' + impact.unitsDelta + '\nThis can be undone with Undo.')) return;
-        if (destructive && impact.count >= 20) {
-          if (!window.confirm('This affects ' + impact.count + ' products. Confirm again.')) return;
-        }
+        showAuthoredConfirm({
+          eyebrow: 'Bulk stock update',
+          title: detail,
+          message: detail,
+          impact: 'Units change: ' + impact.unitsDelta + '.' + (needKeyword ? ' Type CONFIRM to proceed.' : ' This can be undone with Undo.'),
+          keyword: needKeyword ? 'CONFIRM' : '',
+          confirmLabel: 'Apply',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) return;
+          applyBulkStock();
+        });
+        return;
+        function applyBulkStock() {
         lastBulkSnapshot = deepClone(products);
         applyBtn.disabled = true;
         try {
@@ -1239,6 +1250,7 @@ document.addEventListener('DOMContentLoaded', function() {
           showToast('Updated ' + impact.count + ' products — use Undo to revert', false, true);
         } finally {
           applyBtn.disabled = false;
+        }
         }
       });
     }
@@ -1370,7 +1382,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var q = ((document.getElementById('orderSearch') || {}).value || '').toLowerCase().trim();
     var dateVal = (document.getElementById('orderDateFilter') || {}).value || 'all';
     let filtered = orders.filter(function(o){
-      if (statusVal !== 'all' && o.status !== statusVal) return false;
+      if (statusVal === 'active') {
+        if (['Pending', 'Processing', 'Shipped'].indexOf(o.status) === -1) return false;
+      }
+      else if (statusVal !== 'all' && o.status !== statusVal) return false;
       if (!orderMatchesDate(o, dateVal)) return false;
       if (q) {
         var hay = [o.number||'', o.customer||'', o.email||''].join(' ').toLowerCase();
@@ -1421,16 +1436,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${count} items</td>
           <td><span class="status ${cls}">${icon} ${safeStatus}</span>${returnBadge}</td>
           <td>
-            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View</button>
-            <select class="order-status-update" data-number="${safeNumber}" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;" aria-label="Change status for order ${safeNumber}">
-              <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-              <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
-              <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-              <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-              <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-              <option value="Returned" ${order.status === 'Returned' ? 'selected' : ''}>Returned</option>
-              <option value="Refunded" ${order.status === 'Refunded' ? 'selected' : ''}>Refunded</option>
-            </select>
+            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View &amp; Fulfill</button>
           </td>
         </tr>
       `;
@@ -1438,11 +1444,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.view-order').forEach(function(btn) {
       btn.addEventListener('click', function() { viewOrder(this.dataset.number); });
-    });
-    document.querySelectorAll('.order-status-update').forEach(function(sel) {
-      sel.addEventListener('change', function() {
-        updateOrderStatus(this.dataset.number, this.value, this);
-      });
     });
     document.querySelectorAll('.order-select').forEach(function(cb){
       var tr = cb.closest('tr');
@@ -1512,11 +1513,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const old = orders[idx].status;
     if (old === status) return quiet ? Promise.resolve({ ok:true }) : undefined;
     if (!quiet && isTerminalStatus(status)) {
-      if (!window.confirm('Change order ' + number + ' from ' + old + ' to ' + status + '?\nThis is a terminal state. Continue?')) {
-        if (selectEl) selectEl.value = old;
-        return quiet ? Promise.resolve({ ok:false, reason:'cancelled' }) : undefined;
-      }
+      showAuthoredConfirm({
+        eyebrow: 'Terminal fulfillment',
+        title: 'Change order ' + number + ' to ' + status + '?',
+        message: 'Change order ' + number + ' from ' + old + ' to ' + status + '.',
+        impact: 'Terminal state — prefer the fulfill stepper so the change stays undoable.',
+        confirmLabel: 'Change to ' + status,
+        cancelLabel: 'Cancel'
+      }).then(function(ok){
+        if (!ok) { if (selectEl) selectEl.value = old; return; }
+        applyStatusChange();
+      });
+      return quiet ? Promise.resolve({ ok:false, reason:'cancelled' }) : undefined;
     }
+    return applyStatusChange();
+    function applyStatusChange() {
     if (typeof db === 'undefined' || !db.collection) {
       if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
       if (!quiet) showToast('Order service unavailable — try again after reload', true);
@@ -1567,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return { ok:false, error:error };
     });
     if (quiet) return p;
+    }
   }
 
   function viewOrder(number) {
@@ -1648,6 +1660,22 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch(e){}
     }
 
+    var FULFILL_FLOW = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+    var fulfillIdx = FULFILL_FLOW.indexOf(order.status || 'Pending');
+    var fulfillNext = (fulfillIdx >= 0 && fulfillIdx < FULFILL_FLOW.length - 1) ? FULFILL_FLOW[fulfillIdx + 1] : null;
+    var fulfillDots = FULFILL_FLOW.map(function(s, i) {
+      var st = (fulfillIdx >= 0 && i < fulfillIdx) ? 'is-past' : (i === fulfillIdx ? 'is-current' : '');
+      return '<li class="fulfill-step ' + st + '"' + (i === fulfillIdx ? ' aria-current="step"' : '') + '>' + escapeHtml(s) + '</li>';
+    }).join('');
+    var fulfillActions = '';
+    if (fulfillNext) {
+      fulfillActions = '<button class="btn btn-primary" data-fulfill-next="' + escapeHtml(fulfillNext) + '" data-number="' + escapeHtml(order.number) + '" type="button">Mark ' + escapeHtml(fulfillNext) + '</button>';
+      if (fulfillIdx <= 1) fulfillActions += ' <button class="btn btn-light" data-fulfill-cancel data-number="' + escapeHtml(order.number) + '" type="button">Cancel order</button>';
+    } else if (order.status === 'Delivered') {
+      fulfillActions = '<p class="muted" style="margin:0;">Fulfilled — no further actions. Returns are handled below inside 7 days.</p>';
+    } else {
+      fulfillActions = '<p class="muted" style="margin:0;">Terminal state (' + escapeHtml(order.status) + ') — no fulfillment actions.</p>';
+    }
     content.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
         <div><strong>Customer:</strong> ${escapeHtml(order.customer)}</div>
@@ -1656,6 +1684,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <div><strong>Status:</strong> <span class="status ${cls}">${icon} ${escapeHtml(order.status)}</span></div>
         <div style="grid-column:span 2;"><strong>Address:</strong><br>${escapeHtml(order.address || 'N/A')}</div>
       </div>
+      <section class="fulfill-box" aria-label="Fulfillment">
+        <h3>Fulfillment</h3>
+        <ol class="fulfill-steps">${fulfillDots}</ol>
+        <div class="fulfill-actions">${fulfillActions}</div>
+      </section>
       <h3>Items</h3>
       <div class="table-wrap"><table><thead><tr><th scope="col">Product</th><th scope="col">Qty</th><th scope="col">Price</th><th scope="col">Total</th></tr></thead><tbody>${itemsHtml}<tr><td colspan="3" style="text-align:right;"><strong>Total:</strong></td><td><strong>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</strong></td></tr></tbody></table></div>
       ${returnBlock}
@@ -1671,7 +1704,55 @@ document.addEventListener('DOMContentLoaded', function() {
       content.querySelectorAll('[data-return-action="refund"]').forEach(function(btn){
         btn.addEventListener('click', function(){ handleReturnRefund(this.dataset.number); });
       });
+      content.querySelectorAll('[data-fulfill-next]').forEach(function(btn){
+        btn.addEventListener('click', function(){ fulfillAdvance(this.dataset.number, this.getAttribute('data-fulfill-next'), this); });
+      });
+      content.querySelectorAll('[data-fulfill-cancel]').forEach(function(btn){
+        btn.addEventListener('click', function(){ fulfillAdvance(this.dataset.number, 'Cancelled', this); });
+      });
     } catch(e){}
+  }
+
+  function fulfillAdvance(number, next, btn) {
+    var list = getOrders();
+    var order = list.find(function(o){ return o.number === number; });
+    if (!order) { showToast('Order not found', true); return; }
+    var old = order.status;
+    if (old === next) return;
+    var terminal = isTerminalStatus(next);
+    if (btn) btn.disabled = true;
+    showAuthoredConfirm({
+      eyebrow: terminal ? 'Terminal fulfillment' : 'Advance fulfillment',
+      title: 'Mark order ' + number + ' as ' + next + '?',
+      message: 'Move order ' + number + ' from ' + old + ' to ' + next + '.',
+      impact: (order.customer ? 'Customer: ' + order.customer + ' · ' : '') + 'Total: ₱' + Number(order.total || 0).toLocaleString('en-PH', {minimumFractionDigits: 2}) + (terminal ? ' — terminal state.' : ''),
+      confirmLabel: 'Mark ' + next,
+      cancelLabel: 'Keep ' + old
+    }).then(function(ok){
+      if (btn) btn.disabled = false;
+      if (!ok) return;
+      updateOrderStatus(number, next, null, {quiet:true}).then(function(res){
+        if (!res || !res.ok) { showToast(orderErrorMessage(res && res.error), true); return; }
+        addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + next + ' (fulfill stepper)');
+        refreshOrderViews();
+        viewOrder(number);
+        try {
+          var modal = document.getElementById('orderModal');
+          var focusBtn = modal ? modal.querySelector('[data-fulfill-next], [data-fulfill-cancel]') : null;
+          if (focusBtn && focusBtn.focus) focusBtn.focus();
+        } catch(e){}
+        showUndoToast('Order ' + number + ': ' + old + ' → ' + next, function(){
+          updateOrderStatus(number, old, null, {quiet:true}).then(function(r){
+            if (r && r.ok) {
+              addAuditLog('Reverted order ' + number + ' from ' + next + ' to ' + old + ' (undo)');
+              refreshOrderViews();
+              viewOrder(number);
+              showToast('Order ' + number + ' reverted to ' + old, false, true);
+            } else { showToast(orderErrorMessage(r && r.error), true); }
+          });
+        }, 30000);
+      });
+    });
   }
 
   function closeOrderModal() {
@@ -1707,7 +1788,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'requested') { showToast('No pending return request', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can approve returns', true); return; } } catch(e){}
-    if (!window.confirm('Approve return for order ' + number + '?\nItems will be restocked automatically. Continue?')) return;
+    var approveImpact = 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' — items will be restocked automatically.';
+    showAuthoredConfirm({
+      eyebrow: 'Approve return',
+      title: 'Approve return for order ' + number + '?',
+      message: 'Approve the return request and mark the order Returned.',
+      impact: approveImpact,
+      confirmLabel: 'Approve & Restock',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnApprove();
+    });
+    return;
+    function doReturnApprove() {
     var restocked = restockOrderItems(order);
     order.returnRequest.status = 'approved';
     order.returnRequest.approvedAt = new Date().toISOString();
@@ -1728,6 +1822,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }); } catch(e){ showToast(saveErrorMessage('approve return', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
   function handleReturnReject(number) {
     var orders = getOrders();
@@ -1736,12 +1831,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'requested') { showToast('No pending return request', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can reject returns', true); return; } } catch(e){}
-    var reason = window.prompt('Reject return for order ' + number + ' — enter reason (optional):') || '';
-    // allow empty reason but confirm
-    if (!window.confirm('Reject this return request?')) return;
+    showAuthoredConfirm({
+      eyebrow: 'Reject return',
+      title: 'Reject return for order ' + number + '?',
+      message: 'The customer keeps the items. No reason will be recorded — follow up in Messages if one is needed.',
+      impact: 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' stays Delivered.',
+      confirmLabel: 'Reject request',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnReject();
+    });
+    return;
+    function doReturnReject() {
     order.returnRequest.status = 'rejected';
     order.returnRequest.rejectedAt = new Date().toISOString();
-    order.returnRequest.adminNote = reason;
+    order.returnRequest.adminNote = '';
     var refId = order.docId || order.number;
     var payload = { returnRequest: order.returnRequest, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
     try { db.collection('orders').doc(String(refId)).update(payload).then(function(){
@@ -1752,6 +1857,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(function(err){ showToast(saveErrorMessage('reject return', err), true); refreshOrderViews(); }); } catch(e){ showToast(saveErrorMessage('reject return', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
   function handleReturnRefund(number) {
     var orders = getOrders();
@@ -1760,7 +1866,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'approved') { showToast('Order must be approved before refund', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can mark refunds', true); return; } } catch(e){}
-    if (!window.confirm('Mark order ' + number + ' as Refunded?\nThis records the refund as completed.')) return;
+    showAuthoredConfirm({
+      eyebrow: 'Record refund',
+      title: 'Mark order ' + number + ' as Refunded?',
+      message: 'This records the refund as completed.',
+      impact: 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' — terminal state.',
+      confirmLabel: 'Mark Refunded',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnRefund();
+    });
+    return;
+    function doReturnRefund() {
     order.returnRequest.status = 'refunded';
     order.returnRequest.refundedAt = new Date().toISOString();
     order.status = 'Refunded';
@@ -1774,6 +1892,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(function(err){ showToast(saveErrorMessage('mark refunded', err), true); refreshOrderViews(); }); } catch(e){ showToast(saveErrorMessage('mark refunded', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
 
   function filterOrders() {
@@ -2428,13 +2547,24 @@ document.addEventListener('DOMContentLoaded', function() {
         var email = this.dataset.email;
         var newRole = this.value;
         var idx = accounts.findIndex(function(a) { return a.email === email; });
-        if (idx > -1) {
-          var oldRole = accounts[idx].role;
+        if (idx === -1) return;
+        var oldRole = accounts[idx].role;
+        if (oldRole === newRole) return;
+        var selEl = this;
+        showAuthoredConfirm({
+          eyebrow: 'Change role',
+          title: 'Change role for ' + email + '?',
+          message: 'Change the role for ' + email + '.',
+          impact: oldRole + ' → ' + newRole + '. This changes what this account can see and do.',
+          confirmLabel: 'Change role',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) { selEl.value = oldRole; return; }
           accounts[idx].role = newRole;
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast(saveErrorMessage('update accounts', error), true); });
           addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
           showToast('Role updated for ' + email, false, true);
-        }
+        });
       });
     });
 
@@ -2443,13 +2573,23 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         var newStatus = this.dataset.status;
-        var idx = accounts.findIndex(function(a) { return a.email === email; });
-        if (idx > -1) {
+        var suspending = newStatus === 'suspended';
+        showAuthoredConfirm({
+          eyebrow: suspending ? 'Suspend account' : 'Activate account',
+          title: (suspending ? 'Suspend ' : 'Activate ') + email + '?',
+          message: suspending ? email + ' will lose access immediately.' : email + ' will regain access.',
+          impact: suspending ? 'Use for policy violations or compromised accounts. The account can be reactivated.' : 'Restores full access for this account.',
+          confirmLabel: suspending ? 'Suspend' : 'Activate',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) return;
+          var idx = accounts.findIndex(function(a) { return a.email === email; });
+          if (idx === -1) return;
           accounts[idx].status = newStatus;
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast(saveErrorMessage('update accounts', error), true); });
-          addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
-          showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
-        }
+          addAuditLog((suspending ? 'Suspended' : 'Activated') + ' account: ' + email);
+          showToast(email + ' ' + (suspending ? 'suspended' : 'activated'), false, true);
+        });
       });
     });
 
@@ -3370,9 +3510,9 @@ document.addEventListener('DOMContentLoaded', function() {
       logs = logs.filter(function(l) { return (l.admin || '') === me; });
     }
     var pending = 0;
-    try { pending = getOrders().filter(function(o){ return o.status==='Pending'; }).length; } catch(e){}
+    try { pending = getOrders().filter(function(o){ return ['Pending', 'Processing', 'Shipped'].indexOf(o.status) !== -1; }).length; } catch(e){}
     if(pendingEl){
-      pendingEl.textContent = pending + ' pending order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention →';
+      pendingEl.textContent = pending + ' order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention →';
       pendingEl.style.display = pending ? '' : 'none';
     }
     if(countEl){
@@ -3812,7 +3952,16 @@ document.addEventListener('DOMContentLoaded', function() {
             cancelLabel: 'Cancel'
           }).then(function(ok){ if (!ok) return; doBulk(); });
         } else {
-          doBulk();
+          var needKeywordBulk = targets.length >= 20;
+          showAuthoredConfirm({
+            eyebrow: 'Bulk status change',
+            title: 'Change ' + targets.length + ' orders to ' + status + '?',
+            message: 'Change ' + targets.length + ' orders to ' + status + '?',
+            impact: 'Affects ' + targets.length + ' orders (' + targets.slice(0,3).join(', ') + (targets.length>3 ? ', …' : '') + ').' + (needKeywordBulk ? ' Type CONFIRM to proceed.' : ''),
+            keyword: needKeywordBulk ? 'CONFIRM' : '',
+            confirmLabel: 'Change',
+            cancelLabel: 'Cancel'
+          }).then(function(ok){ if (!ok) return; doBulk(); });
         }
       });
       var bulkClear = document.getElementById('ordersBulkClear');
@@ -3898,7 +4047,25 @@ document.addEventListener('DOMContentLoaded', function() {
       var viewAll = dropdown.querySelector('[data-notif-view-all]');
       if(viewAll) viewAll.addEventListener('click', function(){ close(false); window.navigateTo('#audit'); });
       var pendingBtn = document.getElementById('notifDropdownPending');
-      if(pendingBtn) pendingBtn.addEventListener('click', function(){ close(false); window.navigateTo('#orders'); });
+      if(pendingBtn) pendingBtn.addEventListener('click', function(){ close(false); goToPendingOrders(); });
+      function goToPendingOrders(){
+        try {
+          var f = document.getElementById('orderStatusFilter');
+          if (f) {
+            f.value = 'active';
+            f.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        } catch(e){}
+        window.navigateTo('#orders');
+      }
+      window.goToPendingOrders = goToPendingOrders;
+      document.querySelectorAll('[data-pending-link]').forEach(function(a){
+        a.addEventListener('click', function(e){
+          e.preventDefault();
+          try { close(false); } catch(err){}
+          goToPendingOrders();
+        });
+      });
       document.addEventListener('click', function(e){
         if(!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !btn.contains(e.target)){
           close(false);

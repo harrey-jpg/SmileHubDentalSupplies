@@ -281,10 +281,10 @@ body.dark .buy-row .buy-now-link:hover { background: rgba(94, 234, 212, .1); }
   border-color: #125b8e !important;
 }
 
-/* Card Buy Now stays quiet (btn-quiet in style.css) — solid orange lives on detail + sticky only. */
+/* Card secondary actions (Notify me): full-width quiet button. */
 .product-card .product-actions .btn-light {
   grid-column: 1 / -1;
-  min-height: 38px;
+  min-height: 44px;
   background: transparent !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
