@@ -68,8 +68,9 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
 <link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/checkout-polish.css?v=1.0.0">
 </head>
-<body class="">
+<body class="checkout-page">
 <div class="topbar">
 <div class="container">
 <span>
@@ -248,19 +249,19 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <section class="co-substep" id="coStepC" aria-labelledby="coDeliveryTitle">
 <div class="co-substep-head"><h3 class="co-substep-title" id="coDeliveryTitle">Delivery speed</h3></div>
 <div class="co-collapsible">
-<section class="form-card" id="deliverySection" style="margin-top:0; border-top:1px solid var(--border); padding-top:16px">
+<section class="form-card" id="deliverySection">
 
 <p class="muted" style="font-size:.88rem;margin:0 0 12px">Choose how your order arrives. Fees update live from your cart.</p>
-<div class="delivery-option is-selected" data-delivery="Standard">
+<div class="delivery-options">
 <label class="delivery-card is-selected" data-delivery="Standard">
 <input type="radio" name="shippingMethod" value="Standard" checked>
 <div><strong>Standard delivery</strong><br><small class="muted">1–3 business days</small></div>
 <span class="delivery-fee" id="deliveryFeeStandard">₱150</span>
 </label>
-<label class="delivery-card" data-delivery="Express">
+<label class="delivery-card is-unavailable" data-delivery="Express">
 <input type="radio" name="shippingMethod" value="Express" disabled>
 <div><strong>Express delivery</strong><br><small class="muted">Same/next day where available</small></div>
-<span class="delivery-fee" id="deliveryFeeExpress">₱150</span><span class="delivery-note">Express unavailable in demo — arrives at Standard speed</span>
+<span class="delivery-fee" id="deliveryFeeExpress">Unavailable in demo</span><span class="delivery-note">Express unavailable in demo — arrives at Standard speed</span>
 </label>
 </div>
 <p class="muted" id="deliveryHint" style="font-size:.82rem;margin-top:8px"></p>
@@ -361,20 +362,22 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <div class="muted" id="checkoutCouponFeedback" style="font-size:0.85rem;margin-top:6px;"></div>
 </div>
 </aside>
-<div class="modal-overlay" id="orderConfirmModal" role="dialog" aria-modal="true" aria-labelledby="orderConfirmTitle" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-<div class="card" style="max-width:440px;width:90%;padding:30px;text-align:center;">
-<div style="font-size:48px;margin-bottom:10px;">✓</div>
+<div class="modal-overlay" id="orderConfirmModal" role="dialog" aria-modal="true" aria-labelledby="orderConfirmTitle" aria-describedby="confirmPaymentNote" style="display:none">
+<div class="order-receipt">
+<button class="receipt-close" id="closeOrderConfirm" type="button" aria-label="Close confirmation" title="Close confirmation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+<div class="receipt-heading"><span class="receipt-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
 <h2 id="orderConfirmTitle" tabindex="-1">Order recorded</h2>
-<p class="muted">Your order <strong id="confirmOrderNumber"></strong> has been placed successfully.</p>
-<p class="muted" id="confirmPaymentNote"></p>
-<p class="muted">We'll send a confirmation to <strong id="confirmEmail"></strong>.</p>
+</div>
+<p class="receipt-intro">Your order has been placed successfully.</p>
+<dl class="receipt-details"><div><dt>Order number</dt><dd id="confirmOrderNumber"></dd></div><div><dt>Confirmation email</dt><dd id="confirmEmail"></dd></div></dl>
+<div class="receipt-payment"><h3>Payment status</h3><p id="confirmPaymentNote"></p></div>
+<h3 class="receipt-next-title">What happens next</h3>
 <ol class="order-timeline" aria-label="What happens next">
 <li class="is-done"><strong>Placed</strong><small>Just now</small></li>
 <li><strong>Processing</strong><small>Mon–Sat</small></li>
 <li><strong>Ships in 1–3 days</strong><small>Free over ₱3,000</small></li>
 </ol>
-<button class="btn btn-light" id="closeOrderConfirm" type="button">Close confirmation</button>
-<div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+<div class="receipt-actions">
 <a class="btn btn-primary" href="orders.html">Track in Orders</a>
 <a class="btn btn-light" href="products.html">Continue Shopping</a>
 </div>
@@ -541,11 +544,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var std=document.getElementById('deliveryFeeStandard');
     var exp=document.getElementById('deliveryFeeExpress');
     if(std) std.textContent=fee===0?'Free':fmt(fee);
-    if(exp) exp.textContent=fee===0?'Free':fmt(fee);
+    if(exp) exp.textContent='Unavailable in demo';
     var hint=document.getElementById('deliveryHint');
     if(hint){
       if(subtotal===0) hint.textContent='Add items to see delivery fee.';
-      else if(fee===0) hint.textContent='Free shipping unlocked — Standard & Express ship free.';
+      else if(fee===0) hint.textContent='Free shipping unlocked — Standard delivery is free.';
       else hint.textContent='Add '+fmt(3000-subtotal)+' more for free shipping.';
     }
   }
