@@ -22,6 +22,7 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -34,7 +35,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -46,7 +47,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-login">Search dental products</label>
-<input id="siteSearch-login" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-login" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -70,7 +71,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>
@@ -143,7 +144,7 @@
 </div>
 <div>
 <div class="auth-trust-strip" aria-label="Why shop with SmileHub">
-<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="128" cy="168" r="12" fill="currentColor"/></svg><span><strong>Secure</strong><small>Firebase auth</small></span></div>
+<div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="128" cy="168" r="12" fill="currentColor"/></svg><span><strong>Secure</strong><small>Account sign-in</small></span></div>
 <div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg><span><strong>Fast delivery</strong><small>Metro Manila</small></span></div>
 <div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24l38 32 50-8 8 50 42 18-22 38 22 38-42 18-8 50-50-8-38 32-38-32-50 8-8-50-42-18 22-38-22-38 42-18 8-50 50 8Z" stroke="currentColor" stroke-width="16" stroke-linejoin="round"/><path d="M96 128l24 24 40-48" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>Quality</strong><small>Genuine supplies</small></span></div>
 <div class="auth-trust"><svg width="20" height="20" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="20"/></svg><span><strong>Support</strong><small>Mon–Sat help</small></span></div>

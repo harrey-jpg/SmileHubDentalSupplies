@@ -1,0 +1,22 @@
+/* Shared purchasing controls: labels, geometry and orange Buy Now across storefronts. */
+body:not(.admin-body) { --shop-buy: #c2410c; --shop-buy-hover: #9a3412; }
+body:not(.admin-body) :is(.product-card, .buy-row) :is(.add-cart, .buy-now-link),
+body:not(.admin-body) #detailAddCart {
+ display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+ min-height: 44px; padding: 10px 14px !important; border-radius: 8px !important;
+ font-size: .875rem !important; font-weight: 600 !important; line-height: 1.4;
+ box-shadow: none !important; text-decoration: none;
+}
+body:not(.admin-body) :is(.product-card, .buy-row) .buy-now-link,
+body.store-home :is(#featuredProducts, #latestProducts) .buy-now-link {
+ background: var(--shop-buy) !important; border: 1px solid var(--shop-buy) !important; color: #fff !important;
+}
+body:not(.admin-body) :is(.product-card, .buy-row) .buy-now-link:hover,
+body.store-home :is(#featuredProducts, #latestProducts) .buy-now-link:hover {
+ background: var(--shop-buy-hover) !important; border-color: var(--shop-buy-hover) !important;
+ filter: none; transform: none;
+}
+body:not(.admin-body) :is(.product-card, .buy-row) .add-cart,
+body:not(.admin-body) #detailAddCart { background: #2563eb !important; color: #fff !important; }
+body:not(.admin-body) :is(.add-cart, .buy-now-link, #detailAddCart):focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+body:not(.admin-body) :is(.add-cart, .buy-now-link, #detailAddCart):disabled { opacity: .6; cursor: not-allowed; transform: none; }

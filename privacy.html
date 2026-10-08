@@ -25,6 +25,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
@@ -38,7 +39,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -50,7 +51,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-privacy">Search dental products</label>
-<input id="siteSearch-privacy" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-privacy" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -74,7 +75,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>

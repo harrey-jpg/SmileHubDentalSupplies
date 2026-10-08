@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -36,7 +37,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -48,7 +49,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-orders">Search dental products</label>
-<input id="siteSearch-orders" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-orders" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -72,7 +73,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>
@@ -186,7 +187,7 @@
 <label for="returnNote">Additional details <span class="muted">(optional)</span></label>
 <textarea id="returnNote" placeholder="Describe the issue (e.g., damaged packaging, wrong size)"></textarea>
 </div>
-<p class="muted" style="font-size:.82rem">Returns are accepted within 7 days for unopened items. See <a href="return-policy.html">Return Policy</a>.</p>
+<p class="muted" style="font-size:.82rem">Requests must concern delivered orders within 7 days of delivery. Eligibility is checked before approval. If the delivery date is unavailable, contact support. See <a href="return-policy.html">Return Policy</a>.</p>
 </div>
 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px"><button class="btn btn-light" id="returnClose2" type="button">Cancel</button><button class="btn btn-primary" id="returnSubmit" type="button">Submit Request</button></div>
 </div>
@@ -273,12 +274,12 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=6.3.0">
+<script src="js/common.js?v=6.4.2">
 </script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js"></script>
-<script src="js/orders.js">
+<script src="js/orders.js?v=6.4.2">
 </script>
 <script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>

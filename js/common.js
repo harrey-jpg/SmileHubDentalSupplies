@@ -540,3 +540,11 @@ document.addEventListener('DOMContentLoaded', function () {
     footer.appendChild(marker);
   }
 });
+
+// A missing delivery timestamp needs eligibility review, not a guessed expiry.
+window.returnWindowExpired = function(order) {
+  var value = order.deliveredAt || order.deliveryDate;
+  if (!value) return false;
+  var time = value.toDate ? value.toDate().getTime() : new Date(value).getTime();
+  return Number.isFinite(time) && Date.now() - time > 7 * 86400000;
+};

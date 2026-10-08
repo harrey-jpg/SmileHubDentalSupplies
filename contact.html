@@ -23,6 +23,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -35,7 +36,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -47,7 +48,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-contact">Search dental products</label>
-<input id="siteSearch-contact" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-contact" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -71,7 +72,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>
@@ -95,7 +96,7 @@
               </a>
 </li>
 <li>
-<a class="active" href="contact.html">
+<a aria-current="page" class="active" href="contact.html">
                 Contact
               </a>
 </li>
@@ -158,12 +159,12 @@
 <p class="field-error" id="contactMessageError" role="alert"></p>
 </div>
 <button class="btn btn-primary btn-block" id="contactSubmit" type="submit"><span class="btn-label">Submit Message</span></button>
-<p class="muted" style="font-size:.85rem;margin:10px 0 0">Messages are saved on this device with a reference number. For an urgent reply, email <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> directly.</p>
+<p class="muted" style="font-size:.85rem;margin:10px 0 0">Messages are sent to support when available. If sending fails, a device-only draft is saved for retry. For an urgent reply, email <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> directly.</p>
 </form>
 <div class="contact-done hidden" id="contactDone" role="status">
-<h3>Message received</h3>
+<h3 id="contactDoneTitle">Message status</h3>
 <p class="muted">Reference: <strong id="contactTicket">—</strong></p>
-<p class="muted">We saved your message on this device. For the fastest reply, forward it to <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> with your reference number.</p>
+<p class="muted" id="contactDoneMessage"></p>
 <button class="btn btn-light" id="contactAgain" type="button">Send another message</button>
 </div>
 </section>
@@ -281,7 +282,7 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=6.3.0">
+<script src="js/common.js?v=6.4.2">
 </script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
 <script src="js/firestore-data.js"></script>
@@ -363,12 +364,23 @@
       topic: topicEl.value, message: msgEl.value.trim(), date: new Date().toISOString()
     };
     function finish() {
+      record.synced = savedOnline;
       try {
         var box = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]');
         box.unshift(record);
         localStorage.setItem(OUTBOX_KEY, JSON.stringify(box.slice(0, 50)));
         localStorage.removeItem(DRAFT_KEY);
-      } catch (e) {}
+      } catch (e) {
+        if (!savedOnline) {
+          submitBtn.disabled = false; label.textContent = original;
+          if (typeof showToast === 'function') showToast('Message could not be sent or saved on this device. Your entries are preserved. Try again.', true);
+          return;
+        }
+      }
+      document.getElementById('contactDoneTitle').textContent = savedOnline ? 'Message sent to support' : 'Draft saved on this device';
+      document.getElementById('contactDoneMessage').textContent = savedOnline
+        ? 'Your message was saved online for support. Keep your reference number for follow-up.'
+        : 'Support has not received this message. This browser will retry when you reconnect. For urgent help, email support@smilehub.ph with your reference number.';
       ticketEl.textContent = ticket;
       form.classList.add('hidden');
       doneBox.classList.remove('hidden');
@@ -410,6 +422,10 @@
           });
           localStorage.setItem(OUTBOX_KEY, JSON.stringify(current.slice(0, 50)));
         } catch (e) {}
+        if (ticketEl.textContent === msg.ticket) {
+          document.getElementById('contactDoneTitle').textContent = 'Message sent to support';
+          document.getElementById('contactDoneMessage').textContent = 'Your saved message has now been sent online. Keep your reference number for follow-up.';
+        }
         remaining--;
         if (remaining === 0 && typeof showToast === 'function') {
           showToast('Pending messages delivered to support');

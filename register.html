@@ -22,6 +22,7 @@
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js?v=6.3.0"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -34,7 +35,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -45,7 +46,7 @@
           </span>
 </a>
 <form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -69,9 +70,9 @@
 <button class="menu-button" type="button">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="storeMainNav">
 <li>
 <a class="" href="homepage.html">
                 Home

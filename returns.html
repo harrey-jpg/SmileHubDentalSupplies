@@ -21,6 +21,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -33,7 +34,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -44,7 +45,7 @@
           </span>
 </a>
 <form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -68,9 +69,9 @@
 <button class="menu-button" type="button">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="storeMainNav">
 <li>
 <a class="" href="homepage.html">
                 Home
@@ -105,9 +106,9 @@
 </div>
 </nav>
 </header>
-<section class="page-title hero-band compact"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="homepage.html">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">Returns &amp; Refunds</span></nav><div class="eyebrow">Returns</div><h1>Returns &amp; Refunds</h1><p class="muted">Create and track frontend return requests.</p></div></section><main class="section-sm"><div class="container account-page-grid">
-<section class="card form-card"><div class="eyebrow">Customer support</div><h2>Request a return</h2><form id="returnForm"><div class="form-grid"><div class="form-group"><label for="returnOrder">Order number</label><input id="returnOrder" required placeholder="SH-2026001"></div><div class="form-group"><label for="returnReason">Reason</label><select id="returnReason" required><option value="">Choose a reason</option><option>Damaged item</option><option>Wrong item</option><option>No longer needed</option><option>Other</option></select></div></div><div class="form-group"><label for="returnDetails">Details</label><textarea id="returnDetails" required placeholder="Describe the issue and item condition"></textarea></div><label class="payment-option"><input id="returnAgree" type="checkbox" required><span>I confirm the item follows the displayed return conditions.</span></label><button class="btn btn-primary">Submit request</button></form></section>
-<aside class="card form-card"><h3>Return conditions</h3><ul class="spec-list"><li>Use the original order number.</li><li>Keep packaging and accessories where possible.</li><li>Opened sterile or hygiene-sensitive items may not qualify.</li><li>This frontend stores requests only on this device.</li></ul><a class="btn btn-light btn-block" href="orders.html">View orders</a></aside>
+<section class="page-title hero-band compact"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="homepage.html">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">Returns &amp; Refunds</span></nav><div class="eyebrow">Returns</div><h1>Returns &amp; Refunds</h1><p class="muted">Create and track return requests. Device-only drafts are not sent to support.</p></div></section><main class="section-sm"><div class="container account-page-grid">
+<section class="card form-card"><div class="eyebrow">Customer support</div><h2>Request a return</h2><form id="returnForm"><div class="form-grid"><div class="form-group"><label for="returnOrder">Order number</label><input id="returnOrder" required placeholder="SH-2026001"></div><div class="form-group"><label for="returnReason">Reason</label><select id="returnReason" required><option value="">Choose a reason</option><option>Wrong item received</option><option>Damaged or defective</option><option>Not as described</option><option>Changed mind</option><option>Other</option></select></div></div><div class="form-group"><label for="returnDetails">Additional details (optional)</label><textarea id="returnDetails" placeholder="Describe the issue and item condition"></textarea></div><label class="payment-option"><input id="returnAgree" type="checkbox" required><span>I confirm the item follows the displayed return conditions.</span></label><button class="btn btn-primary">Submit request</button></form></section>
+<aside class="card form-card"><h3>Return conditions</h3><ul class="spec-list"><li>Use the original order number.</li><li>Keep packaging and accessories where possible.</li><li>Opened sterile or hygiene-sensitive items may not qualify.</li><li>Requests must concern delivered orders within 7 days of delivery. Eligibility is checked before approval.</li><li>If the delivery date is unavailable, contact support to confirm eligibility.</li><li>Device-only drafts have not reached support.</li></ul><a class="btn btn-light btn-block" href="orders.html">View orders</a></aside>
 </div><div class="container"><h2>Your requests</h2><div id="returnList" class="grid grid-3"></div></div></main><footer class="footer">
 <div class="container">
 <div class="footer-grid">
@@ -172,7 +173,7 @@
 </div>
 </div>
 </footer>
-<script src="js/common.js?v=6.3.0"></script>
+<script src="js/common.js?v=6.4.2"></script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
@@ -215,13 +216,13 @@ document.addEventListener('DOMContentLoaded',function(){
  }
  function renderDevice(){
    var items=deviceItems();
-   list.innerHTML=items.length?items.map(function(x){return '<article class="card form-card"><span class="status processing">Under review</span><h3>'+esc(x.order)+'</h3><p>'+esc(x.reason)+'</p><small class="muted">'+esc(new Date(x.date).toLocaleDateString())+'</small></article>';}).join(''):'<div class="card empty-state"><p>No return requests yet.</p></div>';
+   list.innerHTML=items.length?items.map(function(x){return '<article class="card form-card"><span class="status processing">Device-only draft</span><p class="muted">Not submitted. Sign in and submit again, or contact support with your order number.</p><h3>'+esc(x.order)+'</h3><p>'+esc(x.reason)+'</p><small class="muted">'+esc(new Date(x.date).toLocaleDateString())+'</small></article>';}).join(''):'<div class="card empty-state"><p>No return requests yet.</p></div>';
  }
  function refresh(){
    var user=currentUser();
    if(!user||!window.SmileHubData){renderDevice();return;}
    try{
-     SmileHubData.getOrders(function(all){renderRemote(myOrders(all));});
+     SmileHubData.getOrders(function(all, error){ if(error){renderDevice();return;} renderRemote(myOrders(all)); if(deviceItems().length){var remote=list.innerHTML;renderDevice();list.innerHTML=remote+list.innerHTML;} });
    }catch(e){renderDevice();}
  }
  refresh();
@@ -238,20 +239,20 @@ document.addEventListener('DOMContentLoaded',function(){
    function saveDevice(note){
      var items=deviceItems();
      items.unshift({id:Date.now(),order:num,reason:reason,details:details,date:new Date().toISOString()});
-     try{localStorage.setItem(deviceKey,JSON.stringify(items));}catch(err){}
+     try{localStorage.setItem(deviceKey,JSON.stringify(items));}catch(err){statusBox.textContent='Request could not be submitted or saved. Your entries are preserved. Try again.';return;}
      form.reset();refresh();
-     statusBox.textContent=note||'Return request saved on this device.';
+     statusBox.textContent=note||'Draft saved on this device. Support has not received it. Sign in and submit again, or contact support.';
    }
    if(!user||!window.SmileHubData){saveDevice();return;}
    try{
-     SmileHubData.getOrders(function(all){
+     SmileHubData.getOrders(function(all, error){
+       if(error){saveDevice();return;}
        var mine=myOrders(all);
        var order=mine.filter(function(o){return String(o.number||o.orderNumber).toLowerCase()===num.toLowerCase();})[0];
        if(!order){statusBox.textContent='No order '+num+' found on your account.';orderInput.focus();return;}
        if(String(order.status||'').toLowerCase()!=='delivered'){statusBox.textContent='Only delivered orders can be returned (this one is '+String(order.status||'unknown')+').';return;}
        if(order.returnRequest){statusBox.textContent='A return is already requested for '+num+'.';return;}
-       var t=orderTimeMs(order);
-       if(t!==null&&(Date.now()-t)/(1000*60*60*24)>7){statusBox.textContent='Return window closed (7 days from delivery).';return;}
+       if(window.returnWindowExpired(order)){statusBox.textContent='Return window closed (7 days from delivery).';return;}
        var refId=order.docId||order.number||order.orderNumber;
        var payload={returnRequest:{reason:reason,note:details,requestedAt:(window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date().toISOString()),status:'requested'},updatedAt:(window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date().toISOString())};
        try{
@@ -260,7 +261,7 @@ document.addEventListener('DOMContentLoaded',function(){
            statusBox.textContent='Return requested for '+num+'. Track it in Orders.';
            if(typeof showToast==='function')showToast('Return requested for '+num);
          }).catch(function(err){
-           saveDevice('Saved on this device (offline) — it will not reach staff until you are online. Reference: '+num);
+           saveDevice('Draft saved on this device — not submitted to staff. Sign in and submit again, or contact support. Order: '+num);
          });
        }catch(err){saveDevice();}
      });

@@ -13,6 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer src="js/auth.js"></script>
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body>
 <div class="topbar">
@@ -21,10 +22,10 @@
 <span>Metro Manila delivery • Mon–Sat</span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html"><img alt="SmileHub logo" src="assets/Icon.png"/><span>SmileHub<br/>Dental Supplies</span></a>
-<form action="products.html" class="search-bar"><input name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
+<form action="products.html" class="search-bar"><input aria-label="Search dental products" name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
 <div class="header-actions">
 <button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
 <a class="icon-link" href="wishlist.html" aria-label="Wishlist">
@@ -44,9 +45,9 @@
 <button class="menu-button" type="button">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="storeMainNav">
 <li><a href="homepage.html">Home</a></li>
 <li><a href="products.html">Products</a></li>
 <li><a href="about.html">About</a></li>
@@ -58,7 +59,7 @@
 </nav>
 </header>
 <main id="main-content"><section class="sh-premium-strip" style="padding-top:30px"><div class="sh-section-head"><div><span class="sh-chip">Returns</span><h1>Simple, transparent returns</h1><p>This policy screen supports the frontend return-request workflow.</p></div></div>
-<div class="sh-blog-card"><h2>Return eligibility</h2><p>Unused, unopened, and non-sterile products may be eligible for return within the displayed return period. Final rules should be connected to your future backend and business policy.</p><h2>Damaged deliveries</h2><p>Customers can submit a return request with order details and a reason through the Returns page.</p><h2>Refund status</h2><p>The account dashboard is prepared to display request and refund statuses when backend processing is added.</p><a class="btn btn-primary" href="returns.html">Start a return request</a></div></section></main>
+<div class="sh-blog-card"><h2>Return eligibility</h2><p>Unused, unopened, and non-sterile products may be eligible for return within 7 days of delivery, subject to eligibility review. Final rules should be connected to your future backend and business policy.</p><h2>Damaged deliveries</h2><p>Customers can submit a return request with order details and a reason through the Returns page.</p><h2>Refund status</h2><p>The account dashboard is prepared to display request and refund statuses when backend processing is added.</p><a class="btn btn-primary" href="returns.html">Start a return request</a></div></section></main>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">

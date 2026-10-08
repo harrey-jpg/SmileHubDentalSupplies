@@ -22,12 +22,14 @@
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.4">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
 <div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -38,7 +40,7 @@
           </span>
 </a>
 <form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">Search</button>
 </form>
 <div class="header-actions">
@@ -60,14 +62,14 @@
 <button class="menu-button" type="button">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="storeMainNav">
 <li>
 <a class="" href="homepage.html">Home</a>
 </li>
 <li>
-<a class="active" href="products.html">Products</a>
+<a aria-current="page" class="active" href="products.html">Products</a>
 </li>
 <li>
 <a class="" href="about.html">About</a>
@@ -134,8 +136,8 @@
 <p class="qty-help muted" id="qtyHelp"></p>
 <ul class="buy-assurance">
 <li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg> Secure checkout</li>
-<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg> Ships in 1–3 days • Free over ₱3,000</li>
-<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> Clinic invoice + 7-day returns</li>
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg> Delivery options and estimates • Free over ₱3,000</li>
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> Invoice and return information</li>
 </ul>
 <p class="buy-explainer muted">Add to Cart keeps shopping. Buy Now jumps straight to checkout without clearing your cart.</p>
 </section>

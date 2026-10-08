@@ -23,6 +23,7 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
@@ -35,7 +36,7 @@
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
 <img alt="SmileHub logo" src="assets/Icon.png"/>
@@ -47,7 +48,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-about">Search dental products</label>
-<input id="siteSearch-about" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-about" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -71,7 +72,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>
@@ -85,7 +86,7 @@
               </a>
 </li>
 <li>
-<a class="active" href="about.html">
+<a aria-current="page" class="active" href="about.html">
                 About
               </a>
 </li>
@@ -138,7 +139,7 @@
               SmileHub aims to connect dental clinics, professionals, students, and healthcare teams with a clear and convenient product-shopping experience.
             </p>
 <p class="muted" style="font-size:.9rem">
-              Honest note: this is an academic demonstration — payments are simulated, and contact messages stay on your device unless you email us directly.
+              This storefront is being developed. Online payments are not enabled yet; GCash and bank payment integration is planned. Check each order or request confirmation for its current status.
             </p>
 </article>
 <article class="card form-card">

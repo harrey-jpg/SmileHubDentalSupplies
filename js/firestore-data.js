@@ -344,7 +344,7 @@ function saveOrder(order, callback) {
     if (callback) callback();
   }).catch(function(error) {
     console.warn('Could not save order to Firestore:', error);
-    if (callback) callback();
+    if (callback) callback(error);
   });
 }
 
