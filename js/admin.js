@@ -247,6 +247,8 @@ document.addEventListener('DOMContentLoaded', function() {
     try { lastFocusedElement = document.activeElement; } catch (e) { lastFocusedElement = null; }
     try { window.__lastAdminFocus = lastFocusedElement; } catch (e) {}
     modal._returnFocus = lastFocusedElement;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
     modal.style.display = 'flex';
     var focusTarget = modal.querySelector('input, select, textarea, button');
     if (focusTarget) {
@@ -256,6 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function closeAdminModal(modal) {
     if (!modal) return;
     modal.style.display = 'none';
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
     var returnFocus = modal._returnFocus || lastFocusedElement;
     if (!returnFocus || !document.contains(returnFocus)) returnFocus = document.querySelector('.admin-menu a.active');
     if (returnFocus) {
@@ -267,7 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Focus trap for modals and notification dropdown
   document.addEventListener('keydown', function(e){
     if(e.key !== 'Tab') return;
-    var openModal = Array.from(document.querySelectorAll('.modal-backdrop')).find(function(m){ return m.style.display === 'flex' || (m.style.display !== 'none' && !m.classList.contains('hidden') && m.offsetParent !== null); });
+    var confirmation = document.getElementById('confirmModal');
+    var openModal = (confirmation && confirmation.style.display === 'flex' && !confirmation.classList.contains('hidden') ? confirmation : null) || Array.from(document.querySelectorAll('.modal-backdrop')).find(function(m){ return m.style.display === 'flex' || (m.style.display !== 'none' && !m.classList.contains('hidden') && m.offsetParent !== null); });
     var dropdown = document.getElementById('notifDropdown');
     var trapEl = openModal || (dropdown && !dropdown.classList.contains('hidden') && dropdown.style.display !== 'none' ? dropdown : null);
     if(!trapEl) return;
@@ -1205,22 +1210,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (salesBody) salesBody.innerHTML = ordersReady
       ? months.map(function(month, i) { return '<tr><th scope="row">' + month + '</th><td>₱' + totals[i].toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td></tr>'; }).join('')
       : '<tr><td colspan="2">' + (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') + '</td></tr>';
-    if (typeof Chart === 'undefined') {
-      if (empty) { empty.textContent = 'Chart unavailable. Monthly values are available below.'; empty.classList.remove('hidden'); }
-      canvas.style.display = 'none';
-      return;
-    }
-    if (chartSales) { chartSales.destroy(); chartSales = null; }
-    if (empty) empty.classList.toggle('hidden', hasData);
-    canvas.style.display = hasData ? '' : 'none';
+    var area = document.getElementById('salesChartArea');
     var periodTotalEl = document.getElementById('salesPeriodTotal');
-    var periodTotal = totals.reduce(function(s, v) { return s + (Number(v) || 0); }, 0);
-    if (periodTotalEl) {
-      periodTotalEl.textContent = hasData
-        ? '₱' + periodTotal.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' · last 6 months'
-        : '';
-    }
-    if (!hasData) return;
+    var periodTotal = totals.reduce(function(sum, value) { return sum + value; }, 0);
+    if (periodTotalEl) periodTotalEl.textContent = ordersReady
+      ? '₱' + periodTotal.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' · ' + months[0] + ' – ' + months[5]
+      : months[0] + ' – ' + months[5];
+    if (chartSales) { chartSales.destroy(); chartSales = null; }
+    var message = !ordersReady ? (ordersLoading ? 'Loading payment values…' : 'Payment values unavailable. Use Retry above.')
+      : ordersLoadError ? 'Showing previously loaded payment values. Refresh failed; use Retry above.'
+      : !hasData ? 'No confirmed payments in this period.'
+      : typeof Chart === 'undefined' ? 'Chart unavailable. Open Monthly breakdown to view the values.' : '';
+    if (ordersReady && hasData && ordersLoadError && typeof Chart === 'undefined') message += ' Chart unavailable; use Monthly breakdown.';
+    if (empty) { empty.textContent = message; empty.classList.toggle('hidden', !message); }
+    var showChart = ordersReady && hasData && typeof Chart !== 'undefined';
+    if (area) area.hidden = !showChart;
+    canvas.style.display = showChart ? '' : 'none';
+    if (!showChart) return;
 
     var peakIdx = totals.indexOf(Math.max.apply(null, totals));
     var track = theme.track || '#E8E8EB';
@@ -1700,84 +1706,44 @@ document.addEventListener('DOMContentLoaded', function() {
     try { renderOrdersRail(getOrders()); } catch(e){}
     try { renderAccounts(); } catch(e){}
   }
+  var orderStatusWrites = new Map();
+  var orderConfirmations = new Set();
   function updateOrderStatus(number, status, selectEl, opts) {
     opts = opts || {};
-    var quiet = !!opts.quiet;
-    const orders = getOrders();
-    const idx = orders.findIndex(function(o) { return o.number === number; });
-    if (idx === -1) {
-      const filterMiss = document.getElementById('orderStatusFilter')?.value || 'all';
-      renderOrders(filterMiss);
-      return quiet ? Promise.resolve({ ok:false, reason:'not found' }) : undefined;
+    var order = getOrders().find(function(o) { return o.number === number; });
+    if (!order) return Promise.resolve({ok:false, error:{message:'Order not found. Refresh orders and retry.'}});
+    var old = order.status;
+    if (orderStatusWrites.has(number)) return Promise.resolve({ok:false, error:{message:'This order is still saving. Wait for confirmation.'}});
+    if (old === status) return Promise.resolve({ok:true});
+    if (!opts.quiet && isTerminalStatus(status)) {
+      return showAuthoredConfirm({title:'Change order ' + number + ' to ' + status + '?', message:'Change from ' + old + ' to ' + status + '.', confirmLabel:'Mark ' + status, cancelLabel:'Cancel'})
+        .then(function(ok) { if (!ok) { if (selectEl) selectEl.value=old; return {ok:false,reason:'cancelled'}; } return apply(); });
     }
-    const old = orders[idx].status;
-    if (old === status) return quiet ? Promise.resolve({ ok:true }) : undefined;
-    if (!quiet && isTerminalStatus(status)) {
-      showAuthoredConfirm({
-        eyebrow: 'Terminal fulfillment',
-        title: 'Change order ' + number + ' to ' + status + '?',
-        message: 'Change order ' + number + ' from ' + old + ' to ' + status + '.',
-        impact: 'Terminal state — prefer the fulfill stepper so the change stays undoable.',
-        confirmLabel: 'Change to ' + status,
-        cancelLabel: 'Cancel'
-      }).then(function(ok){
-        if (!ok) { if (selectEl) selectEl.value = old; return; }
-        applyStatusChange();
-      });
-      return quiet ? Promise.resolve({ ok:false, reason:'cancelled' }) : undefined;
-    }
-    return applyStatusChange();
-    function applyStatusChange() {
-    if (typeof db === 'undefined' || !db.collection) {
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) showToast('Order service unavailable — try again after reload', true);
-      return quiet ? Promise.resolve({ ok:false, error:'no db' }) : undefined;
-    }
-    if (selectEl) selectEl.disabled = true;
-    orders[idx].status = status;
-
-    // Surgical update: write ONLY this order's document. Rewriting the whole
-    // list fails whenever any single order is not writable.
-    const refId = orders[idx].docId || orders[idx].number;
-    var updatePromise;
-    try {
-      updatePromise = db.collection('orders').doc(refId).update({
-        status: status,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } catch (syncErr) {
-      console.error('Order status update failed:', syncErr);
-      orders[idx].status = old;
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) {
-        const filterSync = document.getElementById('orderStatusFilter')?.value || 'all';
-        renderOrders(filterSync);
-        showToast(orderErrorMessage(syncErr), true);
-      }
-      return quiet ? Promise.resolve({ ok:false, error:syncErr }) : undefined;
-    }
-    var p = updatePromise.then(function() {
-      if (!quiet) {
-        addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
-        showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
-        refreshOrderViews();
-        closeOrderModal();
-      } else {
+    return apply();
+    function apply() {
+      orderStatusWrites.set(number, {old:old, next:status});
+      if (selectEl) selectEl.disabled = true;
+      return Promise.resolve().then(function() {
+        if (typeof db === 'undefined' || !db.collection) throw new Error('Order service unavailable. Reload and retry.');
+        return db.collection('orders').doc(order.docId || order.number).update({status:status, updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      }).then(function() {
+        order.status = status;
+        var current = getOrders().find(function(o) { return o.number === number; });
+        if (current) current.status = status;
+        if (!opts.quiet) {
+          addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
+          showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
+          refreshOrderViews(); closeOrderModal();
+        }
+        return {ok:true};
+      }, function(error) {
+        if (selectEl) selectEl.value = old;
+        if (!opts.quiet) showToast(orderErrorMessage(error), true);
+        return {ok:false,error:error};
+      }).finally(function() {
+        orderStatusWrites.delete(number);
         if (selectEl) selectEl.disabled = false;
-      }
-      return { ok:true };
-    }).catch(function(error) {
-      console.error('Order status update failed:', error);
-      orders[idx].status = old;
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) {
-        const filter = document.getElementById('orderStatusFilter')?.value || 'all';
-        renderOrders(filter);
-        showToast(orderErrorMessage(error), true);
-      }
-      return { ok:false, error:error };
-    });
-    if (quiet) return p;
+      });
     }
   }
 
@@ -1888,6 +1854,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <h3>Fulfillment</h3>
         <ol class="fulfill-steps">${fulfillDots}</ol>
         <div class="fulfill-actions">${fulfillActions}</div>
+        <p id="orderStatusFeedback" role="status" aria-live="polite" hidden></p>
       </section>
       <h3>Items</h3>
       <div class="table-wrap"><table><thead><tr><th scope="col">Product</th><th scope="col">Qty</th><th scope="col">Price</th><th scope="col">Total</th></tr></thead><tbody>${itemsHtml}<tr><td colspan="3" style="text-align:right;"><strong>Total:</strong></td><td><strong>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</strong></td></tr></tbody></table></div>
@@ -1913,46 +1880,53 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch(e){}
   }
 
-  function fulfillAdvance(number, next, btn) {
-    var list = getOrders();
-    var order = list.find(function(o){ return o.number === number; });
+  async function fulfillAdvance(number, next, btn) {
+    var order = getOrders().find(function(o) { return o.number === number; });
     if (!order) { showToast('Order not found', true); return; }
+    if (orderConfirmations.has(number) || orderStatusWrites.has(number) || order.status === next) return;
     var old = order.status;
-    if (old === next) return;
-    var terminal = isTerminalStatus(next);
-    if (btn) btn.disabled = true;
-    showAuthoredConfirm({
-      eyebrow: terminal ? 'Terminal fulfillment' : 'Advance fulfillment',
-      title: 'Mark order ' + number + ' as ' + next + '?',
-      message: 'Move order ' + number + ' from ' + old + ' to ' + next + '.',
-      impact: (order.customer ? 'Customer: ' + order.customer + ' · ' : '') + 'Total: ₱' + Number(order.total || 0).toLocaleString('en-PH', {minimumFractionDigits: 2}) + (terminal ? ' — terminal state.' : ''),
-      confirmLabel: 'Mark ' + next,
-      cancelLabel: 'Keep ' + old
-    }).then(function(ok){
-      if (btn) btn.disabled = false;
-      if (!ok) return;
-      updateOrderStatus(number, next, null, {quiet:true}).then(function(res){
-        if (!res || !res.ok) { showToast(orderErrorMessage(res && res.error), true); return; }
-        addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + next + ' (fulfill stepper)');
-        refreshOrderViews();
-        viewOrder(number);
-        try {
-          var modal = document.getElementById('orderModal');
-          var focusBtn = modal ? modal.querySelector('[data-fulfill-next], [data-fulfill-cancel]') : null;
-          if (focusBtn && focusBtn.focus) focusBtn.focus();
-        } catch(e){}
-        showUndoToast('Order ' + number + ': ' + old + ' → ' + next, function(){
-          updateOrderStatus(number, old, null, {quiet:true}).then(function(r){
-            if (r && r.ok) {
-              addAuditLog('Reverted order ' + number + ' from ' + next + ' to ' + old + ' (undo)');
-              refreshOrderViews();
-              viewOrder(number);
-              showToast('Order ' + number + ' reverted to ' + old, false, true);
-            } else { showToast(orderErrorMessage(r && r.error), true); }
-          });
-        }, 30000);
+    var originalLabel = btn ? btn.textContent : '';
+    var timer;
+    orderConfirmations.add(number);
+    var modal = document.getElementById('orderModal');
+    var controls = modal ? Array.from(modal.querySelectorAll('[data-fulfill-next], [data-fulfill-cancel]')) : [];
+    controls.forEach(function(control) { control.disabled = true; });
+    function feedback(message) {
+      var el = document.getElementById('orderStatusFeedback');
+      if (el) { el.textContent = message; el.hidden = !message; }
+    }
+    try {
+      var ok = await showAuthoredConfirm({
+        eyebrow: isTerminalStatus(next) ? 'Terminal fulfillment' : 'Advance fulfillment',
+        title:'Mark order ' + number + ' as ' + next + '?',
+        message:'Move order ' + number + ' from ' + old + ' to ' + next + '.',
+        impact:'Customer: ' + (order.customer || '') + ' · Total: ₱' + Number(order.total || 0).toLocaleString('en-PH', {minimumFractionDigits:2}),
+        confirmLabel:'Mark ' + next, cancelLabel:'Keep ' + old
       });
-    });
+      if (!ok) return;
+      if (btn) btn.textContent = 'Saving…';
+      feedback('Saving status…');
+      timer = setTimeout(function() { feedback('Still saving—check your connection. Wait for confirmation before retrying.'); }, 8000);
+      var result = await updateOrderStatus(number, next, null, {quiet:true});
+      if (!result.ok) { feedback(orderErrorMessage(result.error) + ' Your previous status is unchanged. Try again.'); return; }
+      addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + next + ' (fulfill stepper)');
+      refreshOrderViews(); viewOrder(number);
+      showUndoToast('Order ' + number + ': ' + old + ' → ' + next, function() {
+        updateOrderStatus(number, old, null, {quiet:true}).then(function(result) {
+          if (result.ok) { refreshOrderViews(); viewOrder(number); showToast('Order reverted to ' + old, false, true); }
+          else showToast(orderErrorMessage(result.error), true);
+        });
+      }, 30000);
+    } catch (error) { feedback(orderErrorMessage(error) + ' Try again.'); }
+    finally {
+      clearTimeout(timer);
+      orderConfirmations.delete(number);
+      controls.forEach(function(control) { control.disabled = false; });
+      if (btn) btn.textContent = originalLabel;
+      var currentModal = document.getElementById('orderModal');
+      var focusButton = currentModal ? currentModal.querySelector('[data-fulfill-next], [data-fulfill-cancel]') : null;
+      if (focusButton && currentModal.style.display === 'flex') focusButton.focus();
+    }
   }
 
   function closeOrderModal() {
@@ -4100,7 +4074,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (typeof db !== 'undefined' && db.collection && db.collection('orders').onSnapshot) {
         db.collection('orders').onSnapshot(function(snap){
           var live = [];
-          snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; live.push(d); });
+          snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; var pending=orderStatusWrites.get(d.number); if(pending) d.status=pending.old; live.push(d); });
           ordersReady = true; ordersLoading = false; ordersUpdatedAt = new Date();
           ordersCache = live;
           ordersLoadError = null;
@@ -4497,6 +4471,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key !== 'Escape') return;
+      if (confirmResolver) return;
       var pModal = document.getElementById('productModal');
       if (pModal && pModal.style.display !== 'none' && pModal.style.display !== '') { resetForm(); return; }
       var oModal = document.getElementById('orderModal');
@@ -4562,6 +4537,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // closure) can reach internal functions and data.
     window.SmileHubAdmin = {
       getProducts: function() { return products; },
+      closeOrderModal: closeOrderModal,
       navigateTo: function(sectionId) { navigateTo(sectionId); },
       canManageProducts: function() { return !roleResolved || !currentRole || isProductAdminRole(currentRole); },
       openProductModal: function() { openNewProductModal(); },
@@ -4646,6 +4622,7 @@ window.refreshOrders = function() {
 };
 
 window.closeOrderModal = function() {
+  if (window.SmileHubAdmin && window.SmileHubAdmin.closeOrderModal) { window.SmileHubAdmin.closeOrderModal(); return; }
   const modal = document.getElementById('orderModal');
   if (modal) modal.style.display = 'none';
   try {

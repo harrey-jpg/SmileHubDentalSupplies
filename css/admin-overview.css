@@ -1122,3 +1122,28 @@ body.admin-body .rail-link + .rail-link::before { content: none; }
 @media (prefers-reduced-motion: reduce) {
   body.admin-body :is(.btn, .rail-link, .dash-link, .icon-btn, .theme-button, .modal-close) { transition: none; }
 }
+
+/* Nested confirmation must sit above its parent Order Detail dialog. */
+#confirmModal { z-index: 1100; }
+
+/* Monthly payments: one surface, compact chart and neutral accessible breakdown. */
+#monthlyPaymentsPanel .dash-card-head h2 { margin: 0; font-size: 1.125rem; line-height: 1.4; }
+#monthlyPaymentsPanel .ov-period-total { font-size: .875rem; line-height: 1.5; }
+#monthlyPaymentsPanel #salesChartArea { height: 240px; margin-top: 20px; }
+#monthlyPaymentsPanel #salesChartArea[hidden] { display: none !important; }
+#monthlyPaymentsPanel .chart-data { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); }
+#monthlyPaymentsPanel .chart-data summary { min-height: 44px; padding: 12px 0; font-size: .875rem; }
+#monthlyPaymentsPanel .table-wrap { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+#monthlyPaymentsPanel table { width: 100%; margin: 0; border-collapse: collapse; table-layout: fixed; }
+#monthlyPaymentsPanel :is(th, td) { padding: 12px 16px; background: transparent !important; color: var(--text); border: 0; border-bottom: 1px solid var(--border); }
+#monthlyPaymentsPanel thead th { color: var(--muted); font-size: .8125rem; font-weight: 600; text-transform: none; letter-spacing: normal; }
+#monthlyPaymentsPanel :is(th, td):first-child { text-align: left; }
+#monthlyPaymentsPanel :is(th, td):last-child { text-align: right; font-variant-numeric: tabular-nums; }
+#monthlyPaymentsPanel tbody th { font-size: .875rem; font-weight: 500; }
+#monthlyPaymentsPanel tbody tr:last-child :is(th, td) { border-bottom: 0; }
+#monthlyPaymentsPanel .dash-empty { margin: 16px 0 0; padding: 0; text-align: left; }
+@media (max-width: 640px) {
+ #monthlyPaymentsPanel #salesChartArea { height: 180px; }
+ #monthlyPaymentsPanel .ov-period-total { text-align: left; margin-left: 0; }
+ #monthlyPaymentsPanel :is(th, td) { padding: 12px 8px; }
+}
