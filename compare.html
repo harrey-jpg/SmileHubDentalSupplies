@@ -24,8 +24,9 @@
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.1">
 <link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 <link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
+<link rel="stylesheet" href="css/compare.css?v=1.0.0">
 </head>
-<body class="">
+<body class="compare-page">
 <div class="topbar">
 <div class="container">
 <span>
@@ -114,7 +115,6 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="homepage.html">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">Product Comparison</span>
     </nav>
-    <div class="eyebrow">Side by side</div>
     <h1 id="compareTitle">Product Comparison</h1>
     <p class="lede">Make a more confident purchasing decision by comparing specs side-by-side — up to 4 products, saved in your browser.</p>
   </div>
@@ -123,7 +123,9 @@
 <main class="section-sm">
   <div class="container">
     <div class="compare-toolbar" id="compareToolbar">
-      <span class="compare-count" id="compareCount" role="status">Loading comparison…</span>
+      <div class="compare-summary"><span class="compare-count" id="compareCount" role="status">Loading comparison…</span>
+        <label class="compare-filter"><input type="checkbox" id="compareDifferences" disabled> Show differences only</label>
+      </div>
       <div class="compare-actions">
         <button class="btn btn-light" id="clearCompare" type="button">Clear all</button>
         <button class="btn btn-light" id="printCompare" type="button">Print comparison</button>
@@ -132,17 +134,15 @@
     </div>
     <div class="compare-error hidden" id="compareError" role="alert"></div>
     <div id="comparisonTable" class="compare-grid-wrap" tabindex="0" aria-label="Product comparison. Scroll horizontally on small screens to see all products."></div>
+    <p class="compare-scroll-hint hidden" id="compareScrollHint">Scroll sideways to see every product. Feature labels stay in place.</p>
+    <div class="compare-identical hidden" id="compareIdentical" role="status">These products have the same comparison details. <button class="btn btn-light" type="button" id="showAllCompare">Show all details</button></div>
     <p class="compare-note" id="compareNote">Tip: add products to compare from any product page or your wishlist. Your list is stored only in this browser.</p>
     <div class="card empty-state hidden" id="compareEmpty">
       <div class="empty-state-content">
         <svg width="64" height="64" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="40" y="40" width="100" height="160" rx="10"/><rect x="120" y="40" width="100" height="160" rx="10"/><path d="M128 80v120M80 120h96"/></svg>
         <h2>No products selected</h2>
         <p>Choose products from the catalog to compare price, brand, stock, and specifications.</p>
-        <ol class="empty-steps">
-          <li><span class="step-num" aria-hidden="true">1</span><span>Browse the catalog and open a dental product.</span></li>
-          <li><span class="step-num" aria-hidden="true">2</span><span>Choose “Add to compare” (up to 4 products).</span></li>
-          <li><span class="step-num" aria-hidden="true">3</span><span>Return here to review, print, or share your shortlist.</span></li>
-        </ol>
+        <p>Open a product and choose “Add to compare” to start your shortlist.</p>
         <a class="btn btn-primary" href="products.html">Browse products</a>
       </div>
     </div>
@@ -227,7 +227,8 @@ document.addEventListener('DOMContentLoaded',function(){
   var wrap=document.getElementById('comparisonTable'), empty=document.getElementById('compareEmpty'),
       count=document.getElementById('compareCount'), err=document.getElementById('compareError'),
       note=document.getElementById('compareNote'), toolbar=document.getElementById('compareToolbar'),
-      sticky=document.getElementById('stickyBar');
+      sticky=document.getElementById('stickyBar'), differences=document.getElementById('compareDifferences'),
+      identical=document.getElementById('compareIdentical'), scrollHint=document.getElementById('compareScrollHint');
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function notify(msg,isErr){
@@ -259,13 +260,16 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function peso(v){var n=Number(v||0);if(!isFinite(n))n=0;return '₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function stockPill(x){
-    if(x.stock===undefined||x.stock===null||!isFinite(Number(x.stock)))return '<span class="stock-pill unknown">See product page</span>';
+    if(x.stock===undefined||x.stock===null||x.stock===''||!isFinite(Number(x.stock)))return '<span class="stock-pill unknown">See product page</span>';
     var n=Number(x.stock);
     return n>0?'<span class="stock-pill">In Stock'+(n<=5?' - only '+n+' left':'')+'</span>':'<span class="stock-pill out">Out of Stock</span>';
   }
 
   function render(items){
     hideError();
+    differences.disabled=!items||items.length<2;
+    identical.classList.add('hidden');
+    scrollHint.classList.toggle('hidden',!items||!items.length);
     if(items===null){wrap.classList.add('hidden');empty.classList.remove('hidden');toolbar.classList.add('hidden');if(note)note.classList.add('hidden');sticky.classList.remove('has-items');count.textContent='Comparison unavailable';return;}
     if(!items.length){
       wrap.classList.add('hidden');empty.classList.remove('hidden');toolbar.classList.add('hidden');
@@ -285,22 +289,39 @@ document.addEventListener('DOMContentLoaded',function(){
       return esc(avg)+' out of 5 ('+arr.length+')';
     }
     var rows=[
-      ['Price',function(x){return '<span class="value-cell price">'+esc(peso(x.price))+'</span>';},true],
+      ['Price',function(x){return esc(peso(x.price));},true],
       ['Brand',function(x){return esc(x.brand||'-');}],
       ['Category',function(x){return esc(x.category||'General');}],
       ['Stock status',function(x){return stockPill(x);}],
       ['Rating',ratingCell,false,anyRating],
       ['SKU (reference)',function(x){return esc(x.sku||'-');},false,anySku]
     ].filter(function(r){return r[3]===undefined||r[3];});
+    function comparisonValue(row,x){
+      if(row[0]==='Price')return x.price==null||x.price===''?null:Number(x.price);
+      if(row[0]==='Brand')return x.brand||null;
+      if(row[0]==='Category')return x.category||null;
+      if(row[0]==='SKU (reference)')return x.sku||null;
+      if(row[0]==='Rating')return ratingCell(x);
+      if(x.stock==null||x.stock===''||!isFinite(Number(x.stock)))return null;
+      var stock=Number(x.stock);
+      return stock<=0?'out':stock<=5?'low:'+stock:'in';
+    }
+    if(differences.checked&&!differences.disabled){
+      rows=rows.filter(function(row){
+        var first=comparisonValue(row,items[0]);
+        return items.some(function(x){return !Object.is(comparisonValue(row,x),first);});
+      });
+      identical.classList.toggle('hidden',rows.length>0);
+    }
     var html='<div class="compare-grid" role="table" aria-label="Side-by-side product comparison">';
-    html+='<div class="compare-grid-header '+cols+'" role="row"><div class="feature-cell"></div>'+items.map(function(x,i){
+    html+='<div class="compare-grid-header '+cols+'" role="row"><div class="feature-cell" role="columnheader">Compare details</div>'+items.map(function(x,i){
       var img=esc(x.image||PLACEHOLDER);
       var moveL=i>0?'<button class="move-compare" type="button" data-move="-1" data-id="'+esc(x.id)+'" aria-label="Move '+esc(x.name)+' left">&#8592;</button>':'';
       var moveR=i<items.length-1?'<button class="move-compare" type="button" data-move="1" data-id="'+esc(x.id)+'" aria-label="Move '+esc(x.name)+' right">&#8594;</button>':'';
       return '<div class="product-cell" role="columnheader"><img src="'+img+'" alt="'+esc(x.name)+'" loading="lazy"><strong>'+esc(x.name)+'</strong><span class="cell-actions"><a class="btn btn-primary btn-sm" href="product.html?id='+esc(x.id)+'">View product</a><button class="remove-compare" type="button" data-remove="'+esc(x.id)+'" aria-label="Remove '+esc(x.name)+' from comparison">Remove</button>'+moveL+moveR+'</span></div>';
     }).join('')+'</div>';
     rows.forEach(function(r){
-      html+='<div class="compare-grid-row '+cols+'" role="row"><div class="feature-cell" role="rowheader">'+esc(r[0])+'</div>'+items.map(function(x){return '<div class="value-cell" role="cell">'+r[1](x)+'</div>';}).join('')+'</div>';
+      html+='<div class="compare-grid-row '+cols+'" role="row"><div class="feature-cell" role="rowheader">'+esc(r[0])+'</div>'+items.map(function(x){return '<div class="value-cell'+(r[2]?' price':'')+'" role="cell">'+r[1](x)+'</div>';}).join('')+'</div>';
     });
     html+='</div>';
     wrap.innerHTML=html;
@@ -340,6 +361,10 @@ document.addEventListener('DOMContentLoaded',function(){
     }
   }
 
+  differences.addEventListener('change',function(){render(load());});
+  document.getElementById('showAllCompare').addEventListener('click',function(){
+    differences.checked=false;render(load());differences.focus();
+  });
   wrap.addEventListener('click',function(e){
     var rm=e.target.closest?e.target.closest('[data-remove]'):null;
     var mv=e.target.closest?e.target.closest('[data-move]'):null;
