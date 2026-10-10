@@ -1599,3 +1599,4 @@ body:has(main.auth-experience) .back-to-top { bottom:24px; }
 }
 
 /* verification badges/cards live in css/release-hardening.css (single source) */
+[data-delivery-retry][hidden] { display: none !important; }

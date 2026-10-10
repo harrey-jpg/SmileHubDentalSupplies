@@ -12,7 +12,7 @@
 <meta property="og:image" content="assets/og-cover.png"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Product Details | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.2" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
 <link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -27,7 +27,7 @@
 </head>
 <body class="">
 <div class="topbar">
-<div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
+<div class="container"><span><span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span></span> <span>Metro Manila delivery • Mon–Sat</span></div>
 </div>
 <header class="header store-navbar">
 <div class="container header-main">
@@ -136,7 +136,7 @@
 <p class="qty-help muted" id="qtyHelp"></p>
 <ul class="buy-assurance">
 <li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="20"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="20" stroke-linecap="round"/></svg> Secure checkout</li>
-<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg> Delivery options and estimates • Free over ₱3,000</li>
+<li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="20"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="20"/></svg> Delivery options and estimates • <span data-delivery-message="promotion">Free over ₱3,000</span></li>
 <li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> Invoice and return information</li>
 </ul>
 <p class="buy-explainer muted">Add to Cart keeps shopping. Buy Now jumps straight to checkout without clearing your cart.</p>
@@ -243,13 +243,14 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.3.0"></script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
-<script src="js/chatbot.js"></script>
+<script src="js/chatbot.js?v=1.0.1"></script>
 <script src="js/product.js?v=6.3.0"></script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 
 <script src="js/final-polish.js?v=6.3.0"></script>

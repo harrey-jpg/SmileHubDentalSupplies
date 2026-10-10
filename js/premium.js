@@ -86,8 +86,8 @@
   function renderMiniCart(){
     const {items}=cartData(), host=$("#shMiniItems"), foot=$("#shMiniFooter"), ship=$("#shMiniShipping");
     if(!host) return;
-    const subtotal=items.reduce((s,i)=>s+cartPrice(i)*cartQty(i),0), remain=Math.max(0,3000-subtotal), pct=Math.min(100,subtotal/3000*100);
-    ship.innerHTML=`<small>${remain?money(remain)+" away from free shipping":"You unlocked free shipping!"}</small><div class="sh-progress" style="margin-top:8px"><span style="width:${pct}%"></span></div>`;
+    const subtotal=items.reduce((s,i)=>s+cartPrice(i)*cartQty(i),0), delivery=window.SmileHubDelivery.calculate(subtotal), ready=window.SmileHubDelivery.status()==='ready';
+    ship.innerHTML=`<small>${!ready?"Waiting for current delivery pricing.":!items.length?"Add items to see delivery pricing.":delivery.remaining?money(delivery.remaining)+" away from free shipping":"You unlocked free shipping!"}</small><div class="sh-progress" style="margin-top:8px"><span style="width:${ready?delivery.progress:0}%"></span></div>`;
     if(!items.length){host.innerHTML='<div class="sh-mini-empty"><div style="font-size:44px">🛒</div><h3>Your cart is empty</h3><p>Add essentials for your clinic or studies.</p><a class="btn btn-primary" href="products.html">Browse products</a></div>';foot.innerHTML="";return;}
     host.innerHTML=items.slice(0,8).map(i=>`<div class="sh-mini-item"><img src="${esc(i.image||i.img||"assets/Icon.png")}" alt=""><div><b>${esc(i.name||i.title||"Product")}</b><small style="display:block;color:var(--sh-muted)">Qty ${cartQty(i)}</small></div><strong>${money(cartPrice(i)*cartQty(i))}</strong></div>`).join("");
     foot.innerHTML=`<div style="display:flex;justify-content:space-between;padding:18px 0"><b>Subtotal</b><strong>${money(subtotal)}</strong></div><a class="btn btn-primary" style="display:block;text-align:center" href="checkout.html">Checkout</a><a class="btn btn-light" style="display:block;text-align:center;margin-top:8px" href="cart.html">View cart</a>`;
@@ -95,6 +95,7 @@
   function openMiniCart(){renderMiniCart();$(".sh-mini-cart").classList.add("open");$(".sh-drawer-backdrop").classList.add("open");$(".sh-mini-cart").setAttribute("aria-hidden","false");}
   function closeMiniCart(){const d=$(".sh-mini-cart"); if(!d)return; d.classList.remove("open");$(".sh-drawer-backdrop").classList.remove("open");d.setAttribute("aria-hidden","true");}
   SH.openCart=openMiniCart;
+  document.addEventListener('deliverySettingsChanged',renderMiniCart);
 
 
 

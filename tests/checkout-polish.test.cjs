@@ -5,11 +5,15 @@ const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '../checkout.html'), 'utf8');
 const script = fs.readFileSync(path.join(__dirname, '../js/checkout.js'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../css/checkout-polish.css'), 'utf8');
+const deliveryContext = { window: {}, Event: class {}, document: { addEventListener() {}, dispatchEvent() {}, querySelectorAll: () => [] } };
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../js/delivery-settings.js'), 'utf8'), deliveryContext);
+deliveryContext.window.SmileHubDelivery.apply(deliveryContext.window.SmileHubDelivery.defaults);
 const feeFunction = html.slice(html.indexOf('  function updateDeliveryFees(){'), html.indexOf('  updateDeliveryFees();'));
 for (const subtotal of [0, 2999, 3000, 4500]) {
   const fields = { deliveryFeeStandard: {}, deliveryFeeExpress: {}, deliveryHint: {} };
   vm.runInNewContext(feeFunction + 'updateDeliveryFees();', {
     getCartSubtotal: () => subtotal, document: { getElementById: id => fields[id] },
+    window: deliveryContext.window,
   });
   assert.equal(fields.deliveryFeeExpress.textContent, 'Unavailable in demo');
   assert.equal(fields.deliveryFeeStandard.textContent, subtotal === 0 || subtotal >= 3000 ? 'Free' : '₱150.00');

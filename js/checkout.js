@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function getOrderTotals() {
     var subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-    var shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
+    var shipping = window.SmileHubDelivery.calculate(subtotal).shipping;
     var discount = subtotal * couponDiscountRate(getAppliedCoupon());
     // VAT applies to the discounted amount actually paid.
     var tax = (subtotal - discount) * 0.12;
@@ -235,7 +235,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('') : '<p class="muted">Your cart is empty.</p>';
 
     document.getElementById('checkoutSubtotal').textContent = money(totals.subtotal);
-    document.getElementById('checkoutShipping').textContent = money(totals.shipping);
+    var deliveryReady = window.SmileHubDelivery.status() === 'ready';
+    document.getElementById('checkoutShipping').textContent = deliveryReady ? money(totals.shipping) : '—';
     document.getElementById('checkoutTax').textContent = money(totals.tax);
     var discountRow = document.getElementById('checkoutDiscountRow');
     var discountEl = document.getElementById('checkoutDiscount');
@@ -247,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         discountRow.style.display = 'none';
       }
     }
-    document.getElementById('checkoutTotal').textContent = money(totals.total);
+    document.getElementById('checkoutTotal').textContent = deliveryReady ? money(totals.total) : '—';
   }
 
   var savedCoupon = getAppliedCoupon();
@@ -376,12 +377,22 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var retryOrderSave = null;
-  document.getElementById('checkoutForm').addEventListener('submit', function(event) {
+  function syncCheckoutDelivery() {
+    var form = document.getElementById('checkoutForm');
+    if (retryOrderSave || form.dataset.submitting === '1') return;
+    var state = window.SmileHubDelivery.status();
+    form.querySelectorAll('button[type="submit"]').forEach(function(button) { button.disabled = state !== 'ready'; });
+    document.getElementById('checkoutDeliveryStatus').textContent = state === 'ready' ? 'Delivery pricing loaded. We will verify it again before placing your order.' : state === 'error' ? 'Current delivery pricing could not be loaded. Retry before placing your order; your entries are preserved.' : 'Loading current delivery pricing…';
+  }
+  document.addEventListener('deliverySettingsChanged', function() { if (!retryOrderSave) renderSummary(); syncCheckoutDelivery(); });
+  syncCheckoutDelivery();
+  document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     var form = this;
     if (form.dataset.submitting === '1') return;
     if (window.__suspendKick) return;
     if (retryOrderSave) { retryOrderSave(); return; }
+    if (window.SmileHubDelivery.status() !== 'ready') { syncCheckoutDelivery(); return; }
     var alreadyVerified = form.dataset.suspendVerified === '1';
     if (alreadyVerified) { form.dataset.suspendVerified = ''; }
     else {
@@ -465,6 +476,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (!window.validateCheckoutStep(2, true)) return;
+    var reviewedShipping = getOrderTotals().shipping;
+    var deliveryUserId = (firebase.auth().currentUser || {}).uid;
+    var deliveryButton = form.querySelector('button[type="submit"]');
+    form.dataset.submitting = '1';
+    form.querySelectorAll('button[type="submit"]').forEach(function(button) { button.disabled = true; });
+    if (deliveryButton) { deliveryButton.disabled = true; deliveryButton.textContent = 'Checking delivery pricing…'; }
+    try {
+      await window.SmileHubDelivery.refresh();
+    } catch (error) {
+      form.dataset.submitting = '';
+      if (deliveryButton) deliveryButton.textContent = 'Place Order';
+      syncCheckoutDelivery();
+      document.getElementById('checkoutDeliveryStatus').focus();
+      return;
+    }
+    form.dataset.submitting = '';
+    if (deliveryButton) deliveryButton.textContent = 'Place Order';
+    syncCheckoutDelivery();
+    renderSummary();
+    if (getOrderTotals().shipping !== reviewedShipping) {
+      var deliveryNotice = document.getElementById('checkoutDeliveryStatus');
+      deliveryNotice.textContent = 'Delivery pricing changed. Review the updated shipping fee and total, then place your order again.';
+      deliveryNotice.focus();
+      return;
+    }
+    if (window.__suspendKick || !firebase.auth().currentUser || firebase.auth().currentUser.uid !== deliveryUserId) return;
     var totals = getOrderTotals();
     var subtotal = totals.subtotal;
     var shipping = totals.shipping;

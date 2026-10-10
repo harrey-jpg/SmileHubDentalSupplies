@@ -14,7 +14,7 @@
 <title>
       Contact | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=6.3.2" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
 <link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -29,7 +29,7 @@
 <div class="topbar">
 <div class="container">
 <span>
-          Free shipping on orders over ₱3,000
+          <span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span>
         </span>
 <span>
           Metro Manila delivery • Mon–Sat
@@ -159,7 +159,7 @@
 <p class="field-error" id="contactMessageError" role="alert"></p>
 </div>
 <button class="btn btn-primary btn-block" id="contactSubmit" type="submit"><span class="btn-label">Submit Message</span></button>
-<p class="muted" style="font-size:.85rem;margin:10px 0 0">Messages are sent to support when available. If sending fails, a device-only draft is saved for retry. For an urgent reply, email <a href="mailto:support@smilehub.ph">support@smilehub.ph</a> directly.</p>
+<p class="muted" style="font-size:.85rem;margin:10px 0 0">Messages are sent to support when available. If sending fails, a device-only draft is saved for retry. For an urgent reply, email <a data-store-email href="mailto:support@smilehub.ph">support@smilehub.ph</a> directly.</p>
 </form>
 <div class="contact-done hidden" id="contactDone" role="status">
 <h3 id="contactDoneTitle">Message status</h3>
@@ -176,19 +176,19 @@
 <strong>
               Email:
             </strong>
-<a href="mailto:support@smilehub.ph">support@smilehub.ph</a>
+<a data-store-email href="mailto:support@smilehub.ph">support@smilehub.ph</a>
 </p>
 <p>
 <strong>
               Phone:
             </strong>
-<a href="tel:+639175550142">+63 917 555 0142</a>
+<a data-store-phone href="tel:+639175550142">+63 917 555 0142</a>
 </p>
 <p>
 <strong>
               Hours:
             </strong>
-            Monday to Saturday, 8:00 AM–6:00 PM
+            <span data-store-hours>Monday to Saturday, 8:00 AM–6:00 PM</span>
           </p>
 <p>
 <strong>
@@ -282,12 +282,14 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.4.2">
 </script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
 <script src="js/firestore-data.js"></script>
-<script src="js/chatbot.js"></script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+<script src="js/chatbot.js?v=1.0.1"></script>
+<script src="js/store-information.js?v=1.0.0"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script>
 (function() {
@@ -380,7 +382,7 @@
       document.getElementById('contactDoneTitle').textContent = savedOnline ? 'Message sent to support' : 'Draft saved on this device';
       document.getElementById('contactDoneMessage').textContent = savedOnline
         ? 'Your message was saved online for support. Keep your reference number for follow-up.'
-        : 'Support has not received this message. This browser will retry when you reconnect. For urgent help, email support@smilehub.ph with your reference number.';
+        : 'Support has not received this message. This browser will retry when you reconnect. For urgent help, email ' + (window.SmileHubStoreInformation ? window.SmileHubStoreInformation.supportEmail() : 'support@smilehub.ph') + ' with your reference number.';
       ticketEl.textContent = ticket;
       form.classList.add('hidden');
       doneBox.classList.remove('hidden');

@@ -1115,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (e) {}
     }
 
-    renderSalesChart({ blue: blue, teal: teal, muted: muted, gridColor: gridColor, isDark: isDark, track: isDark ? 'rgba(148,163,184,0.28)' : '#E8E8EB', peak: isDark ? '#F1F5F9' : '#1B1B1F' });
+    renderSalesChart({ blue: blue, teal: teal, muted: muted, gridColor: gridColor, isDark: isDark, track: cssVar('--admin-chart-track', '#C2E6E0'), peak: teal });
 
     const inStock = products.filter(function(p) { return p.stock > minOf(p); }).length;
     const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= minOf(p); }).length;
@@ -2150,6 +2150,261 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // --- PERSONAL SETTINGS ---
+  var settingsResetPending = false;
+  var settingsAccountUid = null;
+  var settingsRoleUid = null;
+  function settingsAuthUser() {
+    return window.firebase && firebase.auth ? firebase.auth().currentUser : null;
+  }
+  function renderSettings() {
+    var button = document.getElementById('settingsPasswordReset');
+    if (!button) return;
+    var user = settingsAuthUser();
+    var cached = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+    var allowed = roleResolved && ['admin', 'staff', 'superadmin'].includes(currentRole);
+    if (settingsAccountUid !== (user && user.uid)) {
+      settingsAccountUid = user && user.uid;
+      document.getElementById('settingsResetFeedback').hidden = true;
+    }
+    var ready = !!(user && allowed && settingsRoleUid === user.uid);
+    document.getElementById('settingsAccountName').textContent = ready ? (cached && cached.uid === user.uid && cached.name || user.displayName || 'Not provided') : '—';
+    document.getElementById('settingsAccountEmail').textContent = ready ? (user.email || 'Not available') : '—';
+    document.getElementById('settingsAccountRole').textContent = ready ? ({admin:'Admin', staff:'Staff', superadmin:'Super Admin'}[currentRole]) : '—';
+    document.getElementById('settingsAccountState').textContent = !roleResolved || (user && allowed && settingsRoleUid !== user.uid) ? 'Loading account information…' : ready ? 'Signed-in account. Contact a super admin to change your details.' : 'Account information is unavailable. Sign in with a staff account and try again.';
+    button.disabled = settingsResetPending || !ready || !user.email;
+    button.textContent = settingsResetPending ? 'Sending…' : 'Send password reset email';
+    document.querySelectorAll('[name="adminSettingsTheme"]').forEach(function(input) {
+      input.checked = input.value === (document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+    renderStoreSettings();
+    renderDeliverySettings();
+  }
+  async function sendSettingsPasswordReset() {
+    if (settingsResetPending) return;
+    var user = settingsAuthUser();
+    if (!user || !user.email || settingsRoleUid !== user.uid || !roleResolved || !['admin', 'staff', 'superadmin'].includes(currentRole)) { renderSettings(); return; }
+    var uid = user.uid;
+    var email = user.email;
+    var feedback = document.getElementById('settingsResetFeedback');
+    settingsResetPending = true;
+    feedback.hidden = false;
+    feedback.dataset.state = 'progress';
+    feedback.textContent = 'Sending reset instructions…';
+    renderSettings();
+    var timer = setTimeout(function() {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) feedback.textContent = 'Still sending—check your connection. Please wait before trying again.';
+    }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      var current = settingsAuthUser();
+      if (!current || current.uid !== uid || current.email !== email || !['admin', 'staff', 'superadmin'].includes(role)) throw new Error('account-changed');
+      await firebase.auth().sendPasswordResetEmail(email);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'success';
+        feedback.textContent = 'Password reset email sent to ' + email + '. Check your inbox and spam folder.';
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error';
+        feedback.textContent = error.code === 'auth/too-many-requests' ? 'Too many requests. Wait a few minutes before trying again.' : error.message === 'account-changed' ? 'Your account access changed. Sign in again before requesting a reset.' : 'Could not send the reset email. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer);
+      settingsResetPending = false;
+      renderSettings();
+    }
+  }
+  function setupSettings() {
+    document.querySelectorAll('[name="adminSettingsTheme"]').forEach(function(input) {
+      input.addEventListener('change', function() {
+        if (input.checked && (input.value === 'dark') !== document.body.classList.contains('dark')) {
+          var toggle = document.querySelector('.theme-button');
+          if (toggle) toggle.click();
+        }
+        renderSettings();
+      });
+    });
+    var toggle = document.querySelector('.theme-button');
+    if (toggle) toggle.addEventListener('click', renderSettings);
+    document.getElementById('settingsPasswordReset').addEventListener('click', sendSettingsPasswordReset);
+    if (window.firebase && firebase.auth) firebase.auth().onAuthStateChanged(renderSettings);
+    renderSettings();
+  }
+
+  // --- STORE INFORMATION SETTINGS ---
+  var storeInformationState = 'idle';
+  var storeInformationSaving = false;
+  var storeInformationFields = {
+    supportEmail: ['settingsSupportEmail', 'settingsSupportEmailError'],
+    supportPhone: ['settingsSupportPhone', 'settingsSupportPhoneError'],
+    businessHours: ['settingsBusinessHours', 'settingsBusinessHoursError']
+  };
+  function canEditStoreInformation() {
+    var user = settingsAuthUser();
+    return !!(user && roleResolved && settingsRoleUid === user.uid && ['admin', 'superadmin'].includes(currentRole));
+  }
+  function renderStoreSettings() {
+    var card = document.getElementById('settingsStoreCard');
+    if (!card) return;
+    var allowed = canEditStoreInformation();
+    card.hidden = !allowed;
+    document.getElementById('settingsStoreFields').disabled = !allowed || storeInformationState !== 'ready' || storeInformationSaving;
+    document.getElementById('settingsStoreSave').textContent = storeInformationSaving ? 'Saving…' : 'Save store information';
+    document.getElementById('settingsStoreRetry').hidden = storeInformationState !== 'error';
+    if (allowed && storeInformationState === 'idle') loadStoreInformation();
+  }
+  async function loadStoreInformation() {
+    if (!canEditStoreInformation() || storeInformationState === 'loading' || storeInformationSaving) return;
+    var state = document.getElementById('settingsStoreState');
+    storeInformationState = 'loading';
+    state.textContent = 'Loading store information…';
+    renderStoreSettings();
+    try {
+      var data = await window.SmileHubStoreInformation.get();
+      Object.keys(storeInformationFields).forEach(function(key) { document.getElementById(storeInformationFields[key][0]).value = data[key]; });
+      storeInformationState = 'ready';
+      state.textContent = 'Current public support details. Save to publish changes.';
+    } catch (error) {
+      storeInformationState = 'error';
+      state.textContent = 'Store information could not be loaded. Check your connection and retry before editing.';
+    }
+    renderStoreSettings();
+  }
+  async function saveStoreInformation(event) {
+    event.preventDefault();
+    if (!canEditStoreInformation() || storeInformationState !== 'ready' || storeInformationSaving) return;
+    var values = {};
+    Object.keys(storeInformationFields).forEach(function(key) { values[key] = document.getElementById(storeInformationFields[key][0]).value; });
+    var checked = window.SmileHubStoreInformation.validate(values);
+    var feedback = document.getElementById('settingsStoreFeedback');
+    var firstInvalid = null;
+    Object.keys(storeInformationFields).forEach(function(key) {
+      var input = document.getElementById(storeInformationFields[key][0]);
+      var error = document.getElementById(storeInformationFields[key][1]);
+      error.hidden = !checked.errors[key];
+      error.textContent = checked.errors[key] || '';
+      if (checked.errors[key]) { input.setAttribute('aria-invalid', 'true'); firstInvalid = firstInvalid || input; }
+      else input.removeAttribute('aria-invalid');
+    });
+    feedback.hidden = false;
+    if (firstInvalid) {
+      feedback.dataset.state = 'error';
+      feedback.textContent = 'Check the highlighted fields before saving.';
+      firstInvalid.focus();
+      return;
+    }
+    var uid = settingsAuthUser().uid;
+    var previousFocus = document.activeElement;
+    storeInformationSaving = true;
+    feedback.dataset.state = 'progress';
+    feedback.textContent = 'Saving store information…';
+    renderStoreSettings();
+    var timer = setTimeout(function() { feedback.textContent = 'Still saving—check your connection. Please wait before trying again.'; }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      if (!settingsAuthUser() || settingsAuthUser().uid !== uid || !['admin', 'superadmin'].includes(role)) throw new Error('account-changed');
+      var saved = await window.SmileHubStoreInformation.save(checked.data);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        Object.keys(storeInformationFields).forEach(function(key) { document.getElementById(storeInformationFields[key][0]).value = saved[key]; });
+        feedback.dataset.state = 'success';
+        feedback.textContent = 'Store information saved. Customer pages will use these details when opened or refreshed.';
+        addAuditLog('Updated store support information');
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error';
+        feedback.textContent = error.code === 'permission-denied' || error.message === 'account-changed' ? 'You no longer have permission to save store information. Sign in as Admin or Super Admin and try again.' : 'Changes were not confirmed saved. Your entries are preserved. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer);
+      storeInformationSaving = false;
+      renderStoreSettings();
+      if (previousFocus && document.getElementById('settingsStoreForm').contains(previousFocus) && canEditStoreInformation() && document.activeElement === document.body && document.getElementById('settings').style.display !== 'none') previousFocus.focus({ preventScroll: true });
+    }
+  }
+  function setupStoreInformation() {
+    document.getElementById('settingsStoreForm').addEventListener('submit', saveStoreInformation);
+    document.getElementById('settingsStoreRetry').addEventListener('click', loadStoreInformation);
+    Object.keys(storeInformationFields).forEach(function(key) {
+      document.getElementById(storeInformationFields[key][0]).addEventListener('input', function() {
+        this.removeAttribute('aria-invalid');
+        document.getElementById(storeInformationFields[key][1]).hidden = true;
+        document.getElementById('settingsStoreFeedback').hidden = true;
+      });
+    });
+  }
+
+  // --- DELIVERY SETTINGS ---
+  var deliveryEditorState = 'idle';
+  var deliveryEditorSaving = false;
+  var deliveryEditorFields = { standardFee: ['settingsStandardFee', 'settingsStandardFeeError'], freeShippingThreshold: ['settingsFreeThreshold', 'settingsFreeThresholdError'] };
+  function renderDeliverySettings() {
+    var card = document.getElementById('settingsDeliveryCard');
+    if (!card) return;
+    card.hidden = !canEditStoreInformation();
+    document.getElementById('settingsDeliveryFields').disabled = card.hidden || deliveryEditorState !== 'ready' || deliveryEditorSaving;
+    document.getElementById('settingsDeliverySave').textContent = deliveryEditorSaving ? 'Saving…' : 'Save delivery settings';
+    document.getElementById('settingsDeliveryRetry').hidden = deliveryEditorState !== 'error';
+    if (!card.hidden && deliveryEditorState === 'idle') loadDeliverySettings();
+  }
+  async function loadDeliverySettings() {
+    if (!canEditStoreInformation() || deliveryEditorState === 'loading' || deliveryEditorSaving) return;
+    var state = document.getElementById('settingsDeliveryState');
+    deliveryEditorState = 'loading'; state.textContent = 'Loading delivery settings…'; renderDeliverySettings();
+    try {
+      var data = await window.SmileHubDelivery.get();
+      Object.keys(deliveryEditorFields).forEach(function(key) { document.getElementById(deliveryEditorFields[key][0]).value = data[key]; });
+      deliveryEditorState = 'ready'; state.textContent = 'Current delivery pricing. Save to publish changes.';
+    } catch (error) {
+      deliveryEditorState = 'error'; state.textContent = 'Delivery settings could not be loaded. Check your connection and retry before editing.';
+    }
+    renderDeliverySettings();
+  }
+  async function saveDeliverySettings(event) {
+    event.preventDefault();
+    if (!canEditStoreInformation() || deliveryEditorState !== 'ready' || deliveryEditorSaving) return;
+    var data = {};
+    Object.keys(deliveryEditorFields).forEach(function(key) { data[key] = document.getElementById(deliveryEditorFields[key][0]).value; });
+    var checked = window.SmileHubDelivery.validate(data);
+    var feedback = document.getElementById('settingsDeliveryFeedback');
+    var invalid = null;
+    Object.keys(deliveryEditorFields).forEach(function(key) {
+      var input = document.getElementById(deliveryEditorFields[key][0]), error = document.getElementById(deliveryEditorFields[key][1]);
+      error.hidden = !checked.errors[key]; error.textContent = checked.errors[key] || '';
+      if (checked.errors[key]) { input.setAttribute('aria-invalid', 'true'); invalid = invalid || input; } else input.removeAttribute('aria-invalid');
+    });
+    feedback.hidden = false;
+    if (invalid) { feedback.dataset.state = 'error'; feedback.textContent = 'Check the highlighted fields before saving.'; invalid.focus(); return; }
+    var uid = settingsAuthUser().uid, previousFocus = document.activeElement;
+    deliveryEditorSaving = true; feedback.dataset.state = 'progress'; feedback.textContent = 'Saving delivery settings…'; renderDeliverySettings();
+    var timer = setTimeout(function() { feedback.textContent = 'Still saving—check your connection. Please wait before trying again.'; }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      if (!settingsAuthUser() || settingsAuthUser().uid !== uid || !['admin', 'superadmin'].includes(role)) throw new Error('account-changed');
+      var saved = await window.SmileHubDelivery.save(checked.data);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        Object.keys(deliveryEditorFields).forEach(function(key) { document.getElementById(deliveryEditorFields[key][0]).value = saved[key]; });
+        feedback.dataset.state = 'success'; feedback.textContent = 'Delivery settings saved. New orders will use this pricing; existing orders are unchanged.';
+        addAuditLog('Updated delivery pricing');
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error'; feedback.textContent = error.code === 'permission-denied' || error.message === 'account-changed' ? 'You no longer have permission to save delivery settings. Sign in as Admin or Super Admin and try again.' : 'Changes were not confirmed saved. Your entries are preserved. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer); deliveryEditorSaving = false; renderDeliverySettings();
+      if (previousFocus && document.getElementById('settingsDeliveryForm').contains(previousFocus) && canEditStoreInformation() && document.activeElement === document.body && document.getElementById('settings').style.display !== 'none') previousFocus.focus({ preventScroll: true });
+    }
+  }
+  function setupDeliverySettings() {
+    document.getElementById('settingsDeliveryForm').addEventListener('submit', saveDeliverySettings);
+    document.getElementById('settingsDeliveryRetry').addEventListener('click', loadDeliverySettings);
+    Object.keys(deliveryEditorFields).forEach(function(key) {
+      document.getElementById(deliveryEditorFields[key][0]).addEventListener('input', function() { this.removeAttribute('aria-invalid'); document.getElementById(deliveryEditorFields[key][1]).hidden = true; document.getElementById('settingsDeliveryFeedback').hidden = true; });
+    });
+  }
+
   // --- SIDEBAR NAVIGATION ---
   function setupSidebarNavigation() {
     document.querySelectorAll('.admin-menu a').forEach(function(link) {
@@ -2304,6 +2559,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function paintRole(role){
     currentRole = role;
     roleResolved = true;
+    settingsRoleUid = (settingsAuthUser() || {}).uid || null;
+    renderSettings();
     try { localStorage.removeItem('smilehub_role_cache'); } catch (e) {}
     var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
     if (user) {
@@ -3701,7 +3958,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var pending = 0;
     try { pending = getOrders().filter(needsOrderWork).length; } catch(e){}
     if(pendingEl){
-      pendingEl.textContent = pending + ' order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention →';
+      pendingEl.textContent = pending + ' order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention';
       pendingEl.style.display = pending ? '' : 'none';
     }
     if(countEl){
@@ -4033,6 +4290,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {}
     setupImagePreview();
     setupSidebarNavigation();
+    setupSettings();
+    setupStoreInformation();
+    setupDeliverySettings();
     setupFormSubmit();
     setupBulkStock();
     var dashAdd = document.getElementById('dashAddProduct');

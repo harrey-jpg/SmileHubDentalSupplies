@@ -389,13 +389,15 @@ function safeImage(value) {
 
 function updateSummary(cart) {
   const subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-  const shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
+  const delivery = window.SmileHubDelivery.calculate(subtotal);
+  const shipping = delivery.shipping;
+  const deliveryReady = window.SmileHubDelivery.status() === 'ready';
   const discount = subtotal * couponDiscountRate(getAppliedCoupon());
   // VAT applies to the discounted amount actually paid (matches checkout).
   const tax = (subtotal - discount) * 0.12;
   const total = subtotal + shipping + tax - discount;
   document.getElementById('cartSubtotal').textContent = money(subtotal);
-  document.getElementById('cartShipping').textContent = money(shipping);
+  document.getElementById('cartShipping').textContent = deliveryReady ? money(shipping) : '—';
   document.getElementById('cartTax').textContent = money(tax);
   const discountRow = document.getElementById('cartDiscountRow');
   const discountEl = document.getElementById('cartDiscount');
@@ -407,22 +409,28 @@ function updateSummary(cart) {
       discountRow.style.display = 'none';
     }
   }
-  document.getElementById('cartTotal').textContent = money(total);
+  document.getElementById('cartTotal').textContent = deliveryReady ? money(total) : '—';
+  var deliveryStatus = document.getElementById('cartDeliveryStatus');
+  if (deliveryStatus) deliveryStatus.textContent = deliveryReady ? '' : window.SmileHubDelivery.status() === 'error' ? 'Delivery pricing could not be loaded. Retry to see your total.' : 'Loading delivery pricing…';
   var progressText = document.getElementById('shipProgressText');
   var progressBar = document.getElementById('shipProgressBar');
   if (progressText && progressBar) {
-    if (subtotal <= 0) {
+    if (!deliveryReady) {
+      progressText.textContent = 'Waiting for current delivery pricing.';
+      progressBar.style.width = '0%';
+    } else if (subtotal <= 0) {
       progressText.textContent = 'Add items to unlock free shipping.';
       progressBar.style.width = '0%';
-    } else if (subtotal >= 3000) {
+    } else if (shipping === 0) {
       progressText.textContent = 'Free shipping unlocked!';
       progressBar.style.width = '100%';
     } else {
-      progressText.textContent = money(3000 - subtotal) + ' away from free shipping.';
-      progressBar.style.width = Math.min(100, subtotal / 3000 * 100) + '%';
+      progressText.textContent = money(delivery.remaining) + ' away from free shipping.';
+      progressBar.style.width = delivery.progress + '%';
     }
   }
 }
 document.addEventListener('smilehub:data-synced', function () {
   if (typeof renderCart === 'function') renderCart();
 });
+document.addEventListener('deliverySettingsChanged', function() { updateSummary(getStoredList(CART_KEY)); });

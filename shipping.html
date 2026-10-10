@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b6e6b"/>
 <meta property="og:image" content="assets/og-cover.png"/>
 <meta name="description" content="SmileHub shipping information and delivery expectations."><title>Shipping Information | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.2" rel="stylesheet"><link href="css/premium.css?v=6.3.2" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
+<link href="css/style.css?v=6.3.3" rel="stylesheet"><link href="css/premium.css?v=6.3.2" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
 <link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.1">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -21,7 +21,7 @@
 <div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
 <div class="topbar">
 <div class="container">
-<span>Free shipping on orders over ₱3,000</span>
+<span><span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span></span>
 <span>Metro Manila delivery • Mon–Sat</span>
 </div>
 </div>
@@ -75,7 +75,7 @@
       <span class="meta-chip">Metro Manila · Nationwide demo</span>
     </div>
     <div class="trust-row" role="list" aria-label="Trust signals">
-      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Free shipping over ₱3,000</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-delivery-message="promotion">Free shipping over ₱3,000</span></span>
       <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Delivery Mon–Sat</span>
       <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Demo rates — no real courier</span>
     </div>
@@ -145,8 +145,8 @@
               <caption>Simulated delivery fees</caption>
               <thead><tr><th scope="col">Order subtotal</th><th scope="col">Delivery fee</th></tr></thead>
               <tbody>
-                <tr><td>₱3,000 and above</td><td><strong>Free</strong></td></tr>
-                <tr><td>Below ₱3,000</td><td><strong>₱150</strong> flat</td></tr>
+                <tr><td><span data-delivery-message="above">₱3,000 and above</span></td><td><strong>Free</strong></td></tr>
+                <tr><td><span data-delivery-message="below">Below ₱3,000</span></td><td><strong><span data-delivery-message="fee">₱150</span></strong> flat</td></tr>
               </tbody>
             </table>
             </div>
@@ -167,7 +167,7 @@
             <h2 id="methods-h">Delivery methods</h2>
             <p>At checkout, demo customers choose between two simulated methods:</p>
             <ul>
-              <li><strong>Standard delivery</strong> — 1–3 business days, ₱150 or free over ₱3,000.</li>
+              <li><strong>Standard delivery</strong> — 1–3 business days, <span data-delivery-message="fee">₱150</span> or <span data-delivery-message="promotion">free over ₱3,000</span>.</li>
               <li><strong>Express delivery</strong> — same or next day where available; shown as a demo option only.</li>
             </ul>
           </section>
@@ -252,9 +252,10 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.3.0"></script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.3.0"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script>
 (function(){
@@ -283,11 +284,13 @@
         if(bar)bar.style.width='0%';return;
       }
       out.classList.remove('error');input.removeAttribute('aria-invalid');
-      var fee=(v>=3000||v===0)?0:150;
-      out.textContent=v===0?'Empty cart ships free in this demo.':(fee===0?'Free shipping unlocked! Fee: '+peso(0)+'.':'Delivery fee: '+peso(fee)+'. Add '+peso(3000-v)+' more for free shipping.');
-      if(bar)bar.style.width=Math.min(100,v/3000*100)+'%';
+      if(window.SmileHubDelivery.status()!=='ready'){out.textContent='Current delivery pricing is unavailable. Check again at checkout.';if(bar)bar.style.width='0%';return;}
+      var delivery=window.SmileHubDelivery.calculate(v),fee=delivery.shipping;
+      out.textContent=v===0?'Empty cart has no shipping fee.':(fee===0?'Free shipping unlocked! Fee: '+peso(0)+'.':'Delivery fee: '+peso(fee)+'. Add '+peso(delivery.remaining)+' more for free shipping.');
+      if(bar)bar.style.width=delivery.progress+'%';
     }
     form.addEventListener('submit',function(e){e.preventDefault();calc();});
+    document.addEventListener('deliverySettingsChanged',calc);
     calc();
   }
   var bar2=document.getElementById('readingProgress');

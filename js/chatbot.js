@@ -22,7 +22,7 @@ function getLocalAnswer(text) {
     return "I’m SmileBot. Right now I use SmileHub’s built-in product and support knowledge when the secure AI backend is unavailable. Once the Firebase AI function is connected to an AI provider, I can handle broader, more natural conversations.";
   }
   if (/(shipping|deliver|ship|delivery)/.test(q) && /(fee|cost|price|much|free|charge)/.test(q)) {
-    return 'Shipping is free on orders over ₱3,000. Metro Manila orders otherwise cost ₱150 and usually arrive within 1–3 business days; provincial deliveries may take 3–7 business days.';
+    return window.SmileHubDelivery ? window.SmileHubDelivery.answer() : 'Check the current delivery pricing at checkout.';
   }
   if (/(order|track|status)/.test(q)) {
     return 'Open Account → Orders to view current and past orders. Statuses include Pending, Pending Payment, Pending Quotation, Processing, Shipped, Delivered, and Cancelled.';
@@ -144,6 +144,11 @@ async function sendMessage() {
   const typingDiv = showTyping();
 
   try {
+    if (/(shipping|deliver|ship|delivery)/i.test(text) && /(fee|cost|price|much|free|charge)/i.test(text)) {
+      typingDiv.remove();
+      addBotMessage(getLocalAnswer(text));
+      return;
+    }
     var user = (window.firebase && firebase.auth) ? firebase.auth().currentUser : null;
     var token = user ? await user.getIdToken() : '';
 
