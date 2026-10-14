@@ -23,17 +23,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- LOAD PRODUCTS ---
   var _loadingProducts = false;
+  var productsReady = false;
+  var productsLoadError = null;
+  var ordersReady = false;
+  var ordersLoading = true;
+  var ordersUpdatedAt = null;
 
   function loadProducts(callback) {
-    if (!_loadingProducts) {
-      _loadingProducts = true;
-      SmileHubData.getProducts(function(data) {
-        products = normalizeProducts(data);
-        _loadingProducts = false;
-        if (callback) callback(products);
-      });
+    if (_loadingProducts) return products;
+    _loadingProducts = true;
+    productsLoadError = null;
+    renderDataStatus();
+    function finish(data, error) {
+      _loadingProducts = false;
+      productsLoadError = error ? describeLoadError(error) : null;
+      if (!error) { products = normalizeProducts(data || []); productsReady = true; }
+      updateDashboard();
+      if (callback) callback(products);
     }
-    return products || [];
+    try { SmileHubData.getProducts(finish); } catch (error) { finish(null, error); }
+    return products;
   }
 
   function saveProducts(data, callback) {
@@ -70,6 +79,63 @@ document.addEventListener('DOMContentLoaded', function() {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
+  }
+
+  // Blocked-client (ad-blocker) surfacing: Firestore reads aborted with
+  // ERR_BLOCKED_BY_CLIENT look identical to empty collections unless we
+  // name the cause. Helpers delegate to SmileHubData when available.
+  function isBlockedError(err) {
+    if (err === 'blocked-by-client') return true;
+    try {
+      if (window.SmileHubData && SmileHubData.isBlockedClientError) return SmileHubData.isBlockedClientError(err);
+    } catch (e) {}
+    return false;
+  }
+  function describeLoadError(err, fallback) {
+    try {
+      if (window.SmileHubData && SmileHubData.describeLoadError) {
+        var tagged = SmileHubData.describeLoadError(err);
+        if (tagged === 'blocked-by-client') return tagged;
+        if (typeof err === 'string' && err) return err;
+        return tagged;
+      }
+    } catch (e) {}
+    if (typeof err === 'string' && err) return err;
+    return (err && (err.code || err.message)) || fallback || 'load failed';
+  }
+  function blockedCopy() {
+    try {
+      if (window.SmileHubData && SmileHubData.blockedHint) return SmileHubData.blockedHint();
+    } catch (e) {}
+    return 'Live data is blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.';
+  }
+  function dataWasBlocked() {
+    try {
+      if (window.SmileHubData && SmileHubData.wasBlocked && SmileHubData.wasBlocked()) return true;
+    } catch (e) {}
+    return ordersLoadError === 'blocked-by-client' || accountsLoadError === 'blocked-by-client'
+      || (typeof messagesLoadError !== 'undefined' && messagesLoadError === 'blocked-by-client')
+      || (typeof auditLoadError !== 'undefined' && auditLoadError === 'blocked-by-client');
+  }
+  function maybeShowBlockedBanner() {
+    if (!dataWasBlocked()) return;
+    if (document.getElementById('dataBlockedBanner')) return;
+    var host = document.querySelector('main') || document.getElementById('dashboard');
+    if (!host) return;
+    var bar = document.createElement('div');
+    bar.id = 'dataBlockedBanner';
+    bar.setAttribute('role', 'alert');
+    bar.style.cssText = 'margin:0 0 14px;padding:12px 16px;border-radius:12px;background:#FEF2F2;border:1px solid #f3b8b8;color:#991B1B;font-size:.9rem;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;';
+    var msg = document.createElement('span');
+    msg.textContent = blockedCopy() + ' Tables below show cached/local data only.';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Dismiss';
+    btn.style.cssText = 'flex:0 0 auto;border:1px solid #f3b8b8;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;color:#991B1B;';
+    btn.addEventListener('click', function() { bar.remove(); });
+    bar.appendChild(msg);
+    bar.appendChild(btn);
+    host.insertBefore(bar, host.firstChild);
   }
 
   // CSV: quote + guard formula injection (=+-@) + flatten newlines
@@ -164,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!sectionEl) return;
     if (!sectionEl.hasAttribute('tabindex')) sectionEl.setAttribute('tabindex', '-1');
     try { sectionEl.focus({ preventScroll: true }); } catch (e) { try { sectionEl.focus(); } catch (e2) {} }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }
   function markActiveNav(sectionId) {
     sectionId = normalizeNavTarget(sectionId);
@@ -179,6 +246,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!modal) return;
     try { lastFocusedElement = document.activeElement; } catch (e) { lastFocusedElement = null; }
     try { window.__lastAdminFocus = lastFocusedElement; } catch (e) {}
+    modal._returnFocus = lastFocusedElement;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
     modal.style.display = 'flex';
     var focusTarget = modal.querySelector('input, select, textarea, button');
     if (focusTarget) {
@@ -188,15 +258,21 @@ document.addEventListener('DOMContentLoaded', function() {
   function closeAdminModal(modal) {
     if (!modal) return;
     modal.style.display = 'none';
-    if (lastFocusedElement && document.contains(lastFocusedElement)) {
-      try { lastFocusedElement.focus({ preventScroll: true }); } catch (e) { try { lastFocusedElement.focus(); } catch (e2) {} }
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    var returnFocus = modal._returnFocus || lastFocusedElement;
+    if (!returnFocus || !document.contains(returnFocus)) returnFocus = document.querySelector('.admin-menu a.active');
+    if (returnFocus) {
+      try { returnFocus.focus({ preventScroll: true }); } catch (e) { try { returnFocus.focus(); } catch (e2) {} }
     }
+    modal._returnFocus = null;
     lastFocusedElement = null;
   }
   // Focus trap for modals and notification dropdown
   document.addEventListener('keydown', function(e){
     if(e.key !== 'Tab') return;
-    var openModal = Array.from(document.querySelectorAll('.modal-backdrop')).find(function(m){ return m.style.display === 'flex' || (m.style.display !== 'none' && !m.classList.contains('hidden') && m.offsetParent !== null); });
+    var confirmation = document.getElementById('confirmModal');
+    var openModal = (confirmation && confirmation.style.display === 'flex' && !confirmation.classList.contains('hidden') ? confirmation : null) || Array.from(document.querySelectorAll('.modal-backdrop')).find(function(m){ return m.style.display === 'flex' || (m.style.display !== 'none' && !m.classList.contains('hidden') && m.offsetParent !== null); });
     var dropdown = document.getElementById('notifDropdown');
     var trapEl = openModal || (dropdown && !dropdown.classList.contains('hidden') && dropdown.style.display !== 'none' ? dropdown : null);
     if(!trapEl) return;
@@ -310,9 +386,22 @@ document.addEventListener('DOMContentLoaded', function() {
     toast.appendChild(span);
     toast.appendChild(btn);
     document.body.appendChild(toast);
-    var timer = setTimeout(function(){ toast.remove(); }, ms);
-    toast.addEventListener('mouseenter', function(){ clearTimeout(timer); });
-    toast.addEventListener('mouseleave', function(){ timer = setTimeout(function(){ toast.remove(); }, 2000); });
+    var timer;
+    var pointerInside = false;
+    function pauseExpiry() { clearTimeout(timer); }
+    function resumeExpiry(ignoreCurrentFocus) {
+      pauseExpiry();
+      if (pointerInside || (!ignoreCurrentFocus && toast.contains(document.activeElement))) return;
+      timer = setTimeout(function() {
+        if (pointerInside || toast.contains(document.activeElement)) return;
+        toast.remove();
+      }, ms);
+    }
+    toast.addEventListener('mouseenter', function() { pointerInside = true; pauseExpiry(); });
+    toast.addEventListener('mouseleave', function() { pointerInside = false; resumeExpiry(); });
+    toast.addEventListener('focusin', pauseExpiry);
+    toast.addEventListener('focusout', function(e) { if (!toast.contains(e.relatedTarget)) resumeExpiry(true); });
+    resumeExpiry();
   }
   function navigateTo(sectionId) {
     sectionId = normalizeNavTarget(sectionId);
@@ -333,6 +422,8 @@ document.addEventListener('DOMContentLoaded', function() {
       focusSectionHeading(target);
     }
 
+    var dashboardHeader = document.getElementById('dashboardHeader');
+    if (dashboardHeader) dashboardHeader.hidden = sectionId !== '#dashboard';
     markActiveNav(sectionId);
 
     if (sectionId === '#products') {
@@ -400,6 +491,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedCat = catSelect ? catSelect.value : 'all';
     const stockSelect = document.getElementById('adminStockFilter');
     const selectedStock = stockSelect ? stockSelect.value : 'all';
+    var summary = document.getElementById('productFilterSummary');
+    var clear = document.getElementById('clearProductFilters');
+    var filterLabels = { low: 'Low stock', out: 'Out of stock', in: 'In stock' };
+    var activeFilters = [searchTerm ? 'Search: ' + (adminSearch ? adminSearch.value : searchTerm) : '',
+      selectedCat !== 'all' ? 'Category: ' + selectedCat : '', filterLabels[selectedStock] || ''].filter(Boolean);
+    if (summary) { summary.textContent = activeFilters.join(' · '); summary.hidden = !activeFilters.length; }
+    if (clear) clear.hidden = !activeFilters.length;
     const filtered = products.filter(function(p) {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm) ||
              p.sku.toLowerCase().includes(searchTerm) ||
@@ -428,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const statusClass = p.status === 'Active' ? 'delivered' : p.status === 'Low Stock' ? 'low' : 'out-of-stock';
       const checked = selectedProductIds.has(p.id) ? ' checked' : '';
       return `
-        <tr data-product="${escapeHtml(p.name)}">
+        <tr data-product-id="${p.id}" data-product="${escapeHtml(p.name)}">
           <td><input type="checkbox" class="product-select" data-id="${p.id}" aria-label="Select ${escapeHtml(p.name)}"${checked}></td>
           <td><img class="prod-thumb" src="${escapeHtml(p.image || 'assets/products/default.svg')}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/products/default.svg';"></td>
           <td><span class="sku-muted">${escapeHtml(p.sku)}</span></td>
@@ -535,6 +633,34 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- CRUD OPERATIONS ---
+  var productFormSaving = false;
+  function persistProductRecord(product, remove) {
+    var batch = db.batch();
+    var ref = db.collection('products').doc(String(product.id));
+    if (remove) batch.delete(ref); else batch.set(ref, product);
+    batch.set(db.collection('products_meta').doc('latest'), {
+      version: firebase.firestore.FieldValue.increment(1),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    return batch.commit();
+  }
+  async function saveProductForm(product, onSaved) {
+    productFormSaving = true;
+    var button = productForm ? productForm.querySelector('button[type="submit"]') : null;
+    var label = button ? button.textContent : '';
+    var error = document.getElementById('productFormError');
+    if (button) { button.disabled = true; button.textContent = 'Saving…'; }
+    if (error) error.hidden = true;
+    try {
+      await persistProductRecord(product, false);
+      onSaved();
+    } catch (failure) {
+      if (error) { error.textContent = 'Product could not be saved. Your entries are preserved. Check your connection and access, then try Save again.'; error.hidden = false; }
+    } finally {
+      productFormSaving = false;
+      if (button) { button.disabled = false; if (error && !error.hidden) button.textContent = label; }
+    }
+  }
   function addProduct(data) {
     const newId = products.length > 0 ? Math.max(...products.map(function(p) { return p.id; })) + 1 : 1;
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
@@ -554,14 +680,16 @@ document.addEventListener('DOMContentLoaded', function() {
       description: data.description || '',
       specs: data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : []
     };
+    if (productFormSaving) return;
+    saveProductForm(newProduct, function() {
     products.push(newProduct);
-    saveProducts(products);
     try { invalidateBulkUndo(); } catch (e) {}
     renderProducts();
     updateDashboard();
     addAuditLog('Added product "' + newProduct.name + '" (' + newProduct.sku + ') with ' + stock + ' units');
     showToast('"' + newProduct.name + '" added with ' + stock + ' units', false, true);
     resetForm();
+    });
   }
 
   function editProduct(id) {
@@ -630,73 +758,100 @@ document.addEventListener('DOMContentLoaded', function() {
     const image = data.image || categoryImages[data.category] || 'assets/products/default.svg';
     const oldName = products[index].name;
     
-    products[index].name = data.name;
-    products[index].brand = data.brand || '';
-    products[index].category = data.category;
-    products[index].price = parseFloat(data.price);
-    products[index].image = image;
-    products[index].sku = data.sku || products[index].sku;
-    products[index].description = data.description || '';
-    products[index].specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
+    if (productFormSaving) return;
+    var updated = deepClone(products[index]);
+    updated.name = data.name;
+    updated.brand = data.brand || '';
+    updated.category = data.category;
+    updated.price = parseFloat(data.price);
+    updated.image = image;
+    updated.sku = data.sku || updated.sku;
+    updated.description = data.description || '';
+    updated.specs = data.specs ? data.specs.split(',').map(function(s) { return s.trim(); }) : [];
     if (typeof data.stock === 'number') {
-      products[index].stock = data.stock;
+      updated.stock = data.stock;
     }
     if (typeof data.minStock === 'number' && data.minStock >= 0) {
-      products[index].minStock = data.minStock;
+      updated.minStock = data.minStock;
     }
-    products[index].status = stockStatus(products[index].stock, minOf(products[index]));
+    updated.status = stockStatus(updated.stock, minOf(products[index]));
     
-    saveProducts(products);
+    saveProductForm(updated, function() {
+    products[index] = updated;
     try { invalidateBulkUndo(); } catch (e) {}
     renderProducts();
     updateDashboard();
-    addAuditLog('Updated product "' + products[index].name + '"');
+    addAuditLog('Updated product "' + updated.name + '"');
     showToast('Product "' + oldName + '" updated!', false, true);
     resetForm();
+    });
   }
 
-  var lastProductDeleteSnapshot = null;
-  var lastProductDeleteId = null;
+  var productWrites = new Set();
+  function showProductWriteError(message) {
+    var error = document.getElementById('adminProductWriteError');
+    if (error) { error.textContent = message; error.hidden = false; }
+  }
   function deleteProduct(id) {
     if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
-      showToast('Only admins can delete products.', true);
-      return;
+      showToast('Only admins can delete products.', true); return;
     }
     const product = products.find(function(p) { return p.id === id; });
-    if (!product) return;
-    var impact = 'Removes it from the store. Stock: ' + product.stock + ' units · ' + product.category + ' · This can be undone for 7 seconds.';
+    if (!product || productWrites.has(id)) return;
     showAuthoredConfirm({
-      eyebrow: 'Delete product',
-      title: 'Delete "' + product.name + '"?',
+      eyebrow: 'Delete product', title: 'Delete "' + product.name + '"?',
       message: 'Delete "' + product.name + '" (' + product.sku + ')?',
-      impact: impact,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel'
-    }).then(function(ok){
-      if (!ok) return;
-      lastProductDeleteSnapshot = deepClone(products);
-      lastProductDeleteId = id;
+      impact: 'Removes it from the store. Stock: ' + product.stock + ' units. Undo is available for 7 seconds after deletion succeeds.',
+      confirmLabel: 'Delete', cancelLabel: 'Cancel'
+    }).then(async function(ok) {
+      if (!ok || productWrites.has(id)) return;
+      productWrites.add(id);
       var deleted = deepClone(product);
-      products = products.filter(function(p) { return p.id !== id; });
-      saveProducts(products);
-      try { invalidateBulkUndo(); } catch (e) {}
-      try { db.collection('products').doc(String(id)).delete().catch(function() {}); } catch(e){}
-      renderProducts();
-      updateDashboard();
-      addAuditLog('Deleted product "' + deleted.name + '"');
-      showUndoToast('Product "' + deleted.name + '" deleted', function(){
-        if (!lastProductDeleteSnapshot) return;
-        products = deepClone(lastProductDeleteSnapshot);
-        saveProducts(products);
-        try { db.collection('products').doc(String(lastProductDeleteId)).set(deleted).catch(function(){}); } catch(e){}
-        renderProducts();
-        updateDashboard();
-        addAuditLog('Restored product "' + deleted.name + '" (undo delete)');
-        showToast('Product restored', false, true);
-        lastProductDeleteSnapshot = null;
-        lastProductDeleteId = null;
-      }, 7000);
+      try {
+        await persistProductRecord(product, true);
+        products = products.filter(function(p) { return p.id !== id; });
+        invalidateBulkUndo(); renderProducts(); updateDashboard();
+        var error = document.getElementById('adminProductWriteError'); if (error) error.hidden = true;
+        addAuditLog('Deleted product "' + deleted.name + '"');
+        showUndoToast('Product "' + deleted.name + '" deleted', async function() {
+          if (productWrites.has(id)) return;
+          productWrites.add(id);
+          try {
+            await persistProductRecord(deleted, false);
+            if (!products.some(function(p) { return p.id === id; })) products.push(deleted);
+            renderProducts(); updateDashboard();
+            addAuditLog('Restored product "' + deleted.name + '" (undo delete)');
+            showToast('Product restored', false, true);
+          } catch (error) {
+            showProductWriteError('Product restoration could not be saved. Check your connection and access, then retry.');
+            offerRestoreRetry(deleted);
+          } finally { productWrites.delete(id); }
+        }, 7000);
+      } catch (error) {
+        showProductWriteError('Product could not be deleted. It is still in the catalog. Check your connection and access, then try deleting again.');
+      } finally { productWrites.delete(id); }
     });
+  }
+  function offerRestoreRetry(deleted) {
+    var error = document.getElementById('adminProductWriteError');
+    if (!error) return;
+    var retry = document.createElement('button');
+    retry.type = 'button'; retry.className = 'btn btn-light'; retry.textContent = 'Retry restoration';
+    retry.addEventListener('click', function() { deleteRestore(deleted); });
+    error.appendChild(retry);
+  }
+  async function deleteRestore(deleted) {
+    if (productWrites.has(deleted.id)) return;
+    productWrites.add(deleted.id);
+    try {
+      await persistProductRecord(deleted, false);
+      if (!products.some(function(p) { return p.id === deleted.id; })) products.push(deleted);
+      renderProducts(); updateDashboard(); showToast('Product restored', false, true);
+      var error = document.getElementById('adminProductWriteError'); if (error) error.hidden = true;
+    } catch (error) {
+      showProductWriteError('Product restoration could not be saved. Check your connection and access, then retry.');
+      offerRestoreRetry(deleted);
+    } finally { productWrites.delete(deleted.id); }
   }
 
   function resetForm() {
@@ -726,6 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- UPDATE DASHBOARD ---
   function updateDashboard() {
     updateKPIs();
+    renderDataStatus();
     renderRecentOrders();
     renderInventoryAlerts();
     renderCharts();
@@ -758,20 +914,20 @@ document.addEventListener('DOMContentLoaded', function() {
       var ts = orderTime(o);
       return ts && new Date(ts).toDateString() === todayStr && isActiveOrder(o.status);
     });
-    // "Collected" means confirmed revenue — exclude Pending (uncollected).
-    const todaySales = todayValid.filter(function(o) { return o.status !== 'Pending'; })
+    // Payment confirmation is independent of fulfillment status.
+    const todaySales = todayValid.filter(isPaymentConfirmed)
       .reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
-    const pending = orders.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing' || o.status === 'Shipped'; });
+    const pending = orders.filter(needsOrderWork);
     const pendingCountLabel = pending.length;
     const pendingValue = pending.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
 
     const nowTs = Date.now();
-    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isActiveOrder(o.status) && o.status !== 'Pending'; });
+    const in30 = orders.filter(function(o) { return orderTime(o) >= nowTs - 30 * 86400000 && isPaymentConfirmed(o); });
     const collected = in30.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     const prev30 = orders.filter(function(o) {
       var t = orderTime(o);
-      return t >= nowTs - 60 * 86400000 && t < nowTs - 30 * 86400000 && isActiveOrder(o.status);
+      return t >= nowTs - 60 * 86400000 && t < nowTs - 30 * 86400000 && isPaymentConfirmed(o);
     });
     const prevRev = prev30.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
     const delivered30 = orders.filter(function(o) {
@@ -779,7 +935,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).length;
 
     setText('kpiTodayOrders', String(todayValid.length).padStart(2, '0'));
-    setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' collected');
+    setText('kpiTodaySales', '₱' + todaySales.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' confirmed paid');
     setText('kpiPendingNow', String(pendingCountLabel).padStart(2, '0'));
     setText('kpiPendingSub', pendingCountLabel + ' in the queue');
     setText('kpiTotalProducts', String(total).padStart(2, '0'));
@@ -788,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setText('kpiLowStockDetail', low + ' low • ' + out + ' out of stock');
 
     setText('mCollected', '₱' + collected.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-    setText('mCollectedSub', in30.length + ' payments taken');
+    setText('mCollectedSub', in30.length + ' orders with confirmed payment');
     var badge = document.getElementById('mCollectedBadge');
     if (badge) {
       if (prevRev > 0) {
@@ -812,11 +968,34 @@ document.addEventListener('DOMContentLoaded', function() {
     syncWelcome();
     var sub = document.getElementById('adminDateSubtitle');
     if (sub) {
-      sub.textContent = (!orders.length && ordersLoadError)
-        ? 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.'
-        : 'Today at a glance, and how the last 30 days have gone.';
+      sub.textContent = 'Today at a glance, and how the last 30 days have gone.';
     }
+    maybeShowBlockedBanner();
     updateInventoryStats();
+  }
+
+  function renderDataStatus() {
+    var orderUnavailable = !ordersReady || !!ordersLoadError;
+    var productUnavailable = !productsReady || !!productsLoadError;
+    var orderMessage = ordersLoading ? 'Loading orders…' : 'Orders unavailable. Try again.';
+    if (ordersReady && ordersLoadError) orderMessage = 'Showing previously loaded orders. Refresh failed.';
+    var productMessage = _loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Try again.';
+    if (productsReady && productsLoadError) productMessage = 'Showing previously loaded inventory. Refresh failed.';
+    if (!ordersReady) {
+      ['kpiTodayOrders', 'kpiPendingNow'].forEach(function(id) { setText(id, '—'); });
+      setText('kpiTodaySales', orderMessage); setText('kpiPendingSub', orderMessage);
+    }
+    if (!productsReady) {
+      ['kpiTotalProducts', 'kpiLowStock'].forEach(function(id) { setText(id, '—'); });
+      setText('kpiTotalRevenue', productMessage); setText('kpiLowStockDetail', productMessage);
+    }
+    var status = document.getElementById('adminDataStatus');
+    if (status) {
+      status.textContent = [orderUnavailable ? orderMessage : '', productUnavailable ? productMessage : '',
+        ordersUpdatedAt ? 'Orders last loaded at ' + ordersUpdatedAt.toLocaleTimeString('en-PH', {hour:'2-digit', minute:'2-digit'}) + '.' : ''].filter(Boolean).join(' ');
+    }
+    var retry = document.getElementById('adminDataRetry');
+    if (retry) { retry.hidden = !(ordersLoadError || productsLoadError); retry.disabled = ordersLoading || _loadingProducts; }
   }
 
   function setText(id, value) {
@@ -827,12 +1006,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderRecentOrders() {
     var body = document.getElementById('dashRecentOrders');
     if (!body) return;
-    var orders = getOrders();
+    var orders = getOrders().filter(needsOrderWork);
     if (!orders || orders.length === 0) {
-      body.innerHTML = '<tr><td colspan="4" class="text-center muted">No orders yet</td></tr>';
+      body.innerHTML = '<tr><td colspan="4" class="text-center muted">' + (!ordersReady ? (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') : 'No orders need work right now') + '</td></tr>';
       return;
     }
-    var sorted = orders.slice().sort(function(a, b) { return orderTime(b) - orderTime(a); });
+    var sorted = orders.slice().sort(function(a, b) { return orderTime(a) - orderTime(b); });
     var recent = sorted.slice(0, 5);
 
     body.innerHTML = recent.map(function(o) {
@@ -851,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderInventoryAlerts() {
     const container = document.getElementById('dashInventoryAlerts');
     if (!container) return;
+    if (!productsReady) { container.innerHTML = '<p class="muted dash-empty">' + (_loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Use Retry above.') + '</p>'; return; }
     const alerts = products.filter(function(p) { return p.stock <= minOf(p); }).sort(function(a, b) { return a.stock - b.stock; });
 
     if (alerts.length === 0) {
@@ -861,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = alerts.slice(0, 6).map(function(p) {
       const label = p.stock === 0 ? 'Out of stock' : p.stock + ' left (min ' + minOf(p) + ')';
       const cls = p.stock === 0 ? 'low' : p.stock <= 5 ? 'low' : 'processing';
-      return '<div class="inventory-alert-item" data-product="' + escapeHtml(p.name) + '" role="button" tabindex="0" title="Open in inventory">' +
+      return '<div class="inventory-alert-item" data-product-id="' + escapeHtml(p.id) + '" data-stock-filter="' + (p.stock === 0 ? 'out' : 'low') + '" data-product="' + escapeHtml(p.name) + '" role="button" tabindex="0" title="Open in inventory">' +
         '<span class="status ' + cls + '">' + escapeHtml(label) + '</span><span>' + escapeHtml(p.name) + '</span>' +
         '</div>';
     }).join('');
@@ -908,6 +1088,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function isTerminalStatus(status) {
     return ['Delivered','Cancelled','Returned','Refunded'].indexOf(status) !== -1;
   }
+  function isPaymentConfirmed(order) {
+    return order.paymentStatus === 'paid' && isActiveOrder(order.status);
+  }
+  function needsOrderWork(order) {
+    return ['Pending', 'Pending Payment', 'Pending Quotation', 'Processing', 'Shipped'].indexOf(order.status) !== -1;
+  }
   function isActiveOrder(status) {
     return ['Cancelled','Returned','Refunded'].indexOf(status) === -1;
   }
@@ -929,11 +1115,15 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch (e) {}
     }
 
-    renderSalesChart({ blue: blue, teal: teal, muted: muted, gridColor: gridColor, isDark: isDark, track: isDark ? 'rgba(148,163,184,0.28)' : '#E8E8EB', peak: isDark ? '#F1F5F9' : '#1B1B1F' });
+    renderSalesChart({ blue: blue, teal: teal, muted: muted, gridColor: gridColor, isDark: isDark, track: cssVar('--admin-chart-track', '#C2E6E0'), peak: teal });
 
     const inStock = products.filter(function(p) { return p.stock > minOf(p); }).length;
     const lowStock = products.filter(function(p) { return p.stock > 0 && p.stock <= minOf(p); }).length;
     const outStock = products.filter(function(p) { return p.stock === 0; }).length;
+    var stockBody = document.getElementById('stockChartDataBody');
+    if (stockBody) stockBody.innerHTML = productsReady
+      ? [['In stock', inStock], ['Low stock', lowStock], ['Out of stock', outStock]].map(function(row) { return '<tr><th scope="row">' + row[0] + '</th><td>' + row[1] + '</td></tr>'; }).join('')
+      : '<tr><td colspan="2">' + (_loadingProducts ? 'Loading inventory…' : 'Inventory unavailable. Use Retry above.') + '</td></tr>';
 
     // Category value data
     var catMap = {};
@@ -995,20 +1185,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var canvas = document.getElementById('salesChartReal');
     var empty = document.getElementById('salesChartEmpty');
     if (!canvas) return;
-    if (typeof Chart === 'undefined') return;
-    if (chartSales) { chartSales.destroy(); chartSales = null; }
-
     var now = new Date();
     var months = [];
     var totals = [0, 0, 0, 0, 0, 0];
     for (var i = 5; i >= 0; i--) {
       var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push(d.toLocaleDateString('en-PH', { month: 'short' }));
+      months.push(d.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }));
     }
     var orders = getOrders() || [];
     var hasData = false;
     orders.forEach(function(o) {
-      if (!isActiveOrder(o.status)) return;
+      if (!isPaymentConfirmed(o)) return;
       var t = orderTime(o);
       var dt = new Date(t);
       var diff = (now.getFullYear() - dt.getFullYear()) * 12 + (now.getMonth() - dt.getMonth());
@@ -1019,16 +1206,27 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    if (empty) empty.classList.toggle('hidden', hasData);
-    canvas.style.display = hasData ? '' : 'none';
+    var salesBody = document.getElementById('salesChartDataBody');
+    if (salesBody) salesBody.innerHTML = ordersReady
+      ? months.map(function(month, i) { return '<tr><th scope="row">' + month + '</th><td>₱' + totals[i].toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td></tr>'; }).join('')
+      : '<tr><td colspan="2">' + (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') + '</td></tr>';
+    var area = document.getElementById('salesChartArea');
     var periodTotalEl = document.getElementById('salesPeriodTotal');
-    var periodTotal = totals.reduce(function(s, v) { return s + (Number(v) || 0); }, 0);
-    if (periodTotalEl) {
-      periodTotalEl.textContent = hasData
-        ? '₱' + periodTotal.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' · last 6 months'
-        : '';
-    }
-    if (!hasData) return;
+    var periodTotal = totals.reduce(function(sum, value) { return sum + value; }, 0);
+    if (periodTotalEl) periodTotalEl.textContent = ordersReady
+      ? '₱' + periodTotal.toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' · ' + months[0] + ' – ' + months[5]
+      : months[0] + ' – ' + months[5];
+    if (chartSales) { chartSales.destroy(); chartSales = null; }
+    var message = !ordersReady ? (ordersLoading ? 'Loading payment values…' : 'Payment values unavailable. Use Retry above.')
+      : ordersLoadError ? 'Showing previously loaded payment values. Refresh failed; use Retry above.'
+      : !hasData ? 'No confirmed payments in this period.'
+      : typeof Chart === 'undefined' ? 'Chart unavailable. Open Monthly breakdown to view the values.' : '';
+    if (ordersReady && hasData && ordersLoadError && typeof Chart === 'undefined') message += ' Chart unavailable; use Monthly breakdown.';
+    if (empty) { empty.textContent = message; empty.classList.toggle('hidden', !message); }
+    var showChart = ordersReady && hasData && typeof Chart !== 'undefined';
+    if (area) area.hidden = !showChart;
+    canvas.style.display = showChart ? '' : 'none';
+    if (!showChart) return;
 
     var peakIdx = totals.indexOf(Math.max.apply(null, totals));
     var track = theme.track || '#E8E8EB';
@@ -1040,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', function() {
       data: {
         labels: months,
         datasets: [{
-          label: 'Revenue (₱)',
+          label: 'Confirmed paid (₱)',
           data: totals,
           backgroundColor: totals.map(function(v, i) { return i === peakIdx ? peak : track; }),
           hoverBackgroundColor: totals.map(function(v, i) { return i === peakIdx ? peak : hoverBar; }),
@@ -1216,11 +1414,22 @@ document.addEventListener('DOMContentLoaded', function() {
         var impact = bulkImpactForIds(selectedProductIds, type, qty);
         if (applyBtn.disabled) return;
         var destructive = type === 'set' || impact.count >= 20;
+        var needKeyword = destructive && impact.count >= 20;
         var detail = 'Apply ' + type + ' ' + qty + ' to ' + impact.count + ' selected products?';
-        if (!window.confirm(detail + '\nUnits change: ' + impact.unitsDelta + '\nThis can be undone with Undo.')) return;
-        if (destructive && impact.count >= 20) {
-          if (!window.confirm('This affects ' + impact.count + ' products. Confirm again.')) return;
-        }
+        showAuthoredConfirm({
+          eyebrow: 'Bulk stock update',
+          title: detail,
+          message: detail,
+          impact: 'Units change: ' + impact.unitsDelta + '.' + (needKeyword ? ' Type CONFIRM to proceed.' : ' This can be undone with Undo.'),
+          keyword: needKeyword ? 'CONFIRM' : '',
+          confirmLabel: 'Apply',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) return;
+          applyBulkStock();
+        });
+        return;
+        function applyBulkStock() {
         lastBulkSnapshot = deepClone(products);
         applyBtn.disabled = true;
         try {
@@ -1239,6 +1448,7 @@ document.addEventListener('DOMContentLoaded', function() {
           showToast('Updated ' + impact.count + ' products — use Undo to revert', false, true);
         } finally {
           applyBtn.disabled = false;
+        }
         }
       });
     }
@@ -1260,14 +1470,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function fetchOrders(callback) {
     ordersLoadError = null;
+    ordersLoading = true;
+    renderDataStatus();
     try {
       SmileHubData.getOrders(function(data, err) {
-        ordersCache = data || [];
-        if (err) ordersLoadError = (err && (err.code || err.message)) || 'load failed';
+        ordersLoading = false;
+        if (err) ordersLoadError = describeLoadError(err);
+        else { ordersCache = data || []; ordersReady = true; ordersUpdatedAt = new Date(); }
+        updateDashboard();
         if (callback) callback(ordersCache);
       });
     } catch (e) {
-      ordersLoadError = (e && (e.code || e.message)) || 'load failed';
+      ordersLoading = false;
+      ordersLoadError = describeLoadError(e);
+      updateDashboard();
       if (callback) callback(ordersCache);
     }
   }
@@ -1370,7 +1586,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var q = ((document.getElementById('orderSearch') || {}).value || '').toLowerCase().trim();
     var dateVal = (document.getElementById('orderDateFilter') || {}).value || 'all';
     let filtered = orders.filter(function(o){
-      if (statusVal !== 'all' && o.status !== statusVal) return false;
+      if (statusVal === 'active') {
+        if (!needsOrderWork(o)) return false;
+      }
+      else if (statusVal !== 'all' && o.status !== statusVal) return false;
       if (!orderMatchesDate(o, dateVal)) return false;
       if (q) {
         var hay = [o.number||'', o.customer||'', o.email||''].join(' ').toLowerCase();
@@ -1388,11 +1607,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fc) fc.textContent = filtered.length + ' of ' + orders.length;
 
     if (filtered.length === 0) {
-      if (orders.length === 0 && ordersLoadError) {
-        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Couldn\'t load orders (' + escapeHtml(ordersLoadError) + '). Sign in over localhost or hosting as staff, then Refresh.</td></tr>';
+      if (orders.length === 0 && ordersLoadError === 'blocked-by-client') {
+        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Live orders are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>';
+      } else if (orders.length === 0 && ordersLoadError) {
+        body.innerHTML = '<tr><td colspan="8" class="text-center muted" style="padding:40px;">Orders could not load. Check your connection and staff access, then Refresh.</td></tr>';
       } else {
         body.innerHTML = orders.length === 0
-          ? `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders yet — new store orders will appear here.</td></tr>`
+          ? '<tr><td colspan="8" class="text-center muted" style="padding:40px;">' + (ordersLoading ? 'Loading orders…' : 'No orders yet — new store orders will appear here.') + '</td></tr>'
           : `<tr><td colspan="8" class="text-center muted" style="padding:40px;">No orders match — try a different search or filter.</td></tr>`;
       }
       updateOrderStats(orders);
@@ -1421,16 +1642,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${count} items</td>
           <td><span class="status ${cls}">${icon} ${safeStatus}</span>${returnBadge}</td>
           <td>
-            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View</button>
-            <select class="order-status-update" data-number="${safeNumber}" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;" aria-label="Change status for order ${safeNumber}">
-              <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-              <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
-              <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-              <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-              <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-              <option value="Returned" ${order.status === 'Returned' ? 'selected' : ''}>Returned</option>
-              <option value="Refunded" ${order.status === 'Refunded' ? 'selected' : ''}>Refunded</option>
-            </select>
+            <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View &amp; Fulfill</button>
           </td>
         </tr>
       `;
@@ -1438,11 +1650,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.view-order').forEach(function(btn) {
       btn.addEventListener('click', function() { viewOrder(this.dataset.number); });
-    });
-    document.querySelectorAll('.order-status-update').forEach(function(sel) {
-      sel.addEventListener('change', function() {
-        updateOrderStatus(this.dataset.number, this.value, this);
-      });
     });
     document.querySelectorAll('.order-select').forEach(function(cb){
       var tr = cb.closest('tr');
@@ -1499,74 +1706,45 @@ document.addEventListener('DOMContentLoaded', function() {
     try { renderOrdersRail(getOrders()); } catch(e){}
     try { renderAccounts(); } catch(e){}
   }
+  var orderStatusWrites = new Map();
+  var orderConfirmations = new Set();
   function updateOrderStatus(number, status, selectEl, opts) {
     opts = opts || {};
-    var quiet = !!opts.quiet;
-    const orders = getOrders();
-    const idx = orders.findIndex(function(o) { return o.number === number; });
-    if (idx === -1) {
-      const filterMiss = document.getElementById('orderStatusFilter')?.value || 'all';
-      renderOrders(filterMiss);
-      return quiet ? Promise.resolve({ ok:false, reason:'not found' }) : undefined;
+    var order = getOrders().find(function(o) { return o.number === number; });
+    if (!order) return Promise.resolve({ok:false, error:{message:'Order not found. Refresh orders and retry.'}});
+    var old = order.status;
+    if (orderStatusWrites.has(number)) return Promise.resolve({ok:false, error:{message:'This order is still saving. Wait for confirmation.'}});
+    if (old === status) return Promise.resolve({ok:true});
+    if (!opts.quiet && isTerminalStatus(status)) {
+      return showAuthoredConfirm({title:'Change order ' + number + ' to ' + status + '?', message:'Change from ' + old + ' to ' + status + '.', confirmLabel:'Mark ' + status, cancelLabel:'Cancel'})
+        .then(function(ok) { if (!ok) { if (selectEl) selectEl.value=old; return {ok:false,reason:'cancelled'}; } return apply(); });
     }
-    const old = orders[idx].status;
-    if (old === status) return quiet ? Promise.resolve({ ok:true }) : undefined;
-    if (!quiet && isTerminalStatus(status)) {
-      if (!window.confirm('Change order ' + number + ' from ' + old + ' to ' + status + '?\nThis is a terminal state. Continue?')) {
+    return apply();
+    function apply() {
+      orderStatusWrites.set(number, {old:old, next:status});
+      if (selectEl) selectEl.disabled = true;
+      return Promise.resolve().then(function() {
+        if (typeof db === 'undefined' || !db.collection) throw new Error('Order service unavailable. Reload and retry.');
+        return db.collection('orders').doc(order.docId || order.number).update({status:status, updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      }).then(function() {
+        order.status = status;
+        var current = getOrders().find(function(o) { return o.number === number; });
+        if (current) current.status = status;
+        if (!opts.quiet) {
+          addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
+          showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
+          refreshOrderViews(); closeOrderModal();
+        }
+        return {ok:true};
+      }, function(error) {
         if (selectEl) selectEl.value = old;
-        return quiet ? Promise.resolve({ ok:false, reason:'cancelled' }) : undefined;
-      }
-    }
-    if (typeof db === 'undefined' || !db.collection) {
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) showToast('Order service unavailable — try again after reload', true);
-      return quiet ? Promise.resolve({ ok:false, error:'no db' }) : undefined;
-    }
-    if (selectEl) selectEl.disabled = true;
-    orders[idx].status = status;
-
-    // Surgical update: write ONLY this order's document. Rewriting the whole
-    // list fails whenever any single order is not writable.
-    const refId = orders[idx].docId || orders[idx].number;
-    var updatePromise;
-    try {
-      updatePromise = db.collection('orders').doc(refId).update({
-        status: status,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } catch (syncErr) {
-      console.error('Order status update failed:', syncErr);
-      orders[idx].status = old;
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) {
-        const filterSync = document.getElementById('orderStatusFilter')?.value || 'all';
-        renderOrders(filterSync);
-        showToast(orderErrorMessage(syncErr), true);
-      }
-      return quiet ? Promise.resolve({ ok:false, error:syncErr }) : undefined;
-    }
-    var p = updatePromise.then(function() {
-      if (!quiet) {
-        addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + status);
-        showToast('Order ' + number + ': ' + old + ' → ' + status, false, true);
-        refreshOrderViews();
-        closeOrderModal();
-      } else {
+        if (!opts.quiet) showToast(orderErrorMessage(error), true);
+        return {ok:false,error:error};
+      }).finally(function() {
+        orderStatusWrites.delete(number);
         if (selectEl) selectEl.disabled = false;
-      }
-      return { ok:true };
-    }).catch(function(error) {
-      console.error('Order status update failed:', error);
-      orders[idx].status = old;
-      if (selectEl) { selectEl.value = old; selectEl.disabled = false; }
-      if (!quiet) {
-        const filter = document.getElementById('orderStatusFilter')?.value || 'all';
-        renderOrders(filter);
-        showToast(orderErrorMessage(error), true);
-      }
-      return { ok:false, error:error };
-    });
-    if (quiet) return p;
+      });
+    }
   }
 
   function viewOrder(number) {
@@ -1648,6 +1826,22 @@ document.addEventListener('DOMContentLoaded', function() {
       } catch(e){}
     }
 
+    var FULFILL_FLOW = ['Pending', 'Pending Payment', 'Pending Quotation', 'Processing', 'Shipped', 'Delivered'];
+    var fulfillIdx = FULFILL_FLOW.indexOf(order.status || 'Pending');
+    var fulfillNext = (fulfillIdx >= 0 && fulfillIdx < FULFILL_FLOW.length - 1) ? FULFILL_FLOW[fulfillIdx + 1] : null;
+    var fulfillDots = FULFILL_FLOW.map(function(s, i) {
+      var st = (fulfillIdx >= 0 && i < fulfillIdx) ? 'is-past' : (i === fulfillIdx ? 'is-current' : '');
+      return '<li class="fulfill-step ' + st + '"' + (i === fulfillIdx ? ' aria-current="step"' : '') + '>' + escapeHtml(s) + '</li>';
+    }).join('');
+    var fulfillActions = '';
+    if (fulfillNext) {
+      fulfillActions = '<button class="btn btn-primary" data-fulfill-next="' + escapeHtml(fulfillNext) + '" data-number="' + escapeHtml(order.number) + '" type="button">Mark ' + escapeHtml(fulfillNext) + '</button>';
+      if (fulfillIdx <= 1) fulfillActions += ' <button class="btn btn-light" data-fulfill-cancel data-number="' + escapeHtml(order.number) + '" type="button">Cancel order</button>';
+    } else if (order.status === 'Delivered') {
+      fulfillActions = '<p class="muted" style="margin:0;">Fulfilled — no further actions. Returns are handled below inside 7 days.</p>';
+    } else {
+      fulfillActions = '<p class="muted" style="margin:0;">Terminal state (' + escapeHtml(order.status) + ') — no fulfillment actions.</p>';
+    }
     content.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
         <div><strong>Customer:</strong> ${escapeHtml(order.customer)}</div>
@@ -1656,6 +1850,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <div><strong>Status:</strong> <span class="status ${cls}">${icon} ${escapeHtml(order.status)}</span></div>
         <div style="grid-column:span 2;"><strong>Address:</strong><br>${escapeHtml(order.address || 'N/A')}</div>
       </div>
+      <section class="fulfill-box" aria-label="Fulfillment">
+        <h3>Fulfillment</h3>
+        <ol class="fulfill-steps">${fulfillDots}</ol>
+        <div class="fulfill-actions">${fulfillActions}</div>
+        <p id="orderStatusFeedback" role="status" aria-live="polite" hidden></p>
+      </section>
       <h3>Items</h3>
       <div class="table-wrap"><table><thead><tr><th scope="col">Product</th><th scope="col">Qty</th><th scope="col">Price</th><th scope="col">Total</th></tr></thead><tbody>${itemsHtml}<tr><td colspan="3" style="text-align:right;"><strong>Total:</strong></td><td><strong>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</strong></td></tr></tbody></table></div>
       ${returnBlock}
@@ -1671,7 +1871,62 @@ document.addEventListener('DOMContentLoaded', function() {
       content.querySelectorAll('[data-return-action="refund"]').forEach(function(btn){
         btn.addEventListener('click', function(){ handleReturnRefund(this.dataset.number); });
       });
+      content.querySelectorAll('[data-fulfill-next]').forEach(function(btn){
+        btn.addEventListener('click', function(){ fulfillAdvance(this.dataset.number, this.getAttribute('data-fulfill-next'), this); });
+      });
+      content.querySelectorAll('[data-fulfill-cancel]').forEach(function(btn){
+        btn.addEventListener('click', function(){ fulfillAdvance(this.dataset.number, 'Cancelled', this); });
+      });
     } catch(e){}
+  }
+
+  async function fulfillAdvance(number, next, btn) {
+    var order = getOrders().find(function(o) { return o.number === number; });
+    if (!order) { showToast('Order not found', true); return; }
+    if (orderConfirmations.has(number) || orderStatusWrites.has(number) || order.status === next) return;
+    var old = order.status;
+    var originalLabel = btn ? btn.textContent : '';
+    var timer;
+    orderConfirmations.add(number);
+    var modal = document.getElementById('orderModal');
+    var controls = modal ? Array.from(modal.querySelectorAll('[data-fulfill-next], [data-fulfill-cancel]')) : [];
+    controls.forEach(function(control) { control.disabled = true; });
+    function feedback(message) {
+      var el = document.getElementById('orderStatusFeedback');
+      if (el) { el.textContent = message; el.hidden = !message; }
+    }
+    try {
+      var ok = await showAuthoredConfirm({
+        eyebrow: isTerminalStatus(next) ? 'Terminal fulfillment' : 'Advance fulfillment',
+        title:'Mark order ' + number + ' as ' + next + '?',
+        message:'Move order ' + number + ' from ' + old + ' to ' + next + '.',
+        impact:'Customer: ' + (order.customer || '') + ' · Total: ₱' + Number(order.total || 0).toLocaleString('en-PH', {minimumFractionDigits:2}),
+        confirmLabel:'Mark ' + next, cancelLabel:'Keep ' + old
+      });
+      if (!ok) return;
+      if (btn) btn.textContent = 'Saving…';
+      feedback('Saving status…');
+      timer = setTimeout(function() { feedback('Still saving—check your connection. Wait for confirmation before retrying.'); }, 8000);
+      var result = await updateOrderStatus(number, next, null, {quiet:true});
+      if (!result.ok) { feedback(orderErrorMessage(result.error) + ' Your previous status is unchanged. Try again.'); return; }
+      addAuditLog('Changed order ' + number + ' from ' + old + ' to ' + next + ' (fulfill stepper)');
+      refreshOrderViews(); viewOrder(number);
+      showUndoToast('Order ' + number + ': ' + old + ' → ' + next, function() {
+        updateOrderStatus(number, old, null, {quiet:true}).then(function(result) {
+          if (result.ok) { refreshOrderViews(); viewOrder(number); showToast('Order reverted to ' + old, false, true); }
+          else showToast(orderErrorMessage(result.error), true);
+        });
+      }, 30000);
+    } catch (error) { feedback(orderErrorMessage(error) + ' Try again.'); }
+    finally {
+      clearTimeout(timer);
+      orderConfirmations.delete(number);
+      controls.forEach(function(control) { control.disabled = false; });
+      if (btn) btn.textContent = originalLabel;
+      var currentModal = document.getElementById('orderModal');
+      var focusButton = currentModal ? currentModal.querySelector('[data-fulfill-next], [data-fulfill-cancel]') : null;
+      if (focusButton && currentModal.style.display === 'flex') focusButton.focus();
+    }
   }
 
   function closeOrderModal() {
@@ -1707,7 +1962,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'requested') { showToast('No pending return request', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can approve returns', true); return; } } catch(e){}
-    if (!window.confirm('Approve return for order ' + number + '?\nItems will be restocked automatically. Continue?')) return;
+    var approveImpact = 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' — items will be restocked automatically.';
+    showAuthoredConfirm({
+      eyebrow: 'Approve return',
+      title: 'Approve return for order ' + number + '?',
+      message: 'Approve the return request and mark the order Returned.',
+      impact: approveImpact,
+      confirmLabel: 'Approve & Restock',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnApprove();
+    });
+    return;
+    function doReturnApprove() {
     var restocked = restockOrderItems(order);
     order.returnRequest.status = 'approved';
     order.returnRequest.approvedAt = new Date().toISOString();
@@ -1728,6 +1996,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }); } catch(e){ showToast(saveErrorMessage('approve return', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
   function handleReturnReject(number) {
     var orders = getOrders();
@@ -1736,12 +2005,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'requested') { showToast('No pending return request', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can reject returns', true); return; } } catch(e){}
-    var reason = window.prompt('Reject return for order ' + number + ' — enter reason (optional):') || '';
-    // allow empty reason but confirm
-    if (!window.confirm('Reject this return request?')) return;
+    showAuthoredConfirm({
+      eyebrow: 'Reject return',
+      title: 'Reject return for order ' + number + '?',
+      message: 'The customer keeps the items. No reason will be recorded — follow up in Messages if one is needed.',
+      impact: 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' stays Delivered.',
+      confirmLabel: 'Reject request',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnReject();
+    });
+    return;
+    function doReturnReject() {
     order.returnRequest.status = 'rejected';
     order.returnRequest.rejectedAt = new Date().toISOString();
-    order.returnRequest.adminNote = reason;
+    order.returnRequest.adminNote = '';
     var refId = order.docId || order.number;
     var payload = { returnRequest: order.returnRequest, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
     try { db.collection('orders').doc(String(refId)).update(payload).then(function(){
@@ -1752,6 +2031,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(function(err){ showToast(saveErrorMessage('reject return', err), true); refreshOrderViews(); }); } catch(e){ showToast(saveErrorMessage('reject return', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
   function handleReturnRefund(number) {
     var orders = getOrders();
@@ -1760,7 +2040,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = orders[idx];
     if (!order.returnRequest || order.returnRequest.status !== 'approved') { showToast('Order must be approved before refund', true); return; }
     try { var r=getCurrentUserRole ? getCurrentUserRole() : null; if (r!=='admin' && r!=='superadmin'){ showToast('Only admins can mark refunds', true); return; } } catch(e){}
-    if (!window.confirm('Mark order ' + number + ' as Refunded?\nThis records the refund as completed.')) return;
+    showAuthoredConfirm({
+      eyebrow: 'Record refund',
+      title: 'Mark order ' + number + ' as Refunded?',
+      message: 'This records the refund as completed.',
+      impact: 'Order ' + number + (order.customer ? ' · ' + order.customer : '') + ' — terminal state.',
+      confirmLabel: 'Mark Refunded',
+      cancelLabel: 'Cancel'
+    }).then(function(ok){
+      if (!ok) return;
+      doReturnRefund();
+    });
+    return;
+    function doReturnRefund() {
     order.returnRequest.status = 'refunded';
     order.returnRequest.refundedAt = new Date().toISOString();
     order.status = 'Refunded';
@@ -1774,6 +2066,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(function(err){ showToast(saveErrorMessage('mark refunded', err), true); refreshOrderViews(); }); } catch(e){ showToast(saveErrorMessage('mark refunded', e), true); }
     refreshOrderViews();
     if (typeof viewOrder === 'function') setTimeout(function(){ viewOrder(number); }, 350);
+    }
   }
 
   function filterOrders() {
@@ -1809,12 +2102,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // --- MAKE DASHBOARD CLICKABLE ---
+  function openStockProducts(stockFilter, productName) {
+    if (adminSearch) adminSearch.value = productName || '';
+    var category = document.getElementById('adminCategoryFilter');
+    var stock = document.getElementById('adminStockFilter');
+    if (category) category.value = 'all';
+    if (stock) stock.value = stockFilter;
+    navigateTo('#products');
+  }
   function makeDashboardClickable() {
     document.querySelectorAll('.kpi-card.clickable, .stat-plain[data-target]').forEach(function(card) {
       card.addEventListener('click', function(e) {
         if (e && e.preventDefault && card.tagName === 'A') e.preventDefault();
         const target = this.dataset.target;
-        if (target) navigateTo(target);
+        if (this.dataset.stockFilter) openStockProducts(this.dataset.stockFilter);
+        else if (target) navigateTo(target);
       });
     });
     var alertsContainer = document.getElementById('dashInventoryAlerts');
@@ -1822,17 +2124,14 @@ document.addEventListener('DOMContentLoaded', function() {
       alertsContainer.addEventListener('click', function(e) {
         var item = e.target.closest('.inventory-alert-item');
         if (!item) return;
-        var name = item.dataset.product;
-        navigateTo('#products');
-        setTimeout(function() {
-          document.querySelectorAll('#adminProductsBody tr').forEach(function(row) {
-            var rowName = row.querySelector('td:nth-child(4)')?.textContent || row.dataset.product || '';
-            if (rowName.includes(name)) {
-              row.classList.add('row-flash');
-              setTimeout(function() { row.classList.remove('row-flash'); }, 5000);
-            }
-          });
-        }, 300);
+        openStockProducts(item.dataset.stockFilter, item.dataset.product);
+        var row = Array.from(document.querySelectorAll('#adminProductsBody tr')).find(function(row) {
+          return row.dataset.productId === item.dataset.productId;
+        });
+        if (row) {
+          row.classList.add('row-flash');
+          setTimeout(function() { row.classList.remove('row-flash'); }, 5000);
+        }
       });
       alertsContainer.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -1848,6 +2147,261 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         setTimeout(function() { try { renderCharts(); } catch (e) {} }, 80);
       });
+    });
+  }
+
+  // --- PERSONAL SETTINGS ---
+  var settingsResetPending = false;
+  var settingsAccountUid = null;
+  var settingsRoleUid = null;
+  function settingsAuthUser() {
+    return window.firebase && firebase.auth ? firebase.auth().currentUser : null;
+  }
+  function renderSettings() {
+    var button = document.getElementById('settingsPasswordReset');
+    if (!button) return;
+    var user = settingsAuthUser();
+    var cached = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+    var allowed = roleResolved && ['admin', 'staff', 'superadmin'].includes(currentRole);
+    if (settingsAccountUid !== (user && user.uid)) {
+      settingsAccountUid = user && user.uid;
+      document.getElementById('settingsResetFeedback').hidden = true;
+    }
+    var ready = !!(user && allowed && settingsRoleUid === user.uid);
+    document.getElementById('settingsAccountName').textContent = ready ? (cached && cached.uid === user.uid && cached.name || user.displayName || 'Not provided') : '—';
+    document.getElementById('settingsAccountEmail').textContent = ready ? (user.email || 'Not available') : '—';
+    document.getElementById('settingsAccountRole').textContent = ready ? ({admin:'Admin', staff:'Staff', superadmin:'Super Admin'}[currentRole]) : '—';
+    document.getElementById('settingsAccountState').textContent = !roleResolved || (user && allowed && settingsRoleUid !== user.uid) ? 'Loading account information…' : ready ? 'Signed-in account. Contact a super admin to change your details.' : 'Account information is unavailable. Sign in with a staff account and try again.';
+    button.disabled = settingsResetPending || !ready || !user.email;
+    button.textContent = settingsResetPending ? 'Sending…' : 'Send password reset email';
+    document.querySelectorAll('[name="adminSettingsTheme"]').forEach(function(input) {
+      input.checked = input.value === (document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+    renderStoreSettings();
+    renderDeliverySettings();
+  }
+  async function sendSettingsPasswordReset() {
+    if (settingsResetPending) return;
+    var user = settingsAuthUser();
+    if (!user || !user.email || settingsRoleUid !== user.uid || !roleResolved || !['admin', 'staff', 'superadmin'].includes(currentRole)) { renderSettings(); return; }
+    var uid = user.uid;
+    var email = user.email;
+    var feedback = document.getElementById('settingsResetFeedback');
+    settingsResetPending = true;
+    feedback.hidden = false;
+    feedback.dataset.state = 'progress';
+    feedback.textContent = 'Sending reset instructions…';
+    renderSettings();
+    var timer = setTimeout(function() {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) feedback.textContent = 'Still sending—check your connection. Please wait before trying again.';
+    }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      var current = settingsAuthUser();
+      if (!current || current.uid !== uid || current.email !== email || !['admin', 'staff', 'superadmin'].includes(role)) throw new Error('account-changed');
+      await firebase.auth().sendPasswordResetEmail(email);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'success';
+        feedback.textContent = 'Password reset email sent to ' + email + '. Check your inbox and spam folder.';
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error';
+        feedback.textContent = error.code === 'auth/too-many-requests' ? 'Too many requests. Wait a few minutes before trying again.' : error.message === 'account-changed' ? 'Your account access changed. Sign in again before requesting a reset.' : 'Could not send the reset email. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer);
+      settingsResetPending = false;
+      renderSettings();
+    }
+  }
+  function setupSettings() {
+    document.querySelectorAll('[name="adminSettingsTheme"]').forEach(function(input) {
+      input.addEventListener('change', function() {
+        if (input.checked && (input.value === 'dark') !== document.body.classList.contains('dark')) {
+          var toggle = document.querySelector('.theme-button');
+          if (toggle) toggle.click();
+        }
+        renderSettings();
+      });
+    });
+    var toggle = document.querySelector('.theme-button');
+    if (toggle) toggle.addEventListener('click', renderSettings);
+    document.getElementById('settingsPasswordReset').addEventListener('click', sendSettingsPasswordReset);
+    if (window.firebase && firebase.auth) firebase.auth().onAuthStateChanged(renderSettings);
+    renderSettings();
+  }
+
+  // --- STORE INFORMATION SETTINGS ---
+  var storeInformationState = 'idle';
+  var storeInformationSaving = false;
+  var storeInformationFields = {
+    supportEmail: ['settingsSupportEmail', 'settingsSupportEmailError'],
+    supportPhone: ['settingsSupportPhone', 'settingsSupportPhoneError'],
+    businessHours: ['settingsBusinessHours', 'settingsBusinessHoursError']
+  };
+  function canEditStoreInformation() {
+    var user = settingsAuthUser();
+    return !!(user && roleResolved && settingsRoleUid === user.uid && ['admin', 'superadmin'].includes(currentRole));
+  }
+  function renderStoreSettings() {
+    var card = document.getElementById('settingsStoreCard');
+    if (!card) return;
+    var allowed = canEditStoreInformation();
+    card.hidden = !allowed;
+    document.getElementById('settingsStoreFields').disabled = !allowed || storeInformationState !== 'ready' || storeInformationSaving;
+    document.getElementById('settingsStoreSave').textContent = storeInformationSaving ? 'Saving…' : 'Save store information';
+    document.getElementById('settingsStoreRetry').hidden = storeInformationState !== 'error';
+    if (allowed && storeInformationState === 'idle') loadStoreInformation();
+  }
+  async function loadStoreInformation() {
+    if (!canEditStoreInformation() || storeInformationState === 'loading' || storeInformationSaving) return;
+    var state = document.getElementById('settingsStoreState');
+    storeInformationState = 'loading';
+    state.textContent = 'Loading store information…';
+    renderStoreSettings();
+    try {
+      var data = await window.SmileHubStoreInformation.get();
+      Object.keys(storeInformationFields).forEach(function(key) { document.getElementById(storeInformationFields[key][0]).value = data[key]; });
+      storeInformationState = 'ready';
+      state.textContent = 'Current public support details. Save to publish changes.';
+    } catch (error) {
+      storeInformationState = 'error';
+      state.textContent = 'Store information could not be loaded. Check your connection and retry before editing.';
+    }
+    renderStoreSettings();
+  }
+  async function saveStoreInformation(event) {
+    event.preventDefault();
+    if (!canEditStoreInformation() || storeInformationState !== 'ready' || storeInformationSaving) return;
+    var values = {};
+    Object.keys(storeInformationFields).forEach(function(key) { values[key] = document.getElementById(storeInformationFields[key][0]).value; });
+    var checked = window.SmileHubStoreInformation.validate(values);
+    var feedback = document.getElementById('settingsStoreFeedback');
+    var firstInvalid = null;
+    Object.keys(storeInformationFields).forEach(function(key) {
+      var input = document.getElementById(storeInformationFields[key][0]);
+      var error = document.getElementById(storeInformationFields[key][1]);
+      error.hidden = !checked.errors[key];
+      error.textContent = checked.errors[key] || '';
+      if (checked.errors[key]) { input.setAttribute('aria-invalid', 'true'); firstInvalid = firstInvalid || input; }
+      else input.removeAttribute('aria-invalid');
+    });
+    feedback.hidden = false;
+    if (firstInvalid) {
+      feedback.dataset.state = 'error';
+      feedback.textContent = 'Check the highlighted fields before saving.';
+      firstInvalid.focus();
+      return;
+    }
+    var uid = settingsAuthUser().uid;
+    var previousFocus = document.activeElement;
+    storeInformationSaving = true;
+    feedback.dataset.state = 'progress';
+    feedback.textContent = 'Saving store information…';
+    renderStoreSettings();
+    var timer = setTimeout(function() { feedback.textContent = 'Still saving—check your connection. Please wait before trying again.'; }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      if (!settingsAuthUser() || settingsAuthUser().uid !== uid || !['admin', 'superadmin'].includes(role)) throw new Error('account-changed');
+      var saved = await window.SmileHubStoreInformation.save(checked.data);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        Object.keys(storeInformationFields).forEach(function(key) { document.getElementById(storeInformationFields[key][0]).value = saved[key]; });
+        feedback.dataset.state = 'success';
+        feedback.textContent = 'Store information saved. Customer pages will use these details when opened or refreshed.';
+        addAuditLog('Updated store support information');
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error';
+        feedback.textContent = error.code === 'permission-denied' || error.message === 'account-changed' ? 'You no longer have permission to save store information. Sign in as Admin or Super Admin and try again.' : 'Changes were not confirmed saved. Your entries are preserved. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer);
+      storeInformationSaving = false;
+      renderStoreSettings();
+      if (previousFocus && document.getElementById('settingsStoreForm').contains(previousFocus) && canEditStoreInformation() && document.activeElement === document.body && document.getElementById('settings').style.display !== 'none') previousFocus.focus({ preventScroll: true });
+    }
+  }
+  function setupStoreInformation() {
+    document.getElementById('settingsStoreForm').addEventListener('submit', saveStoreInformation);
+    document.getElementById('settingsStoreRetry').addEventListener('click', loadStoreInformation);
+    Object.keys(storeInformationFields).forEach(function(key) {
+      document.getElementById(storeInformationFields[key][0]).addEventListener('input', function() {
+        this.removeAttribute('aria-invalid');
+        document.getElementById(storeInformationFields[key][1]).hidden = true;
+        document.getElementById('settingsStoreFeedback').hidden = true;
+      });
+    });
+  }
+
+  // --- DELIVERY SETTINGS ---
+  var deliveryEditorState = 'idle';
+  var deliveryEditorSaving = false;
+  var deliveryEditorFields = { standardFee: ['settingsStandardFee', 'settingsStandardFeeError'], freeShippingThreshold: ['settingsFreeThreshold', 'settingsFreeThresholdError'] };
+  function renderDeliverySettings() {
+    var card = document.getElementById('settingsDeliveryCard');
+    if (!card) return;
+    card.hidden = !canEditStoreInformation();
+    document.getElementById('settingsDeliveryFields').disabled = card.hidden || deliveryEditorState !== 'ready' || deliveryEditorSaving;
+    document.getElementById('settingsDeliverySave').textContent = deliveryEditorSaving ? 'Saving…' : 'Save delivery settings';
+    document.getElementById('settingsDeliveryRetry').hidden = deliveryEditorState !== 'error';
+    if (!card.hidden && deliveryEditorState === 'idle') loadDeliverySettings();
+  }
+  async function loadDeliverySettings() {
+    if (!canEditStoreInformation() || deliveryEditorState === 'loading' || deliveryEditorSaving) return;
+    var state = document.getElementById('settingsDeliveryState');
+    deliveryEditorState = 'loading'; state.textContent = 'Loading delivery settings…'; renderDeliverySettings();
+    try {
+      var data = await window.SmileHubDelivery.get();
+      Object.keys(deliveryEditorFields).forEach(function(key) { document.getElementById(deliveryEditorFields[key][0]).value = data[key]; });
+      deliveryEditorState = 'ready'; state.textContent = 'Current delivery pricing. Save to publish changes.';
+    } catch (error) {
+      deliveryEditorState = 'error'; state.textContent = 'Delivery settings could not be loaded. Check your connection and retry before editing.';
+    }
+    renderDeliverySettings();
+  }
+  async function saveDeliverySettings(event) {
+    event.preventDefault();
+    if (!canEditStoreInformation() || deliveryEditorState !== 'ready' || deliveryEditorSaving) return;
+    var data = {};
+    Object.keys(deliveryEditorFields).forEach(function(key) { data[key] = document.getElementById(deliveryEditorFields[key][0]).value; });
+    var checked = window.SmileHubDelivery.validate(data);
+    var feedback = document.getElementById('settingsDeliveryFeedback');
+    var invalid = null;
+    Object.keys(deliveryEditorFields).forEach(function(key) {
+      var input = document.getElementById(deliveryEditorFields[key][0]), error = document.getElementById(deliveryEditorFields[key][1]);
+      error.hidden = !checked.errors[key]; error.textContent = checked.errors[key] || '';
+      if (checked.errors[key]) { input.setAttribute('aria-invalid', 'true'); invalid = invalid || input; } else input.removeAttribute('aria-invalid');
+    });
+    feedback.hidden = false;
+    if (invalid) { feedback.dataset.state = 'error'; feedback.textContent = 'Check the highlighted fields before saving.'; invalid.focus(); return; }
+    var uid = settingsAuthUser().uid, previousFocus = document.activeElement;
+    deliveryEditorSaving = true; feedback.dataset.state = 'progress'; feedback.textContent = 'Saving delivery settings…'; renderDeliverySettings();
+    var timer = setTimeout(function() { feedback.textContent = 'Still saving—check your connection. Please wait before trying again.'; }, 8000);
+    try {
+      var role = await getCurrentUserRoleFresh();
+      if (!settingsAuthUser() || settingsAuthUser().uid !== uid || !['admin', 'superadmin'].includes(role)) throw new Error('account-changed');
+      var saved = await window.SmileHubDelivery.save(checked.data);
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        Object.keys(deliveryEditorFields).forEach(function(key) { document.getElementById(deliveryEditorFields[key][0]).value = saved[key]; });
+        feedback.dataset.state = 'success'; feedback.textContent = 'Delivery settings saved. New orders will use this pricing; existing orders are unchanged.';
+        addAuditLog('Updated delivery pricing');
+      }
+    } catch (error) {
+      if (settingsAuthUser() && settingsAuthUser().uid === uid) {
+        feedback.dataset.state = 'error'; feedback.textContent = error.code === 'permission-denied' || error.message === 'account-changed' ? 'You no longer have permission to save delivery settings. Sign in as Admin or Super Admin and try again.' : 'Changes were not confirmed saved. Your entries are preserved. Check your connection and try again.';
+      }
+    } finally {
+      clearTimeout(timer); deliveryEditorSaving = false; renderDeliverySettings();
+      if (previousFocus && document.getElementById('settingsDeliveryForm').contains(previousFocus) && canEditStoreInformation() && document.activeElement === document.body && document.getElementById('settings').style.display !== 'none') previousFocus.focus({ preventScroll: true });
+    }
+  }
+  function setupDeliverySettings() {
+    document.getElementById('settingsDeliveryForm').addEventListener('submit', saveDeliverySettings);
+    document.getElementById('settingsDeliveryRetry').addEventListener('click', loadDeliverySettings);
+    Object.keys(deliveryEditorFields).forEach(function(key) {
+      document.getElementById(deliveryEditorFields[key][0]).addEventListener('input', function() { this.removeAttribute('aria-invalid'); document.getElementById(deliveryEditorFields[key][1]).hidden = true; document.getElementById('settingsDeliveryFeedback').hidden = true; });
     });
   }
 
@@ -2005,6 +2559,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function paintRole(role){
     currentRole = role;
     roleResolved = true;
+    settingsRoleUid = (settingsAuthUser() || {}).uid || null;
+    renderSettings();
     try { localStorage.removeItem('smilehub_role_cache'); } catch (e) {}
     var user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
     if (user) {
@@ -2309,7 +2865,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!body) return;
 
     if (accounts.length === 0) {
-      body.innerHTML = accountsLoadError
+      body.innerHTML = accountsLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="7" class="text-center muted" style="padding:40px;">Accounts are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : accountsLoadError
         ? '<tr><td colspan="7" class="text-center muted" style="padding:40px;">Couldn\'t load accounts (' + escapeHtml(accountsLoadError) + '). Sign in over localhost or hosting as an admin, then reopen Customers.</td></tr>'
         : '<tr><td colspan="7" class="text-center muted" style="padding:40px;">No accounts found.</td></tr>';
       updateAccountStats(accounts);
@@ -2428,13 +2986,24 @@ document.addEventListener('DOMContentLoaded', function() {
         var email = this.dataset.email;
         var newRole = this.value;
         var idx = accounts.findIndex(function(a) { return a.email === email; });
-        if (idx > -1) {
-          var oldRole = accounts[idx].role;
+        if (idx === -1) return;
+        var oldRole = accounts[idx].role;
+        if (oldRole === newRole) return;
+        var selEl = this;
+        showAuthoredConfirm({
+          eyebrow: 'Change role',
+          title: 'Change role for ' + email + '?',
+          message: 'Change the role for ' + email + '.',
+          impact: oldRole + ' → ' + newRole + '. This changes what this account can see and do.',
+          confirmLabel: 'Change role',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) { selEl.value = oldRole; return; }
           accounts[idx].role = newRole;
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast(saveErrorMessage('update accounts', error), true); });
           addAuditLog('Changed role for ' + email + ': ' + oldRole + ' → ' + newRole);
           showToast('Role updated for ' + email, false, true);
-        }
+        });
       });
     });
 
@@ -2443,13 +3012,23 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function() {
         var email = this.dataset.email;
         var newStatus = this.dataset.status;
-        var idx = accounts.findIndex(function(a) { return a.email === email; });
-        if (idx > -1) {
+        var suspending = newStatus === 'suspended';
+        showAuthoredConfirm({
+          eyebrow: suspending ? 'Suspend account' : 'Activate account',
+          title: (suspending ? 'Suspend ' : 'Activate ') + email + '?',
+          message: suspending ? email + ' will lose access immediately.' : email + ' will regain access.',
+          impact: suspending ? 'Use for policy violations or compromised accounts. The account can be reactivated.' : 'Restores full access for this account.',
+          confirmLabel: suspending ? 'Suspend' : 'Activate',
+          cancelLabel: 'Cancel'
+        }).then(function(ok){
+          if (!ok) return;
+          var idx = accounts.findIndex(function(a) { return a.email === email; });
+          if (idx === -1) return;
           accounts[idx].status = newStatus;
           window.SmileHubAuth.saveAccounts(accounts).then(renderAccounts).catch(function(error) { console.error('Account update failed:', error); showToast(saveErrorMessage('update accounts', error), true); });
-          addAuditLog((newStatus === 'suspended' ? 'Suspended' : 'Activated') + ' account: ' + email);
-          showToast(email + ' ' + (newStatus === 'suspended' ? 'suspended' : 'activated'), false, true);
-        }
+          addAuditLog((suspending ? 'Suspended' : 'Activated') + ' account: ' + email);
+          showToast(email + ' ' + (suspending ? 'suspended' : 'activated'), false, true);
+        });
       });
     });
 
@@ -2875,8 +3454,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var statusLabels = Object.keys(statusCounts);
     var statusData = statusLabels.map(function(s) { return statusCounts[s]; });
     var statusColors = {
-      'Pending': '#f0a320', 'Processing': '#1261a0', 'Shipped': '#0f9d9a',
-      'Delivered': '#1e9b61', 'Cancelled': '#d64545', 'Returned': '#D97706', 'Refunded': '#7C3AED'
+      'Pending': '#f0a320', 'Pending Payment': '#f0a320', 'Pending Quotation': '#f0a320',
+      'Processing': '#1261a0', 'Shipped': '#0f9d9a', 'Delivered': '#1e9b61',
+      'Cancelled': '#d64545', 'Returned': '#D97706', 'Refunded': '#7C3AED'
     };
     var colors = statusLabels.map(function(s) { return statusColors[s] || '#6b7a8c'; });
 
@@ -2902,12 +3482,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (summary) {
       var validRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
       var totalVal = validRows.reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var pendingVal = filtered.filter(function(o) { return o.status === 'Pending' || o.status === 'Processing'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var completedVal = filtered.filter(function(o) { return o.status === 'Delivered'; }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var pendingVal = validRows.filter(function(o) { return !isPaymentConfirmed(o); }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
+      var completedVal = validRows.filter(isPaymentConfirmed).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
       summary.innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Total Revenue (excl. cancelled)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Pending / Processing</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Fulfilled (Delivered)</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Order value (excl. cancelled, returned, refunded)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Payment not confirmed (unpaid or no record)</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Confirmed paid</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
         '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Orders Count</span><strong>' + filtered.length + '</strong></div>';
     }
     // Reports header sub + scope disclosure
@@ -2917,7 +3497,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var granForSub = reportTrendGranularity === 'annually' ? 'Annually' : 'Monthly';
     if (repSub) {
       if (!orders.length && ordersLoadError) {
-        repSub.textContent = 'Couldn\'t load orders (' + ordersLoadError + ') — sign in over localhost or hosting as staff.';
+        repSub.textContent = 'Orders could not load. Check your connection and staff access, then refresh orders.';
       } else {
         repSub.textContent = labelForSub + ' • ' + granForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
       }
@@ -2952,7 +3532,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if(diff>=0 && diff<6){
             var idx=5-diff;
             var val=Number(o.total)||0;
-            if(o.status==='Pending') pending[idx]+=val; else collected[idx]+=val;
+            if(isPaymentConfirmed(o)) collected[idx]+=val; else pending[idx]+=val;
             if(val>0) hasData=true;
           }
         });
@@ -2967,8 +3547,8 @@ document.addEventListener('DOMContentLoaded', function() {
         reportStackedInstance = new Chart(canvas, {
           type:'bar',
           data:{ labels: labels, datasets:[
-            { label:'Collected', data: collected, backgroundColor: tealLight, borderRadius: 6, stack:'s' },
-            { label:'Pending', data: pending, backgroundColor: amber, borderRadius: 6, stack:'s' }
+            { label:'Confirmed paid', data: collected, backgroundColor: tealLight, borderRadius: 6, stack:'s' },
+            { label:'Payment not confirmed', data: pending, backgroundColor: amber, borderRadius: 6, stack:'s' }
           ]},
           options:{
             responsive:true, maintainAspectRatio:false,
@@ -3025,7 +3605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var fillColor = isDarkReports ? 'rgba(226,232,240,0.08)' : 'rgba(30,41,59,0.06)';
         reportLineInstance = new Chart(canvas, {
           type:'line',
-          data:{ labels: labels, datasets:[{ label:'Revenue', data: data, borderColor: lineColor, backgroundColor: fillColor, fill:true, tension:0.35, borderWidth:2, pointRadius:3, pointHoverRadius:5 }]},
+          data:{ labels: labels, datasets:[{ label:'Order value', data: data, borderColor: lineColor, backgroundColor: fillColor, fill:true, tension:0.35, borderWidth:2, pointRadius:3, pointHoverRadius:5 }]},
           options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ return ' ₱' + Number(c.parsed.y).toLocaleString('en-PH',{minimumFractionDigits:2}); } } } },
@@ -3118,7 +3698,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var lines = ['SmileHub Sales Report — ' + label + ' — Generated ' + new Date().toLocaleString()];
     lines.push('Totals: Orders ' + ((document.getElementById('reportTotalOrders') || {}).textContent || '') +
-      ', Revenue ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
+      ', Order value ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
       ', Avg ' + ((document.getElementById('reportAvgOrder') || {}).textContent || '') +
       ', Units ' + ((document.getElementById('reportItemsSold') || {}).textContent || ''));
     Array.prototype.forEach.call(section.querySelectorAll('#reportProductBody tr'), function(tr) { lines.push(' - ' + rowText(tr)); });
@@ -3181,6 +3761,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // --- AUDIT TRAIL ---
   var auditLogsCache = [];
+  var auditLoadError = null;
 
   function addAuditLog(action) {
     try {
@@ -3207,6 +3788,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function fetchAuditLogs(callback) {
+    auditLoadError = null;
     firebase.firestore().collection('audit_logs').orderBy('timestamp', 'desc').limit(200).get().then(function(snapshot) {
       auditLogsCache = [];
       snapshot.forEach(function(doc) {
@@ -3215,7 +3797,9 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       // Empty means empty — never seed fake entries into the real log.
       if (callback) callback(auditLogsCache);
-    }).catch(function() {
+    }).catch(function(err) {
+      auditLoadError = describeLoadError(err, 'permission denied');
+      maybeShowBlockedBanner();
       if (callback) callback(auditLogsCache || []);
     });
   }
@@ -3322,7 +3906,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var headerSub = document.getElementById('auditHeaderSub');
     if (headerSub) headerSub.textContent = logs.length + ' entries • ' + filtered.length + ' matching' + (q || adminF!=='all' || catF!=='all' || dateF!=='all' ? ' • filtered' : '');
     if (logs.length === 0) {
-      body.innerHTML = '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
+      body.innerHTML = auditLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="3" class="text-center muted" style="padding:40px;">Audit log is blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : '<tr><td colspan="3" class="text-center muted" style="padding:40px;">No audit entries yet.</td></tr>';
       return;
     }
     if (filtered.length === 0) {
@@ -3370,9 +3956,9 @@ document.addEventListener('DOMContentLoaded', function() {
       logs = logs.filter(function(l) { return (l.admin || '') === me; });
     }
     var pending = 0;
-    try { pending = getOrders().filter(function(o){ return o.status==='Pending'; }).length; } catch(e){}
+    try { pending = getOrders().filter(needsOrderWork).length; } catch(e){}
     if(pendingEl){
-      pendingEl.textContent = pending + ' pending order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention →';
+      pendingEl.textContent = pending + ' order' + (pending===1?'':'s') + ' need' + (pending===1?'s':'' ) + ' attention';
       pendingEl.style.display = pending ? '' : 'none';
     }
     if(countEl){
@@ -3420,7 +4006,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var lastMsgDeleteSnapshot = null;
+  var messagesLoadError = null;
   function fetchMessages(callback) {
+    messagesLoadError = null;
     firebase.firestore().collection('contact_messages').orderBy('createdAt','desc').limit(100).get().then(function(snap){
       messagesCache = [];
       snap.forEach(function(doc){
@@ -3433,8 +4021,12 @@ document.addEventListener('DOMContentLoaded', function() {
       renderMessages();
     }).catch(function(err){
       console.warn('Could not load messages:', err);
+      messagesLoadError = describeLoadError(err, 'permission denied');
       var body = document.getElementById('messagesBody');
-      if (body) body.innerHTML = '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      if (body) body.innerHTML = messagesLoadError === 'blocked-by-client'
+        ? '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Messages are blocked by a browser extension (ad-blocker). Allow firestore.googleapis.com for this site, then hard-refresh.</td></tr>'
+        : '<tr><td colspan="7" class="text-center muted" style="padding:32px;">Could not load — check Firestore rules/permissions.</td></tr>';
+      maybeShowBlockedBanner();
       if (callback) callback([]);
     });
   }
@@ -3560,10 +4152,10 @@ document.addEventListener('DOMContentLoaded', function() {
           '<button class="btn btn-light" id="msgModalReplied">Mark Replied</button>'+
         '</div>'+
       '</div>';
-    modal.style.display='flex';
+    openAdminModal(modal);
     if (title) { if (!title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1'); try { title.focus({ preventScroll: true }); } catch (e) {} }
-    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); modal.style.display='none'; };
-    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); modal.style.display='none'; };
+    var r=document.getElementById('msgModalRead'); if(r) r.onclick=function(){ updateMsgStatus(id,'read'); closeAdminModal(modal); };
+    var rp=document.getElementById('msgModalReplied'); if(rp) rp.onclick=function(){ updateMsgStatus(id,'replied'); closeAdminModal(modal); };
     // Auto-mark new as read when opened
     if((m.status||'new')==='new') updateMsgStatus(id,'read');
   }
@@ -3698,6 +4290,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {}
     setupImagePreview();
     setupSidebarNavigation();
+    setupSettings();
+    setupStoreInformation();
+    setupDeliverySettings();
     setupFormSubmit();
     setupBulkStock();
     var dashAdd = document.getElementById('dashAddProduct');
@@ -3707,6 +4302,12 @@ document.addEventListener('DOMContentLoaded', function() {
         openNewProductModal();
       });
     }
+    var dataRetry = document.getElementById('adminDataRetry');
+    if (dataRetry) dataRetry.addEventListener('click', function() {
+      loadProducts(function() { renderProducts(); updateDashboard(); });
+      fetchOrders(function() { renderOrders(); updateDashboard(); });
+    });
+    updateDashboard();
     var productsLoaded = false;
     var ordersLoaded = false;
     function tryRenderDashboard() {
@@ -3733,8 +4334,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (typeof db !== 'undefined' && db.collection && db.collection('orders').onSnapshot) {
         db.collection('orders').onSnapshot(function(snap){
           var live = [];
-          snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; live.push(d); });
-          if (!live.length && ordersCache.length) return;
+          snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; var pending=orderStatusWrites.get(d.number); if(pending) d.status=pending.old; live.push(d); });
+          ordersReady = true; ordersLoading = false; ordersUpdatedAt = new Date();
           ordersCache = live;
           ordersLoadError = null;
           try { renderOrders((document.getElementById('orderStatusFilter')||{}).value||'all'); } catch(e){}
@@ -3749,8 +4350,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           } catch(e){}
         }, function(err){
-          ordersLoadError = (err && (err.code || err.message)) || 'permission denied';
+          ordersLoadError = describeLoadError(err, 'permission denied');
+          ordersLoading = false;
+          updateDashboard();
           console.warn('Orders live sync denied:', err);
+          maybeShowBlockedBanner();
         });
       }
     } catch(e){}
@@ -3812,7 +4416,16 @@ document.addEventListener('DOMContentLoaded', function() {
             cancelLabel: 'Cancel'
           }).then(function(ok){ if (!ok) return; doBulk(); });
         } else {
-          doBulk();
+          var needKeywordBulk = targets.length >= 20;
+          showAuthoredConfirm({
+            eyebrow: 'Bulk status change',
+            title: 'Change ' + targets.length + ' orders to ' + status + '?',
+            message: 'Change ' + targets.length + ' orders to ' + status + '?',
+            impact: 'Affects ' + targets.length + ' orders (' + targets.slice(0,3).join(', ') + (targets.length>3 ? ', …' : '') + ').' + (needKeywordBulk ? ' Type CONFIRM to proceed.' : ''),
+            keyword: needKeywordBulk ? 'CONFIRM' : '',
+            confirmLabel: 'Change',
+            cancelLabel: 'Cancel'
+          }).then(function(ok){ if (!ok) return; doBulk(); });
         }
       });
       var bulkClear = document.getElementById('ordersBulkClear');
@@ -3872,12 +4485,12 @@ document.addEventListener('DOMContentLoaded', function() {
           return [csvCell(o.number), csvCell(o.customer), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
         }).join('\n');
         // Add monthly summary
-        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(o.status==='Pending') months[key].pending+=v; else if(isActiveOrder(o.status)) months[key].collected+=v; months[key].count+=1; });
-        csv+='\n\nMonth,Collected,Pending,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
+        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(isPaymentConfirmed(o)) months[key].collected+=v; else if(isActiveOrder(o.status)) months[key].pending+=v; months[key].count+=1; });
+        csv+='\n\nMonth,Confirmed paid,Payment not confirmed,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
         // Top customers (group by email when available to avoid same-name merges)
         var map={}; filtered.forEach(function(o){ var key=String(o.email||o.customer||'Unknown').toLowerCase(); if(!map[key]) map[key]={label:(o.customer||o.email||'Unknown'), orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
         var top=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,10);
-        csv+='\n\nTop Customers,Orders,Revenue\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
+        csv+='\n\nTop Customers,Orders,Order value\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
         downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+period+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
       });
     })();
@@ -3898,7 +4511,25 @@ document.addEventListener('DOMContentLoaded', function() {
       var viewAll = dropdown.querySelector('[data-notif-view-all]');
       if(viewAll) viewAll.addEventListener('click', function(){ close(false); window.navigateTo('#audit'); });
       var pendingBtn = document.getElementById('notifDropdownPending');
-      if(pendingBtn) pendingBtn.addEventListener('click', function(){ close(false); window.navigateTo('#orders'); });
+      if(pendingBtn) pendingBtn.addEventListener('click', function(){ close(false); goToPendingOrders(); });
+      function goToPendingOrders(){
+        try {
+          var f = document.getElementById('orderStatusFilter');
+          if (f) {
+            f.value = 'active';
+            f.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        } catch(e){}
+        window.navigateTo('#orders');
+      }
+      window.goToPendingOrders = goToPendingOrders;
+      document.querySelectorAll('[data-pending-link]').forEach(function(a){
+        a.addEventListener('click', function(e){
+          e.preventDefault();
+          try { close(false); } catch(err){}
+          goToPendingOrders();
+        });
+      });
       document.addEventListener('click', function(e){
         if(!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !btn.contains(e.target)){
           close(false);
@@ -3930,7 +4561,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.SmileHubAuth) {
         accountsLoadError = null;
         window.SmileHubAuth.getAccounts().then(function(a) { accounts = a; renderAccounts(); }).catch(function(err){
-          accountsLoadError = (err && (err.code || err.message)) || 'permission denied';
+          accountsLoadError = describeLoadError(err, 'permission denied');
+          maybeShowBlockedBanner();
           renderAccounts();
         });
       }
@@ -3943,8 +4575,9 @@ document.addEventListener('DOMContentLoaded', function() {
         accounts = a;
         renderAccounts();
       }).catch(function(error) {
-        accountsLoadError = (error && (error.code || error.message)) || 'permission denied';
+        accountsLoadError = describeLoadError(error, 'permission denied');
         console.warn('Could not load accounts (check users/{uid} role doc / Firestore rules):', error);
+        maybeShowBlockedBanner();
         renderAccounts();
       });
     } else {
@@ -3963,7 +4596,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (refreshMessagesBtn) refreshMessagesBtn.addEventListener('click', function(){ fetchMessages(); showToast('Messages refreshed', false, false); });
     // Close msg modal on backdrop click
     var msgModal = document.getElementById('msgModal');
-    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) msgModal.style.display='none'; });
+    if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) closeAdminModal(msgModal); });
 
     // Report period filter
     var periodSelect = document.getElementById('reportPeriod');
@@ -4080,6 +4713,15 @@ document.addEventListener('DOMContentLoaded', function() {
       catFilter.addEventListener('change', function() { renderProducts(); });
     }
 
+    var clearProductFilters = document.getElementById('clearProductFilters');
+    if (clearProductFilters) clearProductFilters.addEventListener('click', function() {
+      if (adminSearch) adminSearch.value = '';
+      if (catFilter) catFilter.value = 'all';
+      var stock = document.getElementById('adminStockFilter');
+      if (stock) stock.value = 'all';
+      renderProducts();
+    });
+
     // Stock status filter
     var stockFilter = document.getElementById('adminStockFilter');
     if (stockFilter) {
@@ -4089,12 +4731,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key !== 'Escape') return;
+      if (confirmResolver) return;
       var pModal = document.getElementById('productModal');
       if (pModal && pModal.style.display !== 'none' && pModal.style.display !== '') { resetForm(); return; }
       var oModal = document.getElementById('orderModal');
       if (oModal && oModal.style.display !== 'none' && oModal.style.display !== '') { closeOrderModal(); return; }
       var mModal = document.getElementById('msgModal');
-      if (mModal && mModal.style.display !== 'none' && mModal.style.display !== '') mModal.style.display = 'none';
+      if (mModal && mModal.style.display !== 'none' && mModal.style.display !== '') closeAdminModal(mModal);
+    });
+
+    document.querySelectorAll('[data-close-admin-modal]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var modal = document.getElementById(button.dataset.closeAdminModal);
+        if (modal && modal.id === 'productModal') resetForm();
+        else closeAdminModal(modal);
+      });
     });
 
     // Modal close - order modal
@@ -4146,6 +4797,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // closure) can reach internal functions and data.
     window.SmileHubAdmin = {
       getProducts: function() { return products; },
+      closeOrderModal: closeOrderModal,
       navigateTo: function(sectionId) { navigateTo(sectionId); },
       canManageProducts: function() { return !roleResolved || !currentRole || isProductAdminRole(currentRole); },
       openProductModal: function() { openNewProductModal(); },
@@ -4154,7 +4806,7 @@ document.addEventListener('DOMContentLoaded', function() {
       refreshOrders: function(filter) {
         fetchOrders(function() {
           renderOrders(filter);
-          showToast('Orders refreshed.', false, false);
+          showToast(ordersLoadError ? 'Orders could not refresh. Check your connection and staff access, then try again.' : 'Orders refreshed.', !!ordersLoadError, false);
         });
       }
     };
@@ -4230,6 +4882,7 @@ window.refreshOrders = function() {
 };
 
 window.closeOrderModal = function() {
+  if (window.SmileHubAdmin && window.SmileHubAdmin.closeOrderModal) { window.SmileHubAdmin.closeOrderModal(); return; }
   const modal = document.getElementById('orderModal');
   if (modal) modal.style.display = 'none';
   try {

@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png"/>
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#0b6e6b"/>
+<meta property="og:image" content="assets/og-cover.png"/>
 <meta name="description" content="SmileHub shipping information and delivery expectations."><title>Shipping Information | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.0" rel="stylesheet"><link href="css/premium.css?v=6.3.0" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
-<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.0">
+<link href="css/style.css?v=6.3.3" rel="stylesheet"><link href="css/premium.css?v=6.3.2" rel="stylesheet">  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/policy-compare-redesign.css?v=6.3.1">
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer src="js/auth.js"></script>
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
 </head>
 <body>
 <div class="reading-progress" id="readingProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Reading progress"></div>
 <div class="topbar">
 <div class="container">
-<span>Free shipping on orders over ₱3,000</span>
+<span><span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span></span>
 <span>Metro Manila delivery • Mon–Sat</span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
-<a class="logo" href="homepage.html"><img alt="SmileHub logo" src="assets/logo.svg"/><span>SmileHub<br/>Dental Supplies</span></a>
-<form action="products.html" class="search-bar" role="search"><label class="sr-only" for="siteSearch-shipping">Search dental products</label><input id="siteSearch-shipping" name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
+<a class="logo" href="homepage.html"><img alt="SmileHub logo" src="assets/Icon.png"/><span>SmileHub<br/>Dental Supplies</span></a>
+<form action="products.html" class="search-bar" role="search"><label class="sr-only" for="siteSearch-shipping">Search dental products</label><input aria-label="Search dental products" id="siteSearch-shipping" name="q" placeholder="Search dental products..." type="search"/><button type="submit">Search</button></form>
 <div class="header-actions">
 <button class="theme-button" title="Dark mode" type="button" aria-label="Toggle dark mode"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208Z" fill="currentColor" opacity=".35"/><path d="M128 24a104 104 0 0 1 0 208V24Z" fill="currentColor"/></svg></button>
 <a class="icon-link" href="wishlist.html" aria-label="Wishlist">
@@ -41,7 +48,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li><a href="homepage.html">Home</a></li>
@@ -68,7 +75,7 @@
       <span class="meta-chip">Metro Manila · Nationwide demo</span>
     </div>
     <div class="trust-row" role="list" aria-label="Trust signals">
-      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Free shipping over ₱3,000</span>
+      <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-delivery-message="promotion">Free shipping over ₱3,000</span></span>
       <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Delivery Mon–Sat</span>
       <span class="trust-badge" role="listitem"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><circle cx="128" cy="128" r="112" stroke="currentColor" stroke-width="20"/><path d="M84 132l32 32 56-64" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>Demo rates — no real courier</span>
     </div>
@@ -133,14 +140,16 @@
           <section class="policy-section" id="rates" aria-labelledby="rates-h">
             <h2 id="rates-h">Rates</h2>
             <p>The demo checkout applies one simple rule, identical to the cart totals:</p>
+            <div class="table-wrap">
             <table class="rate-table">
               <caption>Simulated delivery fees</caption>
               <thead><tr><th scope="col">Order subtotal</th><th scope="col">Delivery fee</th></tr></thead>
               <tbody>
-                <tr><td>₱3,000 and above</td><td><strong>Free</strong></td></tr>
-                <tr><td>Below ₱3,000</td><td><strong>₱150</strong> flat</td></tr>
+                <tr><td><span data-delivery-message="above">₱3,000 and above</span></td><td><strong>Free</strong></td></tr>
+                <tr><td><span data-delivery-message="below">Below ₱3,000</span></td><td><strong><span data-delivery-message="fee">₱150</span></strong> flat</td></tr>
               </tbody>
             </table>
+            </div>
             <div class="estimator" aria-labelledby="estimator-h">
               <h3 id="estimator-h">Demo fee calculator</h3>
               <p class="muted">Type an order total to preview the delivery fee used at checkout.</p>
@@ -158,7 +167,7 @@
             <h2 id="methods-h">Delivery methods</h2>
             <p>At checkout, demo customers choose between two simulated methods:</p>
             <ul>
-              <li><strong>Standard delivery</strong> — 1–3 business days, ₱150 or free over ₱3,000.</li>
+              <li><strong>Standard delivery</strong> — 1–3 business days, <span data-delivery-message="fee">₱150</span> or <span data-delivery-message="promotion">free over ₱3,000</span>.</li>
               <li><strong>Express delivery</strong> — same or next day where available; shown as a demo option only.</li>
             </ul>
           </section>
@@ -243,9 +252,10 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.3.0"></script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
-  <script src="js/firebase-sync.js?v=6.3.0"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+  <script src="js/firebase-sync.js?v=6.3.0"></script><script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script>
 (function(){
@@ -274,11 +284,13 @@
         if(bar)bar.style.width='0%';return;
       }
       out.classList.remove('error');input.removeAttribute('aria-invalid');
-      var fee=(v>=3000||v===0)?0:150;
-      out.textContent=v===0?'Empty cart ships free in this demo.':(fee===0?'Free shipping unlocked! Fee: '+peso(0)+'.':'Delivery fee: '+peso(fee)+'. Add '+peso(3000-v)+' more for free shipping.');
-      if(bar)bar.style.width=Math.min(100,v/3000*100)+'%';
+      if(window.SmileHubDelivery.status()!=='ready'){out.textContent='Current delivery pricing is unavailable. Check again at checkout.';if(bar)bar.style.width='0%';return;}
+      var delivery=window.SmileHubDelivery.calculate(v),fee=delivery.shipping;
+      out.textContent=v===0?'Empty cart has no shipping fee.':(fee===0?'Free shipping unlocked! Fee: '+peso(0)+'.':'Delivery fee: '+peso(fee)+'. Add '+peso(delivery.remaining)+' more for free shipping.');
+      if(bar)bar.style.width=delivery.progress+'%';
     }
     form.addEventListener('submit',function(e){e.preventDefault();calc();});
+    document.addEventListener('deliverySettingsChanged',calc);
     calc();
   }
   var bar2=document.getElementById('readingProgress');

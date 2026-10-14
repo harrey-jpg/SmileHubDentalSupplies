@@ -128,12 +128,12 @@ body.dark {
 .row-actions {
   display: flex;
   gap: 8px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .icon-btn.row-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 9px;
 }
 
@@ -415,7 +415,7 @@ body.dark #dashboard .mom-badge.down {
 .admin-toolbar .btn,
 .admin-toolbar input,
 .admin-toolbar select {
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -589,8 +589,11 @@ body.dark .notif-dropdown-item:hover{ background:#1e293b; }
 }
 #productsBulkBar.floating select,
 #productsBulkBar.floating input,
-#ordersBulkBar.floating select {
-  min-height: 38px;
+#ordersBulkBar.floating select,
+#ordersBulkBar.floating input,
+#ordersBulkBar.floating .btn,
+#productsBulkBar.floating .btn {
+  min-height: 44px;
 }
 @media (max-width: 640px) {
   #productsBulkBar.floating,
@@ -646,8 +649,8 @@ body.dark .notif-dropdown-item:hover{ background:#1e293b; }
 }
 .modal-close {
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--white);
@@ -844,7 +847,17 @@ body.dark .notif-preview{ background:#0f172a; border-color:#334155; }
   padding: 12px 14px;
   box-shadow: 0 1px 2px rgba(16,24,40,0.04);
 }
-body.dark .admin-toolbar{
+.quick-rail.admin-section{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:var(--white);
+  border:1px solid #E8E8EB;
+  border-radius:16px;
+  padding:12px 14px;
+  box-shadow:0 1px 2px rgba(16,24,40,0.04);
+}
+body.dark .quick-rail.admin-section{
   border-color:#334155;
   box-shadow:0 18px 42px rgba(0,0,0,.28);
 }
@@ -944,6 +957,16 @@ body.dark #orders .orders-rail .form-card {
   border-color: #334155;
   box-shadow: 0 18px 42px rgba(0,0,0,.28);
 }
+/* Dark toolbar fields: quiet dark surface so the box doesn't glare unfocused. */
+body.dark #orders .orders-toolbar input,
+body.dark #orders .orders-toolbar select {
+  background: #0f1a23;
+  border-color: #334155;
+  color: #e8f1f5;
+}
+body.dark #orders .orders-toolbar input::placeholder {
+  color: #7d8fa1;
+}
 @media (max-width: 1024px) {
   #orders .orders-layout {
     grid-template-columns: 1fr;
@@ -973,4 +996,75 @@ body.dark #orders .orders-rail .form-card {
   .account-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Fulfill stepper (order modal): one primary next step, terminal states quiet. */
+.fulfill-box {
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--sky);
+}
+.fulfill-box h3 { margin: 0 0 10px; font-size: 1rem; }
+.fulfill-steps {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.fulfill-step {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--white);
+}
+.fulfill-step.is-past { border-color: #16a34a; color: #15803d; background: #f0fdf4; }
+.fulfill-step.is-current { border-color: var(--teal, #0f9d9a); color: #fff; background: var(--teal, #0f9d9a); }
+.fulfill-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+body.dark .fulfill-box { background: #13212b; }
+body.dark .fulfill-step { background: #17232e; }
+body.dark .fulfill-step.is-past { background: rgba(22, 163, 74, .14); color: #68e89a; }
+body.dark .fulfill-step.is-current { background: #0d7670; color: #fff; }
+
+/* Global utilities stay compact; each section owns its working header. */
+.admin-utility-bar { position: relative; z-index: 110; display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.admin-utility-bar .notif-dropdown { right: 0; transform: none; max-width: calc(100vw - 36px); }
+.admin-account-actions { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+#dashboardHeader[hidden] { display: none !important; }
+.admin-section > .admin-top h1 { font-size: 1.6rem; margin: 0; }
+
+.chart-data { margin-top: 14px; }
+.chart-data summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.chart-data summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+.chart-data caption { text-align: left; padding: 12px; font-weight: 600; }
+
+/* Nested confirmation must sit above its parent Order Detail dialog. */
+#confirmModal { z-index: 1100; }
+
+/* Monthly payments: one surface, compact chart and neutral accessible breakdown. */
+#monthlyPaymentsPanel .dash-card-head h2 { margin: 0; font-size: 1.125rem; line-height: 1.4; }
+#monthlyPaymentsPanel .ov-period-total { font-size: .875rem; line-height: 1.5; }
+#monthlyPaymentsPanel #salesChartArea { height: 240px; margin-top: 20px; }
+#monthlyPaymentsPanel #salesChartArea[hidden] { display: none !important; }
+#monthlyPaymentsPanel .chart-data { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); }
+#monthlyPaymentsPanel .chart-data summary { min-height: 44px; padding: 12px 0; font-size: .875rem; }
+#monthlyPaymentsPanel .table-wrap { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+#monthlyPaymentsPanel table { width: 100%; margin: 0; border-collapse: collapse; table-layout: fixed; }
+#monthlyPaymentsPanel :is(th, td) { padding: 12px 16px; background: transparent !important; color: var(--text); border: 0; border-bottom: 1px solid var(--border); }
+#monthlyPaymentsPanel thead th { color: var(--muted); font-size: .8125rem; font-weight: 600; text-transform: none; letter-spacing: normal; }
+#monthlyPaymentsPanel :is(th, td):first-child { text-align: left; }
+#monthlyPaymentsPanel :is(th, td):last-child { text-align: right; font-variant-numeric: tabular-nums; }
+#monthlyPaymentsPanel tbody th { font-size: .875rem; font-weight: 500; }
+#monthlyPaymentsPanel tbody tr:last-child :is(th, td) { border-bottom: 0; }
+#monthlyPaymentsPanel .dash-empty { margin: 16px 0 0; padding: 0; text-align: left; }
+@media (max-width: 640px) {
+ #monthlyPaymentsPanel #salesChartArea { height: 180px; }
+ #monthlyPaymentsPanel .ov-period-total { text-align: left; margin-left: 0; }
+ #monthlyPaymentsPanel :is(th, td) { padding: 12px 8px; }
 }

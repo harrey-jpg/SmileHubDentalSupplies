@@ -4,36 +4,44 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png"/>
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#0b6e6b"/>
+<meta property="og:image" content="assets/og-cover.png"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>
       Wishlist | SmileHub Dental Supplies
     </title>
-<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
-<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
 </head>
 <body class="">
 <div class="topbar">
 <div class="container">
 <span>
-          Free shipping on orders over ₱3,000
+          <span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span>
         </span>
 <span>
           Metro Manila delivery • Mon–Sat
         </span>
 </div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
-<img alt="SmileHub logo" src="assets/logo.svg"/>
+<img alt="SmileHub logo" src="assets/Icon.png"/>
 <span>
             SmileHub
             <br/>
@@ -42,7 +50,7 @@
 </a>
 <form action="products.html" class="search-bar" role="search">
 <label class="sr-only" for="siteSearch-wishlist">Search dental products</label>
-<input id="siteSearch-wishlist" name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" id="siteSearch-wishlist" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">
             Search
           </button>
@@ -66,7 +74,7 @@
 <button class="menu-button" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="siteNav">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
 <ul class="nav-list" id="siteNav">
 <li>
@@ -121,28 +129,11 @@
 </section>
 <main class="section-sm">
 <div class="container">
+<h2 class="sr-only">Your saved items</h2>
 <div class="grid grid-4" id="wishlistGrid">
 </div>
 </div>
 </main>
-<section class="newsletter">
-<div class="container newsletter-box">
-<div>
-<h2>
-            Dental deals in your inbox
-          </h2>
-<p>
-            Receive product updates, clinic essentials, and student-friendly offers.
-          </p>
-</div>
-<form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>
-            Subscribe
-          </button>
-</form>
-</div>
-</section>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
@@ -207,15 +198,16 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.3.0">
 </script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
 <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
-<script src="js/chatbot.js"></script>
+<script src="js/chatbot.js?v=1.0.1"></script>
 <script src="js/wishlist.js">
 </script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 </body>
 </html>

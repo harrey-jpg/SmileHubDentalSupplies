@@ -211,8 +211,11 @@ async function fetchUserProfile(uid) {
 }
 
 var authReady = false;
+var resolvedAuthUid = null;
+var intentionalLogout = false;
 
 firebase.auth().onAuthStateChanged(function(firebaseUser) {
+  resolvedAuthUid = null;
   if (firebaseUser) {
     var demo = demoRoleFor(firebaseUser.email);
     cacheUser({
@@ -232,6 +235,7 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
       firebase.firestore().collection('user_registrations').doc(String(firebaseUser.email || '').trim().toLowerCase()).get(),
       firebase.firestore().collection('accounts').doc(String(firebaseUser.email || '').trim().toLowerCase()).get()
     ]).then(function(results) {
+      if (!firebase.auth().currentUser || firebase.auth().currentUser.uid !== firebaseUser.uid) return;
       var profile = results[0];
       var regDoc = results[1];
       var accountDoc = results[2];
@@ -305,6 +309,8 @@ firebase.auth().onAuthStateChanged(function(firebaseUser) {
     }).catch(function(error) {
       console.warn('Could not resolve SmileHub profile after sign-in:', error);
     }).then(function() {
+      if (!firebase.auth().currentUser || firebase.auth().currentUser.uid !== firebaseUser.uid) return;
+      resolvedAuthUid = firebaseUser.uid;
       authReady = true;
       afterAuthReady();
     });
@@ -449,7 +455,7 @@ function handleGoogleLogin() {
           showAuthMessage('Your account is suspended while browsing. Contact support if you think this is a mistake.', true);
           return;
         }
-        redirectAfterLogin();
+        return redirectAfterLogin();
       });
     });
   }
@@ -539,6 +545,33 @@ function restoreCartItem(item) {
 }
 
 function redirectAfterLogin() {
+  var user = firebase.auth().currentUser;
+  if (!user) return Promise.resolve();
+  return waitForResolvedUser(user.uid).then(function() {
+    var current = firebase.auth().currentUser;
+    if (intentionalLogout || !current || current.uid !== user.uid) return;
+    performLoginRedirect();
+  });
+}
+
+function waitForResolvedUser(uid) {
+  if (resolvedAuthUid === uid) return Promise.resolve();
+  return new Promise(function(resolve) {
+    function ready() {
+      var current = firebase.auth().currentUser;
+      if (!current || current.uid !== uid || resolvedAuthUid === uid) {
+        document.removeEventListener('authReady', ready);
+        resolve();
+      }
+    }
+    document.addEventListener('authReady', ready);
+    ready();
+  });
+}
+
+function performLoginRedirect() {
+  var returnPage = SmileHubStorage.get(RETURN_KEY, null);
+  SmileHubStorage.remove(RETURN_KEY);
   // Restore anything the user tried to buy as a guest before the login gate.
   var pending = consumePendingAction();
   if (pending && pending.type === 'buy') {
@@ -552,8 +585,6 @@ function redirectAfterLogin() {
 
   // Send users back to the page they were on when login was requested.
   // Only relative .html paths are accepted to prevent open redirects.
-  var returnPage = SmileHubStorage.get(RETURN_KEY, null);
-  SmileHubStorage.remove(RETURN_KEY);
   if (pending && pending.type === 'cart') {
     if (restoreCartItem(pending.item)) {
       try { sessionStorage.setItem(PENDING_TOAST_KEY, 'Welcome back — your pick was restored to your cart.'); } catch (e) {}
@@ -583,7 +614,10 @@ function redirectAfterLogin() {
     var isSafe = /^[A-Za-z0-9._-]+\.html$/.test(pathOnly)
       && returnPage.indexOf('//') === -1
       && !returnPage.startsWith('/');
-    if (isSafe) {
+    var user = getCachedUser();
+    var canReturn = pathOnly.toLowerCase() !== 'admin.html'
+      || (user && ['admin', 'staff', 'superadmin'].includes(user.role));
+    if (isSafe && canReturn) {
       location.href = returnPage;
       return;
     }
@@ -663,7 +697,7 @@ function handleLogin(event) {
         return;
       }
       showAuthMessage('Login successful! Redirecting...');
-      setTimeout(redirectAfterLogin, 300);
+      return redirectAfterLogin();
     });
   }).catch(function(error) {
     setLoginLoading(false);
@@ -795,6 +829,7 @@ function handleRegister(event) {
 }
 
 function logoutUser() {
+  intentionalLogout = true;
   cacheUser(null);
   SmileHubStorage.remove(RETURN_KEY);
   // Keep the Firebase cart and wishlist so they return on the next sign-in.
@@ -802,6 +837,7 @@ function logoutUser() {
   try { localStorage.removeItem('smilehub_simple_cart'); sessionStorage.removeItem('smilehub_simple_cart'); } catch (e) {}
   try { localStorage.removeItem('smilehub_simple_wishlist'); sessionStorage.removeItem('smilehub_simple_wishlist'); } catch (e) {}
   firebase.auth().signOut().catch(function() {}).then(function() {
+    SmileHubStorage.remove(RETURN_KEY);
     location.href = 'homepage.html';
   });
 }
@@ -815,6 +851,7 @@ function requireLogin(returnPage) {
 }
 
 function protectPage() {
+  if (intentionalLogout) return;
   try { if (window.__suspendKick) return; } catch (e) {}
   var user = getCachedUser();
 

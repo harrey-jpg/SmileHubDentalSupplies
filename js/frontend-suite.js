@@ -118,7 +118,8 @@
     var form=document.getElementById('checkoutForm'); if(!form) return;
     // Real delivery block now lives in checkout.html — don't double-render on cached pages
     if(!document.getElementById('deliverySection')){
-      var shipping=document.createElement('div'); shipping.innerHTML='<h2>Delivery Method</h2><div class="payment-options"><label class="payment-option"><input checked name="shippingMethod" type="radio" value="Standard"><span><strong>Standard delivery</strong><br><small class="muted">1–3 business days • ₱150 or free over ₱3,000</small></span></label><label class="payment-option"><input name="shippingMethod" type="radio" value="Express"><span><strong>Express delivery</strong><br><small class="muted">Same/next day where available • demo option</small></span></label></div>';
+      var shipping=document.createElement('div'); shipping.innerHTML='<h2>Delivery Method</h2><div class="payment-options"><label class="payment-option"><input checked name="shippingMethod" type="radio" value="Standard"><span><strong>Standard delivery</strong><br><small class="muted" data-delivery-message="promotion">Delivery pricing available at checkout</small></span></label><label class="payment-option"><input name="shippingMethod" type="radio" value="Express" disabled><span><strong>Express delivery</strong><br><small class="muted">Unavailable in demo</small></span></label></div>';
+      if(window.SmileHubDelivery.status()==='ready') shipping.querySelector('[data-delivery-message]').textContent=window.SmileHubDelivery.promotion();
       var paymentHeading=Array.from(form.querySelectorAll('h2')).find(function(x){return /Payment Method/.test(x.textContent);});
       if(paymentHeading) paymentHeading.parentNode.insertBefore(shipping,paymentHeading);
     }

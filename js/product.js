@@ -124,8 +124,7 @@ function renderRelatedRail(category, currentId) {
         '<div class="price-row"><span class="price">₱' + Number(p.price).toLocaleString('en-PH', { minimumFractionDigits: 2 }) + '</span> <span class="' + statusClass + '">' + statusText + '</span></div>' +
         '<div class="product-actions">' +
         '<button class="btn btn-primary add-cart" data-id="' + p.id + '" type="button"' + buyDisabled + '>Add to Cart</button>' +
-        '<button class="btn buy-now" data-id="' + p.id + '" type="button"' + buyDisabled + '>Buy Now</button>' +
-        '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
+        '<button class="buy-now-link buy-now" data-id="' + p.id + '" type="button"' + buyDisabled + '>Buy Now →</button>' +
         '</div></div></article>';
     }).join('');
     grid.querySelectorAll('.add-cart').forEach(function(btn) {

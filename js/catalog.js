@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   var HEART_SVG = '<svg class="heart-icon" width="18" height="18" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M128 216S24 152 24 88c0-29.7 24.1-54 54-54 19.4 0 36.7 10.3 50 26.3C141.3 44.3 158.6 34 178 34c29.9 0 54 24.3 54 54 0 64-104 128-104 128Z" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var BOLT_SVG = '<svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M144 24 48 144h64l-8 88 96-120h-64l8-88Z" stroke="currentColor" stroke-width="20" stroke-linejoin="round"/></svg>';
 
   function setWishState(btn, wished) {
     if (typeof paintHeart === 'function') { paintHeart(btn, wished); return; }
@@ -149,9 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="product-actions">' +
             (inStock
               ? '<button class="btn btn-primary add-cart catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>Add to Cart</button>' +
-                '<button class="btn buy-now catalog-btn btn-quiet" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + '>' + BOLT_SVG + ' Buy Now</button>'
+                '<button class="buy-now-link buy-now catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" data-price="' + p.price + '" data-image="' + (p.image || 'assets/products/default.svg') + '" data-stock="' + stockCount + '"' + buyDisabled + ' type="button">Buy Now →</button>'
               : '<button class="btn btn-light notify-btn catalog-btn" data-id="' + p.id + '" data-name="' + p.name.replace(/"/g,'&quot;') + '" type="button">Notify me when back</button>') +
-            '<a class="btn btn-light" href="product.html?id=' + p.id + '">View</a>' +
           '</div>' +
         '</div>';
       grid.appendChild(card);
@@ -334,6 +332,17 @@ document.addEventListener('DOMContentLoaded', function() {
     syncCatalogUrl();
     attachEventListeners();
     if (count) count.textContent = visibleCount + ' product' + (visibleCount !== 1 ? 's' : '') + ' found';
+    if (visibleCount === 0 && noResults) {
+      var nrTitle = noResults.querySelector('h3');
+      var nrCopy = noResults.querySelector('p');
+      if (selectedCategory !== 'all') {
+        if (nrTitle) nrTitle.textContent = 'No ' + selectedCategory + ' products right now';
+        if (nrCopy) nrCopy.textContent = 'New ' + selectedCategory + ' stock is on the way. Clear the category filter to browse everything, or tap Notify me on any restock item.';
+      } else {
+        if (nrTitle) nrTitle.textContent = 'No products match your filters';
+        if (nrCopy) nrCopy.textContent = 'Try widening the price range, clearing the search, or showing out-of-stock items.';
+      }
+    }
     noResults.classList.toggle('hidden', visibleCount !== 0);
   }
 

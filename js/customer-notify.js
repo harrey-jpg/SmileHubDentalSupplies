@@ -75,8 +75,14 @@
   }
 
   var STATUS_LABELS = {
-    Pending: 'pending', Processing: 'being prepared', Shipped: 'on its way',
-    Delivered: 'delivered', Cancelled: 'cancelled', Returned: 'returned',
+    Pending: 'pending',
+    'Pending Payment': 'pending',
+    'Pending Quotation': 'pending',
+    Processing: 'being prepared',
+    Shipped: 'on its way',
+    Delivered: 'delivered',
+    Cancelled: 'cancelled',
+    Returned: 'returned',
     Refunded: 'refunded'
   };
 

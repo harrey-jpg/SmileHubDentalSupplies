@@ -1,3 +1,41 @@
+// Shared validation for step navigation and final submission.
+window.validateCheckoutStep = function(step, showErrors) {
+  var ids = step === 1 ? ['checkoutFirstName','checkoutLastName','checkoutEmail','checkoutPhone','checkoutAddress','checkoutProvince','checkoutCity','checkoutBarangay','checkoutPostal'] : [];
+  var payment = document.querySelector('input[name="payment"]:checked');
+  var same = document.getElementById('sameAsShipping');
+  if (step === 2 && payment && ['GCash','Credit Card'].indexOf(payment.value) !== -1 && same && !same.checked) {
+    ids = ['billingFirstName','billingLastName','billingEmail','billingPhone','billingStreet','billingProvince','billingCity','billingBarangay','billingPostal'];
+  }
+  var firstInvalid = null;
+  ids.forEach(function(id) {
+    var field = document.getElementById(id);
+    if (!field) return;
+    if (field.value === '__other__') field = document.getElementById(id+'Other') || document.getElementById(id+'_other') || field;
+    var value = field.value.trim();
+    var message = !value ? 'Complete this field.' : !field.checkValidity() ? 'Enter a valid value.' : '';
+    if (value && /Phone$/.test(id) && !normalizePHPhone(value)) message = 'Enter a valid Philippine mobile number.';
+    if (value && /Postal$/.test(id) && !/^[0-9]{4}$/.test(value)) message = 'Enter a 4-digit postal code.';
+    if (message && !firstInvalid) firstInvalid = field;
+    if (!showErrors) return;
+    var errorId = field.id + 'Error';
+    var error = document.getElementById(errorId);
+    if (!error && message) {
+      error = document.createElement('p'); error.id = errorId; error.className = 'field-error';
+      field.insertAdjacentElement('afterend', error);
+      field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), errorId].filter(Boolean).join(' '));
+    }
+    field.setAttribute('aria-invalid', message ? 'true' : 'false');
+    if (error) { error.textContent = message; error.hidden = !message; error.classList.toggle('show', Boolean(message)); }
+  });
+  if (firstInvalid && showErrors) {
+    if (window.checkoutGoToStep) window.checkoutGoToStep(step, {silent:true});
+    var billing = document.getElementById('billingSection');
+    if (step === 2 && billing) billing.style.display = '';
+    firstInvalid.focus();
+  }
+  return !firstInvalid && (step !== 2 || Boolean(payment));
+};
+
 var PAYMONGO_PUBLISHABLE_KEY = '';
 var GOOGLE_MAPS_KEY = ''; // Set your Google Maps API key for address autocomplete
 
@@ -120,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function getOrderTotals() {
     var subtotal = cart.reduce(function(sum, item) { return sum + item.price * item.quantity; }, 0);
-    var shipping = subtotal >= 3000 || subtotal === 0 ? 0 : 150;
+    var shipping = window.SmileHubDelivery.calculate(subtotal).shipping;
     var discount = subtotal * couponDiscountRate(getAppliedCoupon());
     // VAT applies to the discounted amount actually paid.
     var tax = (subtotal - discount) * 0.12;
@@ -197,7 +235,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('') : '<p class="muted">Your cart is empty.</p>';
 
     document.getElementById('checkoutSubtotal').textContent = money(totals.subtotal);
-    document.getElementById('checkoutShipping').textContent = money(totals.shipping);
+    var deliveryReady = window.SmileHubDelivery.status() === 'ready';
+    document.getElementById('checkoutShipping').textContent = deliveryReady ? money(totals.shipping) : '—';
     document.getElementById('checkoutTax').textContent = money(totals.tax);
     var discountRow = document.getElementById('checkoutDiscountRow');
     var discountEl = document.getElementById('checkoutDiscount');
@@ -209,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         discountRow.style.display = 'none';
       }
     }
-    document.getElementById('checkoutTotal').textContent = money(totals.total);
+    document.getElementById('checkoutTotal').textContent = deliveryReady ? money(totals.total) : '—';
   }
 
   var savedCoupon = getAppliedCoupon();
@@ -289,12 +328,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function processPayment(order, total, callback) {
+    if (order.payment !== 'GCash' && order.payment !== 'Credit Card') { callback(null, { status: 'unpaid' }); return; }
     if (!PAYMONGO_PUBLISHABLE_KEY) {
-      callback(null);
+      callback(null, { status: 'unpaid', demo: true });
       return;
     }
     if (!window.PayMongo) {
-      callback(null);
+      callback(new Error('Payment service unavailable'), { status: 'unpaid' });
       return;
     }
     PayMongo.setPublishableKey(PAYMONGO_PUBLISHABLE_KEY);
@@ -331,16 +371,28 @@ document.addEventListener('DOMContentLoaded', function() {
           callback(null, { status: 'unpaid' });
         }
       });
-    }).catch(function() {
-      callback(null);
+    }).catch(function(error) {
+      callback(error, { status: 'unpaid' });
     });
   }
 
-  document.getElementById('checkoutForm').addEventListener('submit', function(event) {
+  var retryOrderSave = null;
+  function syncCheckoutDelivery() {
+    var form = document.getElementById('checkoutForm');
+    if (retryOrderSave || form.dataset.submitting === '1') return;
+    var state = window.SmileHubDelivery.status();
+    form.querySelectorAll('button[type="submit"]').forEach(function(button) { button.disabled = state !== 'ready'; });
+    document.getElementById('checkoutDeliveryStatus').textContent = state === 'ready' ? 'Delivery pricing loaded. We will verify it again before placing your order.' : state === 'error' ? 'Current delivery pricing could not be loaded. Retry before placing your order; your entries are preserved.' : 'Loading current delivery pricing…';
+  }
+  document.addEventListener('deliverySettingsChanged', function() { if (!retryOrderSave) renderSummary(); syncCheckoutDelivery(); });
+  syncCheckoutDelivery();
+  document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     var form = this;
     if (form.dataset.submitting === '1') return;
     if (window.__suspendKick) return;
+    if (retryOrderSave) { retryOrderSave(); return; }
+    if (window.SmileHubDelivery.status() !== 'ready') { syncCheckoutDelivery(); return; }
     var alreadyVerified = form.dataset.suspendVerified === '1';
     if (alreadyVerified) { form.dataset.suspendVerified = ''; }
     else {
@@ -384,13 +436,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var payment = document.querySelector('input[name="payment"]:checked');
     var paymentMethod = payment ? payment.value : 'GCash';
 
-    if (!firstName || !lastName || !email || !phone || !address || !postal || !city || !province || !barangay) {
-      return showToast('Please fill in all required shipping fields', true);
-    }
+    if (!window.validateCheckoutStep(1, true)) return;
     var normalizedPhone = normalizePHPhone(phone);
-    if (!normalizedPhone) {
-      return showToast('Enter a valid 10-digit Philippine mobile number beginning with 9', true);
-    }
     var phoneVerifiedForOrder = Boolean(
       checkoutProfile &&
       checkoutProfile.phoneVerified &&
@@ -423,10 +470,38 @@ document.addEventListener('DOMContentLoaded', function() {
       var bBrgy2=checkoutVal('billingBarangay');
       var bPostal2=checkoutVal('billingPostal');
       if (!bfName || !blName || !bEmail || (!isSame && (!bStreet2 || !bProv2 || !bCity2 || !bBrgy2 || !bPostal2))) {
-        return showToast('Please fill in all billing details');
+        window.validateCheckoutStep(2, true);
+        return;
       }
     }
 
+    if (!window.validateCheckoutStep(2, true)) return;
+    var reviewedShipping = getOrderTotals().shipping;
+    var deliveryUserId = (firebase.auth().currentUser || {}).uid;
+    var deliveryButton = form.querySelector('button[type="submit"]');
+    form.dataset.submitting = '1';
+    form.querySelectorAll('button[type="submit"]').forEach(function(button) { button.disabled = true; });
+    if (deliveryButton) { deliveryButton.disabled = true; deliveryButton.textContent = 'Checking delivery pricing…'; }
+    try {
+      await window.SmileHubDelivery.refresh();
+    } catch (error) {
+      form.dataset.submitting = '';
+      if (deliveryButton) deliveryButton.textContent = 'Place Order';
+      syncCheckoutDelivery();
+      document.getElementById('checkoutDeliveryStatus').focus();
+      return;
+    }
+    form.dataset.submitting = '';
+    if (deliveryButton) deliveryButton.textContent = 'Place Order';
+    syncCheckoutDelivery();
+    renderSummary();
+    if (getOrderTotals().shipping !== reviewedShipping) {
+      var deliveryNotice = document.getElementById('checkoutDeliveryStatus');
+      deliveryNotice.textContent = 'Delivery pricing changed. Review the updated shipping fee and total, then place your order again.';
+      deliveryNotice.focus();
+      return;
+    }
+    if (window.__suspendKick || !firebase.auth().currentUser || firebase.auth().currentUser.uid !== deliveryUserId) return;
     var totals = getOrderTotals();
     var subtotal = totals.subtotal;
     var shipping = totals.shipping;
@@ -536,63 +611,107 @@ document.addEventListener('DOMContentLoaded', function() {
       result = result || {};
       var paid = !paymentError && (paymentMethod === 'Credit Card' || paymentMethod === 'GCash') && result.status === 'paid';
       order.paymentStatus = paid ? 'paid' : 'unpaid';
-      order.status = needsQuote ? 'Pending Quotation' : (paid ? 'Processing' : 'Pending');
+      order.status = needsQuote ? 'Pending Quotation' : (paid ? 'Processing' : (paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Pending Payment'));
 
       // Persist only the new order to Firestore. Rewriting the full local
       // history would be rejected by the security rules (owners may not
       // overwrite existing orders) and silently lose every later order.
-      orders.unshift(order);
-      SmileHubStorage.set('smilehub_orders', orders);
-      SmileHubData.saveOrder(order);
+      function persistCheckoutOrder() {
+        if (window.__suspendKick) return;
+        form.dataset.submitting = '1';
+        var saveNotice = document.getElementById('checkoutSaveError');
+        if (saveNotice) saveNotice.hidden = true;
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving order…'; }
+        function onOrderSaved(saveError) {
+          if (saveError) {
+            retryOrderSave = persistCheckoutOrder;
+            form.dataset.submitting = '';
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Retry saving order'; }
+            if (saveNotice) {
+              saveNotice.hidden = false;
+              saveNotice.textContent = 'We could not confirm that your order was saved. Your cart is preserved. Check your connection and retry saving. Retry uses the original order details and does not start another payment.';
+              saveNotice.focus();
+            }
+            return;
+          }
+          retryOrderSave = null;
+          orders.unshift(order);
+          SmileHubStorage.set('smilehub_orders', orders);
+          var simpleOrders = getStoredList('smilehub_simple_orders');
+          simpleOrders.unshift({ number: order.number, date: order.date, total: total, status: order.status });
+          saveStoredList('smilehub_simple_orders', simpleOrders);
 
-      var simpleOrders = getStoredList('smilehub_simple_orders');
-      simpleOrders.unshift({ number: order.number, date: order.date, total: total, status: order.status });
-      saveStoredList('smilehub_simple_orders', simpleOrders);
+          // Stock is decremented server-side by the onOrderCreated Cloud Function,
+          // so inventory stays accurate regardless of who placed the order.
 
-      // Stock is decremented server-side by the onOrderCreated Cloud Function,
-      // so inventory stays accurate regardless of who placed the order.
+          if (buyNowMode) {
+            window.SmileHubStorage.remove(BUY_NOW_KEY);
+          } else {
+            // Clear locally first, then mark the Firebase cart as explicitly cleared.
+            // The persistent clear marker prevents stale remote items from returning
+            // while the Firestore write is still in flight.
+            if (window.SmileHubStorage) window.SmileHubStorage.set(CART_KEY, []);
+            cart = [];
+            if (window.SmileHubFirebaseSync && window.SmileHubFirebaseSync.clearList) {
+              window.SmileHubFirebaseSync.clearList(CART_KEY).catch(function(error) {
+                console.warn('Cart was cleared locally but Firestore clear failed:', error);
+              });
+            } else {
+              saveStoredList(CART_KEY, []);
+            }
+          }
+          updateCartCount();
 
-      if (buyNowMode) {
-        window.SmileHubStorage.remove(BUY_NOW_KEY);
-      } else {
-        // Clear locally first, then mark the Firebase cart as explicitly cleared.
-        // The persistent clear marker prevents stale remote items from returning
-        // while the Firestore write is still in flight.
-        if (window.SmileHubStorage) window.SmileHubStorage.set(CART_KEY, []);
-        cart = [];
-        if (window.SmileHubFirebaseSync && window.SmileHubFirebaseSync.clearList) {
-          window.SmileHubFirebaseSync.clearList(CART_KEY).catch(function(error) {
-            console.warn('Cart was cleared locally but Firestore clear failed:', error);
-          });
-        } else {
-          saveStoredList(CART_KEY, []);
+          // Payment provider needs the customer to authorize on their site.
+          // Everything is already saved, so navigating away is safe now.
+          if (result.status === 'redirect' && result.url) {
+            window.location.href = result.url;
+            return;
+          }
+
+          document.getElementById('confirmOrderNumber').textContent = order.orderNumber;
+          document.getElementById('confirmEmail').textContent = email;
+          var payNote = document.getElementById('confirmPaymentNote');
+          if (payNote) {
+            payNote.textContent = paid
+              ? 'Payment marked confirmed on this order.'
+              : (paymentMethod === 'Cash on Delivery'
+                ? 'Order saved. Payment is due on delivery.'
+                : (needsQuote ? 'Order saved. A quotation is required before payment.'
+              : result.demo ? 'Order saved with payment pending. Online payments are not enabled; no charge was made.'
+              : paymentError ? 'Order saved, but payment could not be confirmed. Check the order status before attempting another payment.'
+              : 'Order saved. Payment is awaiting confirmation.'));
+          }
+          var modal = document.getElementById('orderConfirmModal');
+          var confirmationTrigger = submitBtn || document.activeElement;
+          modal.style.display = 'flex';
+          document.getElementById('orderConfirmTitle').focus();
+          function closeConfirmation() {
+            modal.style.display = 'none';
+            modal.removeEventListener('keydown', confirmationKeys);
+            modal.removeEventListener('click', confirmationClick);
+            document.getElementById('closeOrderConfirm').onclick = null;
+            if (confirmationTrigger && document.contains(confirmationTrigger)) confirmationTrigger.focus();
+          }
+          function confirmationKeys(event) {
+            if (event.key === 'Escape') { event.preventDefault(); closeConfirmation(); return; }
+            if (event.key !== 'Tab') return;
+            var controls = Array.from(modal.querySelectorAll('button, a[href]')).filter(function(el) { return !el.disabled; });
+            var first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && (document.activeElement === first || document.activeElement.id === 'orderConfirmTitle')) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+          }
+          function confirmationClick(event) { if (event.target === modal) closeConfirmation(); }
+          modal.addEventListener('keydown', confirmationKeys);
+          modal.addEventListener('click', confirmationClick);
+          document.getElementById('closeOrderConfirm').onclick = closeConfirmation;
+
+          form.dataset.submitting = '';
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; }
         }
+        try { SmileHubData.saveOrder(order, onOrderSaved); } catch (saveError) { onOrderSaved(saveError); }
       }
-      updateCartCount();
-
-      // Payment provider needs the customer to authorize on their site.
-      // Everything is already saved, so navigating away is safe now.
-      if (result.status === 'redirect' && result.url) {
-        window.location.href = result.url;
-        return;
-      }
-
-      document.getElementById('confirmOrderNumber').textContent = order.orderNumber;
-      document.getElementById('confirmEmail').textContent = email;
-      var payNote = document.getElementById('confirmPaymentNote');
-      if (payNote) {
-        payNote.textContent = paid
-          ? 'Payment confirmed.'
-          : (paymentMethod === 'Cash on Delivery'
-            ? 'Pay in cash when your order arrives.'
-            : 'Demo checkout — no real charge was made. We\'ll confirm payment before shipping.');
-      }
-      var modal = document.getElementById('orderConfirmModal');
-      modal.style.display = 'flex';
-      modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
-
-      form.dataset.submitting = '';
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; }
+      persistCheckoutOrder();
     });
   });
 });

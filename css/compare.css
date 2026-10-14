@@ -1,0 +1,132 @@
+/* Comparison surfaces are independent of the shared policy hero. */
+.compare-page {
+  --compare-bg: #f5f8f9;
+  --compare-surface: #ffffff;
+  --compare-alt: #f2f7f6;
+  --compare-border: #d8e4e3;
+  --compare-text: #203438;
+  --compare-muted: #52666a;
+  --compare-accent: #086b63;
+  --compare-success-bg: #def5e9;
+  --compare-success: #17613d;
+  --compare-danger-bg: #fff0ee;
+  --compare-danger: #a62b26;
+  background: var(--compare-bg);
+}
+.compare-page.dark {
+  --compare-bg: #101c24;
+  --compare-surface: #192a33;
+  --compare-alt: #20343c;
+  --compare-border: #39515a;
+  --compare-text: #eef6f5;
+  --compare-muted: #b0c6ca;
+  --compare-accent: #76dec8;
+  --compare-success-bg: #153e32;
+  --compare-success: #9ce9bf;
+  --compare-danger-bg: #462b30;
+  --compare-danger: #ffb8b1;
+  color-scheme: dark;
+}
+.compare-page .policy-hero,
+.compare-page.dark .policy-hero {
+  background: var(--compare-alt);
+  color: var(--compare-text);
+  border-radius: 0;
+  border-color: var(--compare-border);
+  padding: 28px 0 30px;
+}
+.compare-page .policy-hero::before,
+.compare-page .policy-hero::after { display: none; }
+.compare-page .policy-hero h1 {
+  color: var(--compare-text);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  margin: 12px 0 10px;
+  line-height: 1.2;
+}
+.compare-page .policy-hero .lede,
+.compare-page .crumbs,
+.compare-page .compare-count,
+.compare-page .compare-note { color: var(--compare-muted); }
+.compare-page .crumbs a { color: var(--compare-accent); }
+.compare-page .crumbs span { color: var(--compare-muted); }
+.compare-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.compare-filter { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--compare-text); font-size: .9rem; cursor: pointer; }
+.compare-filter input { width: 18px; height: 18px; margin: 0; accent-color: var(--compare-accent); }
+.compare-filter:has(input:disabled) { color: var(--compare-muted); cursor: default; }
+.compare-page .compare-grid-wrap { background: var(--compare-surface); border-color: var(--compare-border); box-shadow: none; scrollbar-color: var(--compare-border) var(--compare-surface); }
+.compare-page .compare-grid { min-width: 0; }
+.compare-page .compare-grid-header,
+.compare-page .compare-grid-row { grid-template-columns: 160px repeat(2, minmax(210px, 1fr)); }
+.compare-page .cols-1 { grid-template-columns: 160px minmax(210px, 1fr); }
+.compare-page .cols-3 { grid-template-columns: 160px repeat(3, minmax(210px, 1fr)); }
+.compare-page .cols-4 { grid-template-columns: 160px repeat(4, minmax(210px, 1fr)); }
+.compare-page .compare-grid-header { background: var(--compare-alt); }
+.compare-page .compare-grid-row { background: var(--compare-surface); }
+.compare-page .compare-grid-row:nth-child(odd) { background: var(--compare-alt); }
+.compare-page .feature-cell { background: var(--compare-surface); color: var(--compare-muted); text-transform: none; letter-spacing: 0; font-size: .875rem; font-weight: 600; border-right: 1px solid var(--compare-border); }
+.compare-page .compare-grid-header .feature-cell,
+.compare-page .compare-grid-row:nth-child(odd) .feature-cell { background: var(--compare-alt); }
+.compare-page .feature-cell,
+.compare-page .product-cell,
+.compare-page .value-cell { border-bottom-color: var(--compare-border); }
+.compare-page .product-cell { display: flex; flex-direction: column; align-items: center; padding: 24px 16px 18px; color: var(--compare-text); }
+.compare-page .product-cell img { width: 120px; height: 120px; object-fit: contain; background: #fff; padding: 10px; margin-bottom: 16px; }
+.compare-page .product-cell strong { line-height: 1.45; overflow-wrap: anywhere; margin-bottom: 18px; }
+.compare-page .cell-actions { margin-top: auto; width: 100%; }
+.compare-page .cell-actions .btn-primary { flex-basis: 100%; background: #086b63; border-color: #086b63; color: #fff; }
+.compare-page .cell-actions .btn-primary:hover { background: #07594f; }
+.compare-page .remove-compare,
+.compare-page .move-compare { background: transparent; border-color: var(--compare-border); color: var(--compare-muted); font-size: .82rem; font-weight: 600; }
+.compare-page .remove-compare:hover { background: var(--compare-danger-bg); color: var(--compare-danger); }
+.compare-page .move-compare:hover { color: var(--compare-accent); border-color: var(--compare-accent); }
+.compare-page .value-cell { color: var(--compare-text); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.compare-page .value-cell.price { color: var(--compare-accent); font-size: 1.2rem; }
+.compare-page .stock-pill { color: var(--compare-success); background: var(--compare-success-bg); }
+.compare-page .stock-pill.out { color: var(--compare-danger); background: var(--compare-danger-bg); }
+.compare-page .stock-pill.unknown { color: var(--compare-muted); background: var(--compare-alt); }
+.compare-page .compare-error { color: var(--compare-danger); background: var(--compare-danger-bg); border-color: var(--compare-danger); }
+.compare-page .compare-actions .btn-light,
+.compare-page .compare-identical .btn,
+.compare-page .sticky-compare-bar .btn-light { color: var(--compare-text); background: var(--compare-surface); border: 1px solid var(--compare-border); }
+.compare-page .compare-actions .btn-secondary,
+.compare-page .sticky-compare-bar .btn-secondary { background: #086b63; color: #fff; border-color: #086b63; }
+.compare-page .sticky-compare-bar { background: var(--compare-surface); border-color: var(--compare-border); }
+.compare-identical { padding: 20px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: var(--compare-muted); }
+.compare-scroll-hint { display: none; color: var(--compare-muted); font-size: .85rem; margin: 12px 0; }
+.compare-page .empty-state { background: var(--compare-surface); border-color: var(--compare-border); box-shadow: none; color: var(--compare-text); padding: 40px 24px; }
+.compare-page .empty-state p { color: var(--compare-muted); max-width: 55ch; margin-inline: auto; }
+.compare-page .empty-state .btn-primary { background: #086b63; border-color: #086b63; color: #fff; }
+.compare-page main :focus-visible,
+.compare-page .sticky-compare-bar :focus-visible { outline: 3px solid var(--compare-accent); outline-offset: 3px; }
+.compare-page main ::selection { background: var(--compare-accent); color: var(--compare-bg); }
+@media (max-width: 960px) {
+  .compare-page main { padding-bottom: 190px; }
+  .compare-page .sticky-compare-bar.has-items { bottom: calc(86px + env(safe-area-inset-bottom)); }
+  .compare-scroll-hint:not(.hidden) { display: block; }
+}
+@media (max-width: 620px) {
+  .compare-page .policy-hero { padding: 20px 0 24px; }
+  .compare-page .compare-grid-header,
+  .compare-page .compare-grid-row { grid-template-columns: 112px repeat(2, minmax(190px, 1fr)); }
+  .compare-page .cols-1 { grid-template-columns: 112px minmax(190px, 1fr); }
+  .compare-page .cols-3 { grid-template-columns: 112px repeat(3, minmax(190px, 1fr)); }
+  .compare-page .cols-4 { grid-template-columns: 112px repeat(4, minmax(190px, 1fr)); }
+  .compare-page .feature-cell { padding: 14px 10px; }
+  .compare-page .compare-actions { width: 100%; }
+  .compare-page .compare-actions .btn { flex: 1 1 auto; padding: 8px 10px; font-size: .85rem; }
+}
+@media print {
+  .compare-page, .compare-page.dark { --compare-surface: #fff; --compare-alt: #fff; --compare-text: #000; --compare-muted: #333; --compare-accent: #000; --compare-border: #999; --compare-success-bg: #fff; --compare-success: #000; --compare-danger-bg: #fff; --compare-danger: #000; color-scheme: light; color: #000; }
+  .compare-page main { padding: 0; }
+  .compare-page .compare-grid-wrap { overflow: visible; border-radius: 0; }
+  .compare-page .compare-grid-header,
+  .compare-page .compare-grid-row { grid-template-columns: 100px repeat(2, minmax(0, 1fr)); }
+  .compare-page .cols-1 { grid-template-columns: 100px minmax(0, 1fr); }
+  .compare-page .cols-3 { grid-template-columns: 100px repeat(3, minmax(0, 1fr)); }
+  .compare-page .cols-4 { grid-template-columns: 100px repeat(4, minmax(0, 1fr)); }
+  .compare-page .feature-cell { position: static; }
+  .compare-page .product-cell img { width: 64px; height: 64px; }
+  .compare-page .product-cell, .compare-page .value-cell { padding: 8px; font-size: .85rem; }
+  .compare-page .compare-grid-row { break-inside: avoid; }
+  .compare-page .cell-actions, .compare-page .compare-scroll-hint, .compare-page .compare-note, .compare-page .compare-identical button { display: none; }
+}

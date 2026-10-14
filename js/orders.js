@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   var table = document.getElementById('ordersBody');
   if (!table) return;
-  if (new URLSearchParams(location.search).get('success')) showToast('Payment successful. Order created.');
+  if (new URLSearchParams(location.search).get('success')) showToast('Returned from checkout. Check your order for its current payment status.');
 
   var searchInput = document.getElementById('ordersSearch');
   var statusFilter = document.getElementById('ordersStatusFilter');
@@ -111,9 +111,14 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'processing';
   }
 
-  function timelineSteps(status) {
+  function timelineSteps(orderRecord) {
+    var status = orderRecord.status;
+    var paymentNote = orderRecord.paymentStatus === 'paid' ? 'Payment marked confirmed on this order.'
+      : status === 'Pending Quotation' ? 'Quotation pending. Payment is not confirmed.'
+      : orderRecord.payment === 'Cash on Delivery' ? 'Order recorded. Payment is due on delivery.'
+      : 'Order recorded. Payment is not confirmed.';
     var steps = [
-      { label: 'Order Placed', desc: 'Payment and order information received.' },
+      { label: 'Order recorded', desc: paymentNote },
       { label: 'Processing', desc: 'Products are being prepared.' },
       { label: 'Shipped', desc: 'Order is on the way.' },
       { label: 'Delivered', desc: 'Order delivered successfully.' }
@@ -198,9 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if(String(order.status||'').toLowerCase() === 'delivered' && !order.returnRequest){
         try{
           // Unparseable dates fail OPEN (eligible) — never silently lock fresh orders out.
-          var orderTime = orderTimestampMs(order);
-          var diffDays = orderTime === null ? 0 : (Date.now() - orderTime) / (1000*60*60*24);
-          if(diffDays <= 7) canReturn = true;
+          if (!window.returnWindowExpired(order)) canReturn = true;
           else { canReturn = false; returnDisabled = true; returnLabel = 'Return (past 7 days)'; }
         }catch(e){ canReturn = true; }
       } else if(order.returnRequest){
@@ -215,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
       else if(returnDisabled) actions += '<button class="btn btn-light btn-sm order-return" data-order="' + id + '" type="button" disabled title="Return window closed or already requested">' + escapeHtml(returnLabel) + '</button>';
       actions += '<button class="btn btn-light btn-sm order-remove" data-order="' + id + '" type="button" style="color:var(--muted);border-color:var(--border)">Hide</button></div>';
       return '<tr class="order-row" data-order="' + id + '"><td>' + num + '</td><td>' + date + '</td><td>' + itemsCount + ' items</td><td>' + total + '</td><td><span class="status ' + cls + '">' + status + '</span></td><td>' + actions + '</td></tr>' +
-        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p></div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order.status) + '</div></div></div></div></td></tr>';
+        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p></div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
     }).join('');
   }
 
@@ -341,9 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var order = allOrders.find(function(o){ return String(o.number||o.orderNumber)===String(orderId); });
     if(!order) return;
     if(order.returnRequest) return showToast('Return already requested for ' + orderId, true);
-    var orderTime = orderTimestampMs(order);
-    var diffDays = orderTime === null ? 0 : (Date.now() - orderTime) / (1000*60*60*24);
-    if(diffDays > 7) return showToast('Return window closed (7 days)', true);
+    if (window.returnWindowExpired(order)) return showToast('Return window closed (7 days from delivery)', true);
     pendingReturnOrderId = orderId;
     if(returnOrderInfo) returnOrderInfo.textContent = 'Order ' + orderId + ' — ' + (order.date||'') + ' • ' + money(order.total||0);
     if(returnReason) returnReason.value='';
@@ -371,27 +372,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if(btn) btn.disabled=true;
     var payload = { returnRequest: { reason: reason, note: note, requestedAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'requested' }, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
     var docId = order.docId || order.number || order.orderNumber;
-    order.returnRequest = { reason: reason, note: note, requestedAt: new Date().toISOString(), status: 'requested' };
-    addPending(pendingReturnOrderId, { returnRequest: order.returnRequest });
-    render();
-    try{
-      var localOrders4 = JSON.parse(localStorage.getItem('smilehub_orders')||'[]');
-      for(var k=0;k<localOrders4.length;k++){ if(String(localOrders4[k].number||localOrders4[k].orderNumber)===String(pendingReturnOrderId)){ localOrders4[k].returnRequest = order.returnRequest; localStorage.setItem('smilehub_orders', JSON.stringify(localOrders4)); break; } }
-    }catch(e){}
-    var user2 = firebase.auth().currentUser;
-    if(!user2){
-      showToast('Return requested (offline — will sync when online)');
-      closeReturnModal();
+    if (window.returnWindowExpired(order)) { if(btn) btn.disabled=false; return showToast('Return window closed (7 days from delivery)', true); }
+    var request = { reason: reason, note: note, requestedAt: new Date().toISOString(), status: 'requested' };
+    if (!firebase.auth().currentUser) {
+      showToast('Sign in to submit this return. Your entries are preserved.', true);
       if(btn) btn.disabled=false;
       return;
     }
     db.collection('orders').doc(String(docId)).update(payload).then(function(){
-      showToast('Return requested for ' + pendingReturnOrderId);
+      order.returnRequest = request;
+      render();
+      showToast('Return request submitted for ' + pendingReturnOrderId);
       closeReturnModal();
       if(btn) btn.disabled=false;
     }).catch(function(err){
-      showRowError(pendingReturnOrderId, 'Could not submit return: ' + (err.message||'offline — will retry'));
-      showToast('Could not submit return: ' + (err.message||'offline — will retry'), true);
+      showRowError(pendingReturnOrderId, 'Return was not submitted. Check your connection and access, then retry.');
+      showToast('Return was not submitted. Your entries are preserved; check your connection and retry.', true);
       if(btn) btn.disabled=false;
     });
   }

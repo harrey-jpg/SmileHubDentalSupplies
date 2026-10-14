@@ -4,27 +4,36 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png"/>
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#0b6e6b"/>
+<meta property="og:image" content="assets/og-cover.png"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Products | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.0" rel="stylesheet"/>
-<link href="css/premium.css?v=6.3.0" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
+<link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script defer="" src="js/auth.js"></script>
-  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.0">
-<link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.0.0">
+  <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
+<link rel="stylesheet" href="css/final-polish.css?v=6.3.4">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.2">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/catalog-refresh.css?v=1.0.1">
+<link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
 </head>
-<body class="">
+<body class="catalog-page">
 <div class="topbar">
-<div class="container"><span>Free shipping on orders over ₱3,000</span> <span>Metro Manila delivery • Mon–Sat</span></div>
+<div class="container"><span><span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span></span> <span>Metro Manila delivery • Mon–Sat</span></div>
 </div>
-<header class="header">
+<header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
-<img alt="SmileHub logo" src="assets/logo.svg"/>
+<img alt="SmileHub logo" src="assets/Icon.png"/>
 <span>
             SmileHub
             <br/>
@@ -32,7 +41,7 @@
           </span>
 </a>
 <form action="products.html" class="search-bar">
-<input name="q" placeholder="Search dental products..." type="search"/>
+<input aria-label="Search dental products" name="q" placeholder="Search dental products..." type="search"/>
 <button type="submit">Search</button>
 </form>
 <div class="header-actions">
@@ -54,14 +63,14 @@
 <button class="menu-button" type="button">Menu</button>
 </div>
 </div>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
 <div class="container">
-<ul class="nav-list">
+<ul class="nav-list" id="storeMainNav">
 <li>
 <a class="" href="homepage.html">Home</a>
 </li>
 <li>
-<a class="active" href="products.html">Products</a>
+<a aria-current="page" class="active" href="products.html">Products</a>
 </li>
 <li>
 <a class="" href="about.html">About</a>
@@ -91,42 +100,7 @@
 <p>Search, filter, and sort the full dental catalog for clinics, dentists, and students.</p>
 </div>
 </section>
-<div class="ticker" aria-label="Shop by category or brand"><div class="ticker-track">
-<a href="products.html?category=Oral%20Care">Oral Care</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Instruments">Instruments</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=PPE">PPE</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Restorative">Restorative</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Disposables">Disposables</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Impression">Impression</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Orthodontics">Orthodontics</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Rotary">Rotary</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Equipment">Equipment</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Cosmetic">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa">Impressa</a><span aria-hidden="true">✦</span>
-<span aria-hidden="true" style="display:contents;">
-<a href="products.html?category=Oral%20Care" tabindex="-1">Oral Care</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Instruments" tabindex="-1">Instruments</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=PPE" tabindex="-1">PPE</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Restorative" tabindex="-1">Restorative</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Disposables" tabindex="-1">Disposables</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Impression" tabindex="-1">Impression</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Orthodontics" tabindex="-1">Orthodontics</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Rotary" tabindex="-1">Rotary</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Equipment" tabindex="-1">Equipment</a><span aria-hidden="true">✦</span>
-<a href="products.html?category=Cosmetic" tabindex="-1">Cosmetic</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SmilePro" tabindex="-1">SmilePro</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Clinix" tabindex="-1">Clinix</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Restora" tabindex="-1">Restora</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=SafeTouch" tabindex="-1">SafeTouch</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=LumaDent" tabindex="-1">LumaDent</a><span aria-hidden="true">✦</span>
-<a href="products.html?brand=Impressa" tabindex="-1">Impressa</a><span aria-hidden="true">✦</span>
-</span>
-</div></div>
+
 <main class="section-sm">
 <div class="container catalog-layout">
 <button class="btn btn-light btn-block filters-toggle" id="filtersToggle" type="button" aria-expanded="false" aria-controls="catalogFilters">Show filters</button>
@@ -185,18 +159,11 @@
 <option value="name">Name: A to Z</option>
 </select>
 </div>
-<div class="tile-chips" id="tileChips" role="group" aria-label="Filter by category">
+<div class="tile-chips" id="tileChips" role="group" aria-label="Quick category filters — more options in Category">
 <button class="tile-chip" data-cat="all" aria-pressed="true" type="button">All</button>
-<button class="tile-chip" data-cat="Oral Care" aria-pressed="false" type="button"><span class="swatch" style="background:#1565c0" aria-hidden="true"></span>Oral Care</button>
-<button class="tile-chip" data-cat="Instruments" aria-pressed="false" type="button"><span class="swatch" style="background:#7b1fa2" aria-hidden="true"></span>Instruments</button>
-<button class="tile-chip" data-cat="PPE" aria-pressed="false" type="button"><span class="swatch" style="background:#2e7d32" aria-hidden="true"></span>PPE</button>
-<button class="tile-chip" data-cat="Restorative" aria-pressed="false" type="button"><span class="swatch" style="background:#e65100" aria-hidden="true"></span>Restorative</button>
-<button class="tile-chip" data-cat="Disposables" aria-pressed="false" type="button"><span class="swatch" style="background:#ad1457" aria-hidden="true"></span>Disposables</button>
-<button class="tile-chip" data-cat="Impression" aria-pressed="false" type="button"><span class="swatch" style="background:#00838f" aria-hidden="true"></span>Impression</button>
-<button class="tile-chip" data-cat="Orthodontics" aria-pressed="false" type="button"><span class="swatch" style="background:#558b2f" aria-hidden="true"></span>Orthodontics</button>
-<button class="tile-chip" data-cat="Rotary" aria-pressed="false" type="button"><span class="swatch" style="background:#5c6bc0" aria-hidden="true"></span>Rotary</button>
-<button class="tile-chip" data-cat="Equipment" aria-pressed="false" type="button"><span class="swatch" style="background:#283593" aria-hidden="true"></span>Equipment</button>
-<button class="tile-chip" data-cat="Cosmetic" aria-pressed="false" type="button"><span class="swatch" style="background:#c2185b" aria-hidden="true"></span>Cosmetic</button>
+<button class="tile-chip" data-cat="Disposables" aria-pressed="false" type="button" aria-label="Filter by Disposables"><span class="swatch" style="background:#ad1457" aria-hidden="true"></span>Disposables</button>
+<button class="tile-chip" data-cat="Oral Care" aria-pressed="false" type="button" aria-label="Filter by Oral Care"><span class="swatch" style="background:#1565c0" aria-hidden="true"></span>Oral Care</button>
+<button class="tile-chip" data-cat="Equipment" aria-pressed="false" type="button" aria-label="Filter by Equipment"><span class="swatch" style="background:#283593" aria-hidden="true"></span>Equipment</button>
 </div>
 <div class="grid grid-3" id="productGrid"></div>
 <div class="card empty-state hidden" id="noResults">
@@ -207,18 +174,6 @@
 </section>
 </div>
 </main>
-<section class="newsletter">
-<div class="container newsletter-box">
-<div>
-<h2>Dental deals in your inbox</h2>
-<p>Receive product updates, clinic essentials, and student-friendly offers.</p>
-</div>
-<form class="newsletter-form">
-<input placeholder="Your email address" required="" type="email"/>
-<button>Subscribe</button>
-</form>
-</div>
-</section>
 <footer class="footer">
 <div class="container">
 <div class="footer-grid">
@@ -253,11 +208,12 @@
 </div>
 </div>
 </footer>
+<script src="js/delivery-settings.js?v=1.0.0"></script>
 <script src="js/common.js?v=6.3.0"></script>
 <script src="js/customer-notify.js?v=1.0.0"></script>
   <script src="js/firebase-sync.js?v=6.3.0"></script>
 <script src="js/firestore-data.js"></script>
-<script src="js/chatbot.js"></script>
+<script src="js/chatbot.js?v=1.0.1"></script>
 <script src="js/catalog.js?v=6.3.0"></script>
 <script>
 (function() {
@@ -295,7 +251,7 @@
   sync();
 })();
 </script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js"></script><script src="js/premium.js"></script>
+<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script src="js/final-polish.js?v=6.3.0"></script>
 </body>
