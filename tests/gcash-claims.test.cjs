@@ -32,16 +32,16 @@ test('reference submission writes one claim against the actual document id, neve
   await app.service.submit('real-doc-id', ' ABC-123456 ');
   const claim = app.records.get('gcash_payment_claims/real-doc-id');
   assert.equal(claim.reference, 'ABC-123456'); assert.equal(claim.orderId, 'real-doc-id');
-  assert.equal(claim.status, 'For Verification'); assert.equal(claim.userId, 'alice');
+  assert.equal(claim.status, 'For Verification'); assert.equal(app.records.get('notifications/gcash-submitted-real-doc-id-ABC-123456').type, 'payment_submitted'); assert.equal(claim.userId, 'alice');
   assert.equal(app.records.get('orders/real-doc-id').paymentStatus, 'unpaid');
-  assert.equal(app.writes(), 1);
+  assert.equal(app.writes(), 2);
 });
 test('duplicate clicks and delayed responses keep a single in-flight write', async () => {
   const app = setup(), done = app.delay();
   const first = app.service.submit('real-doc-id', '12345678');
   assert.equal(app.service.submit('real-doc-id', '87654321'), first);
   assert.equal(app.service.isSaving('real-doc-id'), true); assert.equal(app.writes(), 0);
-  done(); await first; assert.equal(app.writes(), 1); assert.equal(app.service.isSaving('real-doc-id'), false);
+  done(); await first; assert.equal(app.writes(), 2); assert.equal(app.service.isSaving('real-doc-id'), false);
   await assert.rejects(app.service.submit('real-doc-id', '87654321'), /already submitted/);
 });
 test('rejected references can be corrected without overwriting staff review history', async () => {
@@ -65,5 +65,5 @@ test('invalid input, sign-out and rejected writes preserve confirmed state and p
   app.auth.currentUser = { uid: 'alice' }; app.fail('Permission denied');
   await assert.rejects(app.service.submit('real-doc-id', '12345678'), /Permission denied/);
   assert.equal(app.service.isSaving('real-doc-id'), false); assert.equal(app.writes(), 0);
-  app.fail(''); await app.service.submit('real-doc-id', '12345678'); assert.equal(app.writes(), 1);
+  app.fail(''); await app.service.submit('real-doc-id', '12345678'); assert.equal(app.writes(), 2);
 });

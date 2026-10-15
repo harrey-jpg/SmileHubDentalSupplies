@@ -961,8 +961,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var bell = document.getElementById('dashBellCount');
     if (bell) {
-      bell.textContent = pending.length > 99 ? '99+' : String(pending.length);
-      bell.classList.toggle('hidden', pending.length === 0);
+      var attentionCount = pending.length + (pendingPaymentClaims || []).length;
+      bell.textContent = attentionCount > 99 ? '99+' : String(attentionCount);
+      bell.classList.toggle('hidden', attentionCount === 0);
+      bell.title = pending.length + ' orders and ' + (pendingPaymentClaims || []).length + ' GCash references need attention';
     }
 
     syncWelcome();
@@ -2620,6 +2622,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Layout has no adminLoading gate on main — paint directly.
     paintRole(role);
+    startPaymentNotifications();
 
     // Update top bar with user info
     const user = window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
@@ -3930,6 +3933,28 @@ document.addEventListener('DOMContentLoaded', function() {
   // --- MESSAGES INBOX ---
   var messagesCache = [];
   // --- NOTIFICATION DROPDOWN (bell → recent activity, capped 7) ---
+  var pendingPaymentClaims = [], paymentClaimStop = null, paymentClaimError = '';
+  function startPaymentNotifications() {
+    if (paymentClaimStop) paymentClaimStop();
+    paymentClaimStop = null; pendingPaymentClaims = []; paymentClaimError = '';
+    if (!window.firebase || !firebase.auth().currentUser || !roleResolved || ['staff','admin','superadmin'].indexOf(currentRole) === -1) return;
+    var uid = firebase.auth().currentUser.uid;
+    paymentClaimStop = firebase.firestore().collection('gcash_payment_claims').where('status', '==', 'For Verification').onSnapshot(function(snapshot) {
+      if (!firebase.auth().currentUser || firebase.auth().currentUser.uid !== uid) return;
+      pendingPaymentClaims = snapshot.docs.map(function(doc) { return { id: doc.id, claim: doc.data() }; }).sort(function(a,b) {
+        return (b.claim.submittedAt?.toMillis?.() || 0) - (a.claim.submittedAt?.toMillis?.() || 0);
+      });
+      paymentClaimError = '';
+      updateDashboard();
+      renderNotifDropdown();
+      fetchAuditLogs(function() { renderNotifDropdown(); });
+    }, function() { paymentClaimError = 'GCash alerts unavailable. Open GCash Verification to retry.'; renderNotifDropdown(); });
+  }
+  if (window.firebase) firebase.auth().onAuthStateChanged(function(user) {
+    if (paymentClaimStop) paymentClaimStop(); paymentClaimStop = null; pendingPaymentClaims = []; paymentClaimError = '';
+    if (user && roleResolved) startPaymentNotifications();
+  });
+  window.addEventListener('pagehide', function() { if (paymentClaimStop) paymentClaimStop(); });
   function formatNotifTime(log){
     var d = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate() : (log.time ? new Date(log.time) : null);
     if(!d || isNaN(d.getTime())) return '';
@@ -3949,6 +3974,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var pendingEl = document.getElementById('notifDropdownPending');
     if(!listEl) return;
     var logs = getAuditLogs() || [];
+    var paymentMarkup = (pendingPaymentClaims || []).slice(0,7).map(function(entry) {
+      return '<a class="notif-dropdown-item" href="#gcash" data-gcash-notification><span style="min-width:0;flex:1;overflow-wrap:anywhere"><strong>GCash reference awaiting review</strong><span style="display:block">Order ' + escapeHtml(entry.id) + '</span></span></a>';
+    }).join('');
+    if (paymentClaimError) paymentMarkup += '<a class="notif-dropdown-item" href="#gcash" data-gcash-notification>' + escapeHtml(paymentClaimError) + '</a>';
+    function wirePayments() { listEl.querySelectorAll('[data-gcash-notification]').forEach(function(link) { link.onclick = function(event) { event.preventDefault(); setNotifDropdownOpen(false); if (paymentClaimError) startPaymentNotifications(); window.navigateTo('#gcash'); }; }); }
     // Staff scope: own activity only (mirrors the Audit Trail decision).
     // The pending-orders queue stays global — it is the fulfillment workload.
     if (roleResolved && currentRole === 'staff') {
@@ -3963,19 +3993,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if(countEl){
       var total = logs.length;
-      countEl.textContent = total ? total + ' entries • ' + pending + ' pending' : pending + ' pending • no activity yet';
+      countEl.textContent = (total ? total + ' entries • ' : '') + pending + ' orders • ' + (pendingPaymentClaims || []).length + ' GCash references';
     }
     if(!logs.length){
-      listEl.innerHTML = '<div style="padding:28px 16px;text-align:center;color:var(--muted);font-size:0.9rem;">No recent activity yet.<br><span style="font-size:0.82rem;">Actions you take will appear here.</span></div>';
+      listEl.innerHTML = paymentMarkup || '<div style="padding:28px 16px;text-align:center;color:var(--muted);font-size:0.9rem;">No recent activity yet.<br><span style="font-size:0.82rem;">Actions you take will appear here.</span></div>';
+      wirePayments();
       return;
     }
-    var slice = logs.slice(0,7);
-    listEl.innerHTML = slice.map(function(log){
+    var slice = logs.slice(0,Math.max(0,7 - (pendingPaymentClaims || []).length));
+    listEl.innerHTML = paymentMarkup + slice.map(function(log){
       var cat = getAuditCategory(log.action);
       var icon = getAuditIcon(cat);
       var time = formatNotifTime(log);
       return '<div class="notif-dropdown-item"><span class="notif-dropdown-icon ' + cat + '">' + icon + '</span><span style="min-width:0;flex:1;"><span style="display:block;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(log.action||'') + '</span><span class="muted" style="font-size:0.78rem;">' + escapeHtml(log.admin||'') + (time ? ' • ' + escapeHtml(time) : '') + '</span></span></div>';
     }).join('');
+    wirePayments();
   }
   function setNotifDropdownOpen(open){
     var wrap = document.getElementById('notifDropdown');

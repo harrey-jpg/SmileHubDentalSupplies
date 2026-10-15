@@ -10,6 +10,47 @@
   var SEEN_KEY = 'smilehub_notif_seen_orders';
   var RESTOCK_KEY = 'smilehub_restock';
   var MAX_ITEMS = 100;
+  var cloudStop = null, cloudOwner, cloudIds = [];
+  function persistReads(ids) {
+    if (window.SmileHubSharedData) return window.SmileHubSharedData.markNotificationsRead(ids);
+    if (!window.firebase || !firebase.auth().currentUser || !ids.length) return;
+    var batch = firebase.firestore().batch();
+    ids.filter(function(id) { return cloudIds.indexOf(String(id)) !== -1; }).slice(0,100).forEach(function(id) {
+      batch.update(firebase.firestore().collection('notifications').doc(String(id)), { read: true });
+    });
+    batch.commit().catch(function(error) { console.warn('Could not sync notification reads', error); });
+  }
+  function connectSharedNotifications() {
+    if (!window.firebase) return;
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (cloudStop) cloudStop(); cloudStop = null;
+      var uid = user ? user.uid : null;
+      if (uid !== cloudOwner) {
+        cloudOwner = uid; cloudIds = [];
+        try {
+          if (localStorage.getItem('smilehub_notifications_owner') !== uid) writeList([]);
+          else cloudIds = JSON.parse(localStorage.getItem('smilehub_notification_cloud_ids') || '[]');
+          if (!Array.isArray(cloudIds)) cloudIds = [];
+          localStorage.setItem('smilehub_notifications_owner', uid || '');
+        } catch (error) { writeList([]); }
+      }
+      if (!user) return;
+      cloudStop = firebase.firestore().collection('notifications').where('userId','==',uid).onSnapshot({ includeMetadataChanges: true }, function(snapshot) {
+        if (cloudOwner !== uid) return;
+        if (snapshot.metadata && snapshot.metadata.hasPendingWrites) return;
+        var local = readList().filter(function(note) { return cloudIds.indexOf(String(note.id)) === -1; });
+        var notes = snapshot.docs.map(function(doc) {
+          var data = doc.data(), date = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.date || '';
+          return Object.assign({}, data, { id: doc.id, date: date, kind: data.kind || data.type || 'order' });
+        });
+        cloudIds = notes.map(function(note) { return String(note.id); });
+        try { localStorage.setItem('smilehub_notification_cloud_ids', JSON.stringify(cloudIds)); } catch (error) {}
+        var byId = new Map(); local.concat(notes).forEach(function(note) { byId.set(String(note.id), note); });
+        writeList(Array.from(byId.values()).sort(function(a,b) { return String(b.date).localeCompare(String(a.date)); }));
+      }, function(error) { console.warn('Notifications unavailable; existing alerts retained', error); });
+    });
+    window.addEventListener('pagehide', function() { if (cloudStop) cloudStop(); });
+  }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
@@ -61,12 +102,13 @@
     var items = readList();
     var changed = false;
     items.forEach(function(n) { if (String(n.id) === String(id) && !n.read) { n.read = true; changed = true; } });
-    if (changed) writeList(items);
+    if (changed) { writeList(items); persistReads([id]); }
   }
 
   function markAllRead() {
     var items = readList();
     items.forEach(function(n) { n.read = true; });
+    persistReads(items.map(function(n) { return n.id; }));
     writeList(items);
   }
 
@@ -154,7 +196,8 @@
     return items.map(function(n) {
       var when = '';
       try { when = new Date(n.date).toLocaleString(); } catch (e) {}
-      return '<a class="cust-notif-item' + (n.read ? '' : ' unread') + '" href="notifications.html" data-notif-id="' + esc(n.id) + '">' +
+      var destination = n.orderId ? 'orders.html?order=' + encodeURIComponent(n.orderId) : 'notifications.html';
+      return '<a class="cust-notif-item' + (n.read ? '' : ' unread') + '" href="' + esc(destination) + '" data-notif-id="' + esc(n.id) + '">' +
         '<span style="min-width:0;flex:1;"><span style="display:block;font-size:0.88rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(n.title) + '</span>' +
         '<span style="display:block;font-size:0.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(n.message) + '</span>' +
         '<span class="muted" style="font-size:0.75rem;">' + esc(when) + '</span></span></a>';
@@ -229,6 +272,7 @@
 
   window.CustomerNotify = {
     getAll: readList,
+    replaceShared: writeList,
     add: add,
     markRead: markRead,
     markAllRead: markAllRead,
@@ -238,4 +282,5 @@
     syncBadge: syncBadge,
     prefOn: prefOn
   };
+  connectSharedNotifications();
 })();

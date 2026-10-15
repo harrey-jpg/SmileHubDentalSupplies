@@ -20,6 +20,12 @@
           if (claim && claim.status !== 'Rejected') throw new Error('A reference is already submitted. Wait for staff review.');
           if (claim) tx.update(claimRef, { reference: reference, status: 'For Verification', reason: '', submittedAt: stamp() });
           else tx.set(claimRef, { orderId: id, userId: user.uid, reference: reference, status: 'For Verification', submittedAt: stamp() });
+          var number = String(order.orderNumber || order.number || id);
+          tx.set(db.collection('notifications').doc('gcash-submitted-' + id + '-' + reference.toUpperCase()), {
+            userId: user.uid, orderId: id, orderNumber: number, kind: 'order', type: 'payment_submitted',
+            title: 'GCash reference submitted', message: 'Order ' + number + ': your reference is awaiting staff verification. Payment is not confirmed yet.',
+            read: false, createdAt: stamp()
+          });
         });
         pending.set(id, task);
         task.then(function () { pending.delete(id); }, function () { pending.delete(id); });

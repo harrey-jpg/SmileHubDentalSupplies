@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   var table = document.getElementById('ordersBody');
   if (!table) return;
+  var notificationOrderOpened = false;
   if (new URLSearchParams(location.search).get('success')) showToast('Returned from checkout. Check your order for its current payment status.');
 
   var searchInput = document.getElementById('ordersSearch');
@@ -223,6 +224,15 @@ document.addEventListener('DOMContentLoaded', function() {
         '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p>' + gcash + '</div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
     }).join('');
     if (window.SmileHubGcash) window.SmileHubGcash.mount();
+    var requestedOrder = new URLSearchParams(location.search).get('order');
+    if (requestedOrder && !notificationOrderOpened) {
+      var index = filtered.findIndex(function(order) { return String(order.docId || '') === requestedOrder; });
+      var row = index >= 0 ? table.querySelectorAll('.order-row')[index] : null;
+      if (row && row.nextElementSibling) {
+        row.classList.add('is-expanded'); row.nextElementSibling.classList.remove('hidden');
+        row.nextElementSibling.scrollIntoView({ block: 'center' }); notificationOrderOpened = true;
+      }
+    }
   }
 
   function reorder(orderId) {

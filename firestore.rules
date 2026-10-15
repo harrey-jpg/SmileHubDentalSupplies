@@ -71,7 +71,15 @@ service cloud.firestore {
       allow read, create, update, delete: if own(uid);
     }
     match /notifications/{id} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && (request.resource.data.userId == request.auth.uid
+        || (isStaff()
+          && request.resource.data.type in ['payment_verified', 'payment_rejected']
+          && request.resource.data.orderId is string
+          && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.userId == request.resource.data.userId
+          && getAfter(/databases/$(database)/documents/gcash_payment_claims/$(request.resource.data.orderId)).data.status
+            == (request.resource.data.type == 'payment_verified' ? 'Paid' : 'Rejected')
+          && (request.resource.data.type != 'payment_verified'
+            || getAfter(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.paymentStatus == 'paid')));
       allow read, update, delete: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
     match /returns/{id} {

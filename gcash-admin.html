@@ -290,10 +290,20 @@
           } else {
             tx.update(claimRef, {status: 'Rejected', reason: reason, reviewedBy: user.email || user.uid, reviewedAt: time});
           }
+          const number = String(order.orderNumber || order.number || id);
+          const attempt = claim.submittedAt?.toMillis?.() || claim.reference;
+          tx.set(db.collection('notifications').doc('gcash-' + decision.toLowerCase() + '-' + id + '-' + attempt), {
+            userId: order.userId, orderId: id, orderNumber: number, kind: 'order',
+            type: decision === 'Paid' ? 'payment_verified' : 'payment_rejected',
+            title: decision === 'Paid' ? 'GCash payment verified' : 'GCash reference rejected',
+            message: decision === 'Paid' ? 'Payment for order ' + number + ' was verified by SmileHub staff.'
+              : ('Order ' + number + ': ' + reason + ' Open your order to submit a corrected reference.').slice(0, 1000),
+            read: false, createdAt: time
+          });
           tx.set(auditRef, {
             admin: user.email || user.uid,
             action: (decision === 'Paid' ? 'Verified GCash payment' : 'Rejected GCash reference') +
-              ' for ' + (order.orderNumber || order.number || id), createdAt: time, orderId: id
+              ' for ' + (order.orderNumber || order.number || id), createdAt: time, timestamp: time, orderId: id
           });
         });
         $('confirmDialog').close();
