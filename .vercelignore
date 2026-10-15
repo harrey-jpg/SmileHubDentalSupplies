@@ -1,0 +1,14 @@
+.git
+.cache
+.impeccable
+.opencode
+.vercel
+**/node_modules
+**/.env*
+**/.secret*
+**/*service-account*.json
+**/*firebase-adminsdk*.json
+functions/local
+docs
+tests
+*.log

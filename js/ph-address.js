@@ -54,7 +54,7 @@
     function showOther(input, show){ if(!input) return; input.classList.toggle('hidden',!show); if(show) input.focus(); }
     function resetCity(){ fillSelect(citySel,[], 'Select city / municipality'); citySel.disabled=true; resetBrgy(); resetPostal(); showOther(cityOther,false); }
     function resetBrgy(){ fillSelect(brgySel,[], 'Select barangay'); brgySel.disabled=true; showOther(brgyOther,false); }
-    function resetPostal(){ fillSelect(postalSel,[], 'Select postal code'); postalSel.disabled=true; }
+    function resetPostal(){ fillSelect(postalSel,[], 'Select postal code'); postalSel.disabled=true; onPostalChange(); }
     var dataRef=null;
     function onProvinceChange(){
       var provName=provSel.value;
@@ -83,23 +83,32 @@
       fillSelect(postalSel, city.zip? [{name:city.zip, value:city.zip}]:[], 'Select postal code');
       if(city.zip){ postalSel.value=city.zip; postalSel.disabled=false; } else { postalSel.disabled=true; }
       var po=document.createElement('option'); po.value='__other__'; po.textContent='Other / manual'; postalSel.appendChild(po);
+      onPostalChange();
       showOther(brgyOther,false);
       announce('City selected: '+cityName+'. Choose a barangay.');
     }
     function onBrgyChange(){ var v=brgySel.value; showOther(brgyOther, v==='__other__'); }
     function onPostalChange(){
-      var sel=postalSel.value;
-      if(sel==='__other__'){
-        var input=document.getElementById(opts.postalId+'_other');
-        if(input){ input.classList.remove('hidden'); input.required=true; postalSel.classList.add('hidden'); input.focus(); }
-      }
+      var manual=postalSel.value==='__other__';
+      var input=document.getElementById(opts.postalId+'_other');
+      postalSel.classList.remove('hidden');
+      if(input){ input.classList.toggle('hidden', !manual); input.required=manual; input.disabled=!manual; if(!manual) input.value=''; }
     }
     provSel.addEventListener('change', onProvinceChange);
     citySel.addEventListener('change', onCityChange);
     brgySel.addEventListener('change', onBrgyChange);
     postalSel.addEventListener('change', onPostalChange);
     var postalOther=document.getElementById(opts.postalId+'_other');
-    if(postalOther) postalOther.addEventListener('blur', function(){ if(!postalOther.value.trim()){ postalOther.classList.add('hidden'); postalSel.classList.remove('hidden'); postalSel.value=''; } });
+    if(postalOther) postalOther.addEventListener('blur', function(){ if(!postalOther.value.trim()){ postalSel.value=''; onPostalChange(); } });
+    [provSel, citySel, brgySel, postalSel, provOther, cityOther, brgyOther, postalOther].filter(Boolean).forEach(function(field){
+      field.addEventListener('change', function(){
+        [field, field === postalSel ? postalOther : null].filter(Boolean).forEach(function(changed){
+          changed.removeAttribute('aria-invalid');
+          var error=document.getElementById(changed.id+'Error');
+          if(error){ error.textContent=''; error.hidden=true; error.classList.remove('show'); }
+        });
+      });
+    });
     return fetchLocations().then(function(data){
       dataRef=data;
       var provs=data.provinces.map(function(p){return {name:p.name, value:p.name, code:p.code};});

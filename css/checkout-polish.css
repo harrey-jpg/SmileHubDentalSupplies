@@ -40,6 +40,14 @@
 .checkout-page .delivery-card.is-unavailable { cursor: default; background: var(--co-soft); }
 .checkout-page .is-unavailable .delivery-fee { color: var(--co-muted); font-size: .75rem; font-weight: 600; }
 .checkout-page .delivery-note { grid-column: 2 / -1; color: var(--co-muted); font-size: .85rem; line-height: 1.5; overflow-wrap: break-word; }
+.checkout-page [hidden] { display: none !important; }
+.checkout-page .payment-return { max-width: 760px; }
+.payment-return-card { padding: clamp(24px, 5vw, 40px); border: 1px solid var(--co-border); border-radius: 16px; background: var(--co-surface); color: var(--co-text); }
+.payment-return-card h2 { margin: 8px 0 20px; color: var(--co-text); font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; }
+.payment-return-card p { line-height: 1.6; overflow-wrap: anywhere; }
+.payment-return-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.payment-return-actions .btn { min-height: 44px; }
+@media (max-width: 480px) { .payment-return-actions { flex-direction: column; } .payment-return-actions .btn { width: 100%; text-align: center; } }
 .checkout-page #orderConfirmModal {
   position: fixed; inset: 0; z-index: 1000;
   align-items: center; justify-content: center;

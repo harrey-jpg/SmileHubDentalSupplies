@@ -1,0 +1,10 @@
+{
+  "name": "smilehub-storefront",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/prepare-paymongo-local.cjs public",
+    "test:payments": "node tests/paymongo.test.cjs && node tests/paymongo-vercel.test.cjs"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": { "firebase-admin": "^13.0.0" }
+}

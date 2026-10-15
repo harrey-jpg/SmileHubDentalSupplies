@@ -36,7 +36,53 @@ window.validateCheckoutStep = function(step, showErrors) {
   return !firstInvalid && (step !== 2 || Boolean(payment));
 };
 
-var PAYMONGO_PUBLISHABLE_KEY = '';
+async function paymongoRequest(action, orderId) {
+  var user = firebase.auth().currentUser;
+  if (!user) throw new Error('Sign in to continue.');
+  var token = await user.getIdToken();
+  var response = await fetch('/api/payments/' + action, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ orderId: orderId })
+  });
+  var data;
+  try { data = await response.json(); } catch (_) { throw new Error('Test payments are not configured yet.'); }
+  if (!response.ok) throw new Error(data.error || 'Test payment unavailable.');
+  return data;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  var orderId = params.get('paymongo_order');
+  if (!orderId) return;
+  var panel = document.getElementById('paymentReturnPanel');
+  var title = document.getElementById('paymentReturnTitle');
+  var notice = document.getElementById('paymentReturnNotice');
+  var retry = document.getElementById('paymentReturnRetry');
+  panel.hidden = false;
+  document.querySelector('.page-title').hidden = true;
+  document.querySelector('.checkout-layout').hidden = true;
+  document.getElementById('paymentReturnOrder').textContent = orderId;
+  title.focus();
+  retry.addEventListener('click', async function() {
+    retry.disabled = true;
+    try {
+      var session = await paymongoRequest('checkout', orderId);
+      if (session.mode !== 'test' || new URL(session.url).origin !== 'https://checkout.paymongo.com') throw new Error('Invalid test checkout.');
+      window.location.href = session.url;
+    } catch (error) { notice.textContent = error.message; retry.disabled = false; }
+  });
+  var checked = false;
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) { notice.textContent = 'Sign in to check your test payment in this account.'; return; }
+    if (checked) return; checked = true;
+    paymongoRequest('status', orderId).then(function(data) {
+      retry.hidden = data.paid === true;
+      title.textContent = data.paid ? 'Test payment confirmed' : 'Payment not completed';
+      notice.textContent = data.paid ? 'Test payment confirmed. No real money was charged. View the order in Your Orders.'
+        : 'Test payment is pending or cancelled. No real payment was made. Check Your Orders for updates.';
+    }).catch(function(error) { title.textContent = 'Unable to confirm payment'; notice.textContent = error.message; retry.hidden = false; });
+  });
+});
 var GOOGLE_MAPS_KEY = ''; // Set your Google Maps API key for address autocomplete
 
 var checkoutProfile = null;
@@ -77,8 +123,12 @@ function loadCheckoutProfile() {
     if (!user) return;
     firebase.firestore().collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists) return;
-      var data = doc.data() || {};
+      var data = window.SmileHubSharedData.normalizeProfile(doc.data() || {});
       checkoutProfile = data;
+      window.SmileHubSharedData.withAddress(user, data).then(function(shared) {
+        const address = shared.address || {};
+        [['checkoutAddress',address.street],['checkoutProvince',address.province],['checkoutCity',address.city],['checkoutBarangay',address.barangay],['checkoutPostal',address.postal]].forEach(function(pair) { const node = document.getElementById(pair[0]); if (node && !node.dataset.customerEdited) checkoutSet(pair[0],pair[1]); });
+      }).catch(function(error) { console.warn('Could not load shared address', error); });
       var address = data.address || {};
       var set = function(id, value) { checkoutSet(id, value); };
       set('checkoutFirstName', data.firstName);
@@ -265,7 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   renderSummary();
 
+
+  document.addEventListener('smilehub:data-synced', function() {
+    var form = document.getElementById('checkoutForm');
+    if (!buyNowMode && !(form && form.dataset.submitting === '1')) { cart = getStoredList(CART_KEY); renderSummary(); }
+  });
   // Toggle billing section when payment method changes
+
   var paymentRadios = document.querySelectorAll('input[name="payment"]');
   var billingSection = document.getElementById('billingSection');
   paymentRadios.forEach(function(radio) {
@@ -328,52 +384,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function processPayment(order, total, callback) {
-    if (order.payment !== 'GCash' && order.payment !== 'Credit Card') { callback(null, { status: 'unpaid' }); return; }
-    if (!PAYMONGO_PUBLISHABLE_KEY) {
-      callback(null, { status: 'unpaid', demo: true });
-      return;
-    }
-    if (!window.PayMongo) {
-      callback(new Error('Payment service unavailable'), { status: 'unpaid' });
-      return;
-    }
-    PayMongo.setPublishableKey(PAYMONGO_PUBLISHABLE_KEY);
-    var amountCentavos = Math.round(total * 100);
-    var description = 'Order ' + order.orderNumber + ' - SmileHub Dental Supplies';
-    PayMongo.createPaymentIntent({
-      amount: amountCentavos,
-      currency: 'PHP',
-      description: description,
-      statement_descriptor: 'SMILEHUB'
-    }).then(function(intent) {
-      var paymentIntentId = intent.id;
-      var sourceType = order.payment === 'GCash' ? 'gcash' : 'card';
-      return PayMongo.createSource({
-        type: sourceType,
-        amount: amountCentavos,
-        currency: 'PHP',
-        redirect: {
-          success: window.location.origin + '/checkout.html?payment=success&order=' + order.orderNumber,
-          failed: window.location.origin + '/checkout.html?payment=failed&order=' + order.orderNumber
-        }
-      }).then(function(source) {
-        return PayMongo.attachPaymentIntent(paymentIntentId, source.id);
-      }).then(function() {
-        return PayMongo.retrievePaymentIntent(paymentIntentId);
-      }).then(function(updatedIntent) {
-        if (updatedIntent.attributes.next_action && updatedIntent.attributes.next_action.type === 'redirect') {
-          // Report the redirect instead of navigating immediately: the caller must
-          // persist the order first, otherwise the navigation loses it entirely.
-          callback(null, { status: 'redirect', url: updatedIntent.attributes.next_action.redirect.url });
-        } else if (updatedIntent.attributes.status === 'succeeded') {
-          callback(null, { status: 'paid' });
-        } else {
-          callback(null, { status: 'unpaid' });
-        }
-      });
-    }).catch(function(error) {
-      callback(error, { status: 'unpaid' });
-    });
+    // Create hosted checkout only after the order has been saved.
+    callback(null, { status: 'unpaid' });
   }
 
   var retryOrderSave = null;
@@ -622,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var saveNotice = document.getElementById('checkoutSaveError');
         if (saveNotice) saveNotice.hidden = true;
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving order…'; }
-        function onOrderSaved(saveError) {
+        async function onOrderSaved(saveError) {
           if (saveError) {
             retryOrderSave = persistCheckoutOrder;
             form.dataset.submitting = '';
@@ -635,6 +647,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           retryOrderSave = null;
+          if (!needsQuote && ['GCash', 'Credit Card'].indexOf(paymentMethod) !== -1) {
+            if (submitBtn) submitBtn.textContent = 'Opening test checkout…';
+            try {
+              var session = await paymongoRequest('checkout', order.number);
+              if (session.mode !== 'test' || new URL(session.url).origin !== 'https://checkout.paymongo.com') throw new Error('Invalid test checkout.');
+              result = { status: 'redirect', url: session.url };
+            } catch (error) { paymentError = error; }
+          }
           orders.unshift(order);
           SmileHubStorage.set('smilehub_orders', orders);
           var simpleOrders = getStoredList('smilehub_simple_orders');
@@ -684,6 +704,15 @@ document.addEventListener('DOMContentLoaded', function() {
               : 'Order saved. Payment is awaiting confirmation.'));
           }
           var modal = document.getElementById('orderConfirmModal');
+          var oldRetry = document.getElementById('retryTestPayment');
+          if (oldRetry) oldRetry.remove();
+          if (paymentError && !needsQuote && payNote) {
+            var retryPayment = document.createElement('a');
+            retryPayment.id = 'retryTestPayment'; retryPayment.className = 'btn btn-primary';
+            retryPayment.textContent = 'Check or retry test payment';
+            retryPayment.href = 'checkout.html?paymongo_order=' + encodeURIComponent(order.number);
+            payNote.insertAdjacentElement('afterend', retryPayment);
+          }
           var confirmationTrigger = submitBtn || document.activeElement;
           modal.style.display = 'flex';
           document.getElementById('orderConfirmTitle').focus();
@@ -800,3 +829,5 @@ document.addEventListener('DOMContentLoaded', function () {
     if (address.value.trim()) openMaps.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address.value.trim());
   });
 });
+
+document.addEventListener('input', function(event) { if (event.target.id && event.target.id.startsWith('checkout')) event.target.dataset.customerEdited = 'true'; });

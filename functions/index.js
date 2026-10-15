@@ -11,6 +11,11 @@ admin.initializeApp();
 const db = admin.firestore();
 const app = express();
 const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+const PAYMONGO_SECRET_KEY = defineSecret("PAYMONGO_SECRET_KEY");
+exports.payments = onRequest({
+  region: "asia-southeast1", secrets: [PAYMONGO_SECRET_KEY],
+  timeoutSeconds: 60, maxInstances: 5
+}, require("./paymongo")({ db, auth: admin.auth(), secret: () => PAYMONGO_SECRET_KEY.value() }));
 
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "150kb" }));

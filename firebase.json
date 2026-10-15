@@ -23,6 +23,10 @@
     "cleanUrls": false,
     "rewrites": [
       {
+        "source": "/api/payments/**",
+        "function": { "functionId": "payments", "region": "asia-southeast1" }
+      },
+      {
         "source": "/api/**",
         "function": "api"
       }

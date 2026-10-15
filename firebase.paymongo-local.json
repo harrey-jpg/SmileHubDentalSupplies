@@ -1,0 +1,19 @@
+{
+  "functions": { "source": "functions/local" },
+  "firestore": { "rules": "firestore.rules" },
+  "hosting": {
+    "public": ".cache/paymongo-site",
+    "ignore": ["**/.*", "**/node_modules/**", "functions/**", "scripts/**", "tests/**", "docs/**", "**/*.log", "firebase*.json", "firestore*", "**/*.md"],
+    "rewrites": [{ "source": "/api/payments/**", "function": { "functionId": "payments", "region": "asia-southeast1" } }]
+  },
+  "emulators": {
+    "auth": { "host": "127.0.0.1", "port": 19099 },
+    "firestore": { "host": "127.0.0.1", "port": 18081 },
+    "functions": { "host": "127.0.0.1", "port": 15001 },
+    "hosting": { "host": "127.0.0.1", "port": 5500 },
+    "hub": { "host": "127.0.0.1", "port": 14401 },
+    "logging": { "host": "127.0.0.1", "port": 14501 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
+  }
+}
