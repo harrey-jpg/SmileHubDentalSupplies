@@ -1,0 +1,9 @@
+.order-payment-summary { display: grid; gap: 4px; margin: 8px 0; max-width: 32rem; white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.order-payment-summary small { display: block; color: var(--muted, #53666a); font-size: .8rem; }
+.order-payment-state { font-size: .82rem; }
+.order-payment-state.is-paid { color: #086b63; }
+.order-payment-state.is-failed { color: #b42318; }
+.order-payment-state.is-pending { color: #755200; }
+.dark .order-payment-state.is-paid { color: #76dec8; }
+.dark .order-payment-state.is-failed { color: #ffb4a9; }
+.dark .order-payment-state.is-pending { color: #f6d383; }

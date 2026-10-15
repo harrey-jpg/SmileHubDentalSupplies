@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function timelineSteps(orderRecord) {
     var status = orderRecord.status;
-    var paymentNote = orderRecord.paymentStatus === 'paid' ? 'Payment marked confirmed on this order.'
+    var paymentNote = orderRecord.paymentStatus === 'paid' ? window.SmileHubOrderPayment.describe(orderRecord).label + '. ' + window.SmileHubOrderPayment.describe(orderRecord).note
       : status === 'Pending Quotation' ? 'Quotation pending. Payment is not confirmed.'
       : orderRecord.payment === 'Cash on Delivery' ? 'Order recorded. Payment is due on delivery.'
       : 'Order recorded. Payment is not confirmed.';
@@ -230,8 +230,8 @@ document.addEventListener('DOMContentLoaded', function() {
       actions += '<button class="btn btn-light btn-sm order-remove" data-order="' + id + '" type="button" style="color:var(--muted);border-color:var(--border)">Hide</button></div>';
       var gcash = order.docId && ['GCash', 'GCash (SmileHub QR)'].indexOf(order.paymentMethod || order.payment) !== -1
         ? '<section class="gcash-claim" data-gcash-index="' + orderIndex + '" data-gcash-order="' + escapeHtml(order.docId) + '"></section>' : '';
-      return '<tr class="order-row" data-order="' + id + '"><td>' + num + '</td><td>' + date + '</td><td>' + itemsCount + ' items</td><td>' + total + '</td><td><span class="status ' + cls + '">' + status + '</span></td><td>' + actions + '</td></tr>' +
-        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p>' + gcash + '</div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
+      return '<tr class="order-row" data-order="' + id + '"><td>' + num + '</td><td>' + date + '</td><td>' + itemsCount + ' items</td><td>' + total + '</td><td><span class="status ' + cls + '">' + status + '</span>' + window.SmileHubOrderPayment.html(order) + '</td><td>' + actions + '</td></tr>' +
+        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p>' + gcash + '</div><div><h3 style="margin:0 0 8px">Payment</h3>' + window.SmileHubOrderPayment.html(order, true) + '<h3 style="margin:16px 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
     }).join('');
     if (window.SmileHubGcash) window.SmileHubGcash.mount();
     var requestedOrder = new URLSearchParams(location.search).get('order');
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
     invRows += '<tr><td colspan="3" style="text-align:right">VAT (12%)</td><td>' + money(invTax) + '</td></tr>' +
       '<tr><td colspan="3" style="text-align:right"><strong>Total</strong></td><td><strong>' + money(order.total || 0) + '</strong></td></tr>';
     invoiceBody.innerHTML = '<p><strong>Order:</strong> ' + escapeHtml(order.number || order.orderNumber) + ' &nbsp; <strong>Date:</strong> ' + escapeHtml(order.date || '') + ' &nbsp; <strong>Status:</strong> ' + escapeHtml(order.status || '') + '</p>' +
-      '<p><strong>Ship to:</strong> ' + escapeHtml(order.address || '') + '</p>' +
+      '<p><strong>Ship to:</strong> ' + escapeHtml(order.address || '') + '</p>' + window.SmileHubOrderPayment.html(order, true) +
       '<table class="invoice-table"><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsRows + '</tbody><tfoot>' + invRows + '</tfoot></table>' +
       '<p class="muted" style="margin-top:12px">Thank you for shopping with SmileHub Dental Supplies.<br><small>Demo invoice for your records — not an official BIR receipt.</small></p>';
     invoiceModal.classList.add('open');
@@ -527,7 +527,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var filtered = orders.filter(function(o) {
           var orderEmail = o.email || (o.customerObj && o.customerObj.email) || '';
           var orderName = o.customerName || o.customer || '';
-          return !user || (orderEmail === user.email || (!orderEmail && orderName === user.name));
+          var current = firebase.auth().currentUser;
+          return window.SmileHubOrderPayment.belongsTo(o, current ? { uid: current.uid, email: current.email } : user);
         }).filter(function(o, index, list) {
           var number = o.number || o.orderNumber;
           return list.findIndex(function(other) { return (other.number || other.orderNumber) === number; }) === index;
@@ -556,6 +557,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  var refresh = document.getElementById('ordersRefresh');
+  if (refresh) refresh.addEventListener('click', function() { setLoading(); loadOrders(); });
   setLoading();
   loadOrders();
 });

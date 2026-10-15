@@ -1642,7 +1642,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${safeDate}</td>
           <td>₱${Number(order.total).toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
           <td>${count} items</td>
-          <td><span class="status ${cls}">${icon} ${safeStatus}</span>${returnBadge}</td>
+          <td><span class="status ${cls}">${icon} ${safeStatus}</span>${returnBadge}${window.SmileHubOrderPayment.html(order)}</td>
           <td>
             <button class="btn btn-light view-order" data-number="${safeNumber}" style="padding:4px 10px;font-size:0.8rem;">View &amp; Fulfill</button>
           </td>
@@ -1844,7 +1844,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       fulfillActions = '<p class="muted" style="margin:0;">Terminal state (' + escapeHtml(order.status) + ') — no fulfillment actions.</p>';
     }
-    content.innerHTML = `
+    content.innerHTML = window.SmileHubOrderPayment.html(order, true) + `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;">
         <div><strong>Customer:</strong> ${escapeHtml(order.customer)}</div>
         <div><strong>Email:</strong> ${escapeHtml(order.email || 'N/A')}</div>
