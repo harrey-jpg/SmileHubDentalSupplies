@@ -3,7 +3,7 @@
     var paid = String(order.paymentStatus || '').toLowerCase() === 'paid';
     var simulation = order.paymentMode === 'simulation' || order.payment === 'Bank Transfer (Simulation)';
     var test = simulation || order.paymentMode === 'test' || Boolean(order.paymongoPaymentId);
-    var failed = !paid && (order.paymentSimulationResult === 'failed' || ['failed', 'rejected'].indexOf(String(order.paymentStatus || '').toLowerCase()) !== -1);
+    var failed = !paid && (order.paymentSimulationResult === 'failed' || order.paymentLastOutcome === 'failed' || ['failed', 'rejected'].indexOf(String(order.paymentStatus || '').toLowerCase()) !== -1);
     var label = paid ? (simulation ? 'Simulated payment confirmed' : test ? 'Test payment confirmed' : 'Payment confirmed')
       : failed ? 'Payment failed — unpaid' : order.payment === 'Cash on Delivery' ? 'Due on delivery' : 'Payment pending';
     return { label: label, tone: paid ? 'paid' : failed ? 'failed' : 'pending', method: order.payment || 'Not recorded',

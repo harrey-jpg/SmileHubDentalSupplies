@@ -37,17 +37,7 @@ window.validateCheckoutStep = function(step, showErrors) {
 };
 
 async function paymongoRequest(action, orderId, outcome) {
-  var user = firebase.auth().currentUser;
-  if (!user) throw new Error('Sign in to continue.');
-  var token = await user.getIdToken();
-  var response = await fetch('/api/payments/' + action, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ orderId: orderId, outcome: outcome })
-  });
-  var data;
-  try { data = await response.json(); } catch (_) { throw new Error('Test payments are not configured yet.'); }
-  if (!response.ok) throw new Error(data.error || 'Test payment unavailable.');
-  return data;
+  return window.SmileHubOrderApi.request(action, { orderId: orderId, outcome: outcome });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -77,9 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (checked) return; checked = true;
     paymongoRequest('status', orderId).then(function(data) {
       retry.hidden = data.paid === true;
-      title.textContent = data.paid ? 'Test payment confirmed' : 'Payment not completed';
+      title.textContent = data.paid ? 'Test payment confirmed' : data.outcome === 'failed' ? 'Test payment failed' : 'Payment not completed';
       notice.textContent = data.paid ? 'Test payment confirmed. No real money was charged. View the order in Your Orders.'
-        : 'Test payment is pending or cancelled. No real payment was made. Check Your Orders for updates.';
+        : data.outcome === 'failed' ? 'The test payment failed. No real money was charged. Retry this saved order below.' : 'Test payment is pending or cancelled. No real payment was made. Check Your Orders for updates.';
     }).catch(function(error) { title.textContent = 'Unable to confirm payment'; notice.textContent = error.message; retry.hidden = false; });
   });
 });
@@ -637,13 +627,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving order…'; }
         async function onOrderSaved(saveError) {
           if (saveError) {
-            retryOrderSave = persistCheckoutOrder;
+            retryOrderSave = saveError.status === 409 ? null : persistCheckoutOrder;
             form.dataset.submitting = '';
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Retry saving order'; }
             if (saveNotice) {
               saveNotice.hidden = false;
               saveNotice.textContent = 'We could not confirm that your order was saved. Your cart is preserved. Check your connection and retry saving. Retry uses the original order details and does not start another payment.';
               saveNotice.focus();
+              if (saveError.status === 409) {
+                saveNotice.textContent = saveError.message + ' Your cart is preserved. Open Cart to review the latest stock and pricing.';
+                if (submitBtn) submitBtn.textContent = 'Review and place order';
+              }
             }
             return;
           }
@@ -743,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
           form.dataset.submitting = '';
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = submitBtn.dataset.originalLabel || 'Place Order'; }
         }
-        try { SmileHubData.saveOrder(order, onOrderSaved); } catch (saveError) { onOrderSaved(saveError); }
+        window.SmileHubOrderApi.request('place', { order: order }).then(function(saved) { Object.assign(order, saved.order); onOrderSaved(); }, onOrderSaved);
       }
       persistCheckoutOrder();
     });

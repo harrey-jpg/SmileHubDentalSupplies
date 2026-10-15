@@ -329,6 +329,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var docId = order.docId || order.number || order.orderNumber;
     var btn = document.querySelector('.order-cancel[data-order="' + (typeof CSS!=='undefined'&&CSS.escape?CSS.escape(orderId):orderId) + '"]');
     if(btn) btn.disabled=true;
+    if (!firebase.auth().currentUser) return showToast('Sign in to cancel this order.', true);
     var originalStatus = order.status;
     order.status = 'Cancelled';
     addPending(orderId, { status: 'Cancelled' });
@@ -341,12 +342,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }catch(e){}
     var user = firebase.auth().currentUser;
     if(!user){
-      showToast('Order ' + orderId + ' cancelled (offline — will sync when online)');
+      order.status = originalStatus; removePending(orderId); render(); showToast('Sign in to cancel this order. It has not been cancelled.', true);
       if(btn) btn.disabled=false;
       return;
     }
     var payload = { status: 'Cancelled', updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-    db.collection('orders').doc(String(docId)).update(payload).then(function(){
+    window.SmileHubOrderApi.request('order-status', { orderId: String(docId), status: 'Cancelled' }).then(function(){
       showToast('Order ' + orderId + ' cancelled');
     }).catch(function(err){
       // Roll back the optimistic update so a denied write can't masquerade as Cancelled.
@@ -557,6 +558,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  var restoreHidden = document.getElementById('ordersRestoreHidden');
+  if (restoreHidden) restoreHidden.addEventListener('click', function() { localStorage.removeItem(HIDDEN_KEY); render(); showToast('Hidden orders restored.'); });
   var refresh = document.getElementById('ordersRefresh');
   if (refresh) refresh.addEventListener('click', function() { setLoading(); loadOrders(); });
   setLoading();

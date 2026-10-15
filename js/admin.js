@@ -1727,7 +1727,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (selectEl) selectEl.disabled = true;
       return Promise.resolve().then(function() {
         if (typeof db === 'undefined' || !db.collection) throw new Error('Order service unavailable. Reload and retry.');
-        return db.collection('orders').doc(order.docId || order.number).update({status:status, updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+        return window.SmileHubOrderApi.request('order-status', { orderId: order.docId || order.number, status: status });
       }).then(function() {
         order.status = status;
         var current = getOrders().find(function(o) { return o.number === number; });

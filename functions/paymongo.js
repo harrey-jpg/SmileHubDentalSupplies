@@ -1,5 +1,6 @@
 // Test payments only. Client totals are suitable for this demo, never live charges.
 module.exports = function createPayments({ db, auth, secret, fetch: request = fetch }) {
+  const orders = require('./orders')(db);
   async function api(path, attributes) {
     const key = secret();
     if (!/^sk_test_[A-Za-z0-9]+$/.test(key || '')) throw new Error('Configure a PayMongo secret TEST key on the server.');
@@ -24,13 +25,23 @@ module.exports = function createPayments({ db, auth, secret, fetch: request = fe
     const record = saved.data();
     const payment = (session.attributes.payments || []).find(p => p.attributes?.status === 'paid'
       && p.attributes.livemode === false && p.attributes.currency === 'PHP' && p.attributes.amount === record.amount);
-    if (!payment) return false;
+    if (!payment) {
+      const failed = Boolean(session.attributes.payment_intent?.attributes?.last_payment_error)
+        || (session.attributes.payments || []).some(p => p.attributes?.status === 'failed');
+      if (failed) await db.runTransaction(async tx => {
+        const orderRef = db.collection('orders').doc(record.orderId), order = await tx.get(orderRef);
+        if (order.exists && order.data().userId === record.userId && order.data().paymentStatus !== 'paid') {
+          tx.update(orderRef, { paymentLastOutcome: 'failed', paymentMode: 'test', paymentProvider: 'paymongo' });
+        }
+      });
+      return false;
+    }
     await db.runTransaction(async tx => {
       const orderRef = db.collection('orders').doc(record.orderId);
       const order = await tx.get(orderRef);
       if (!order.exists || order.data().userId !== record.userId) throw new Error('Order does not match payment.');
       if (order.data().paymentStatus === 'paid') return;
-      tx.update(orderRef, { paymentStatus: 'paid', paymentMode: 'test', paymentProvider: 'paymongo',
+      tx.update(orderRef, { paymentStatus: 'paid', paymentLastOutcome: 'success', paymentMode: 'test', paymentProvider: 'paymongo',
         paymongoPaymentId: payment.id,
         ...(order.data().status === 'Pending Payment' ? { status: 'Processing' } : {}) });
     });
@@ -51,6 +62,14 @@ module.exports = function createPayments({ db, auth, secret, fetch: request = fe
       const token = (req.headers.authorization || '').replace(/^Bearer /, '');
       let user;
       try { user = await auth.verifyIdToken(token); } catch (_) { return res.status(401).json({ error: 'Sign in to continue.' }); }
+      if (req.method === 'POST' && path === '/place') {
+        try { return res.json({ order: await orders.place(req.body?.order, user) }); }
+        catch (_) { return res.status(409).json({ error: 'Order could not be saved. Check stock and current pricing before retrying.' }); }
+      }
+      if (req.method === 'POST' && path === '/order-status') {
+        try { return res.json(await orders.changeStatus(req.body?.orderId, req.body?.status, user)); }
+        catch (_) { return res.status(409).json({ error: 'Order status could not be changed. Check access, current status, and stock.' }); }
+      }
       const orderId = req.body?.orderId;
       if (typeof orderId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(orderId)) return res.status(400).json({ error: 'Invalid order.' });
       const orderRef = db.collection('orders').doc(orderId);
@@ -81,7 +100,7 @@ module.exports = function createPayments({ db, auth, secret, fetch: request = fe
       if (req.method === 'POST' && path === '/status') {
         const saved = await sessions.where('orderId', '==', orderId).get();
         for (const doc of saved.docs) if (await confirm(doc.id)) return res.json({ paid: true, mode: 'test' });
-        return res.json({ paid: false, mode: 'test' });
+        return res.json({ paid: false, mode: 'test', outcome: (await orderRef.get()).data().paymentLastOutcome || 'pending' });
       }
       if (req.method !== 'POST' || path !== '/checkout') return res.status(404).json({ error: 'Not found.' });
       const amount = Math.round(Number(order.total) * 100);

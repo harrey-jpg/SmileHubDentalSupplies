@@ -60,8 +60,13 @@ HTTP APIs and the Firestore stock trigger in `functions/index.js` are not
 deployed by Vercel. Vercel does not run Firebase Firestore triggers. If these
 features were already deployed on Firebase, they remain there, but the Vercel
 site does not automatically proxy `/api/ai/chat` or `/api/profile` to them.
-Moving those features requires a separate change. Existing order placement
-on Spark does not gain automatic stock reservation from this migration.
+The AI/profile APIs still require a separate setup. Website order placement now
+uses `/api/payments/place`, which validates catalog prices, reserves inventory,
+and creates the order in one transaction. Retrying the same order ID does not
+deduct stock again. `/api/payments/order-status` restores reserved stock once on
+cancellation; staff reopening the order must reserve available stock again.
+Quotation orders defer stock reservation. Existing mobile placement and its
+inventory receipt are preserved; the Firebase trigger skips existing receipts.
 
 The local emulator workflow is still available. Static build output contains
 only frontend assets; private backend source and credentials are not served.

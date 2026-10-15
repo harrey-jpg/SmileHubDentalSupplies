@@ -20,7 +20,7 @@ async function run() {
     } }),
     runTransaction: async callback => callback({ get: ref => ref.get(), update: (ref, data) => ref.set({ ...records.get('orders/' + ref.id), ...data }) })
   };
-  let key = 'sk_test_placeholder', mode = false, paid = false, amount = 10000, calls = 0;
+  let key = 'sk_test_placeholder', mode = false, paid = false, failed = false, amount = 10000, calls = 0;
   const handler = createPayments({ db, auth: { verifyIdToken: async token => {
     if (token !== 'valid') throw Error(); return { uid: 'buyer' };
   } }, secret: () => key, fetch: async (_url, options) => {
@@ -32,7 +32,7 @@ async function run() {
       assert.deepEqual(attrs.payment_method_types, ['gcash']);
     }
     return { ok: true, json: async () => ({ data: { id: 'cs_test', attributes: {
-      livemode: mode, checkout_url: 'https://checkout.paymongo.com/test',
+      livemode: mode, checkout_url: 'https://checkout.paymongo.com/test', payment_intent: { attributes: { last_payment_error: failed ? { code: 'test-decline' } : null } },
       payments: paid ? [{ id: 'pay_test', attributes: { status: 'paid', livemode: mode, amount, currency: 'PHP' } }] : []
     } } }) };
   } });
@@ -52,6 +52,10 @@ async function run() {
   const before = calls;
   await request('checkout'); assert.equal(calls, before, 'Reuse existing session on retries');
   assert.equal((await request('status')).body.paid, false);
+  failed = true;
+  assert.equal((await request('status')).body.outcome, 'failed');
+  assert.equal(records.get('orders/ORDER-1').paymentLastOutcome, 'failed');
+  failed = false;
   paid = true; amount = 1;
   assert.equal((await request('status')).body.paid, false, 'Reject wrong payment amount');
   amount = 10000; mode = true;
