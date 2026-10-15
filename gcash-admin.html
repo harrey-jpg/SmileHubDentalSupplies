@@ -3,64 +3,210 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101f2b">
-  <title>GCash Payment Verification | SmileHub Admin</title>
+  <meta name="theme-color" content="#101e2a">
+  <title>GCash Verification | SmileHub Admin</title>
   <link rel="icon" href="assets/favicon-32.png">
+<script>
+  // Embedded view is opened inside admin.html#gcash.
+  if (new URLSearchParams(location.search).get('embedded') === '1' && window.parent !== window) {
+    document.documentElement.classList.add('embedded');
+  }
+</script>
   <style>
-    :root { font-family:Arial,Helvetica,sans-serif; color-scheme:dark;
-      --bg:#101c27; --surface:#192b36; --line:#314754;
-      --text:#ebf5f8; --muted:#adc1cb; --teal:#078f98; }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); }
-    header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      gap:14px; padding:20px clamp(16px,4vw,48px); border-bottom:1px solid var(--line); }
-    a { color:#8ee1e9; } a:hover { color:#fff; }
-    .back { border:1px solid var(--line); padding:11px 14px; border-radius:10px; text-decoration:none; }
-    .brand { font-size:20px; font-weight:850; }
-    .brand small { color:var(--muted); font-size:12px; display:block; margin-top:4px; }
-    main { margin:auto; width:min(1140px,100%); padding:24px 16px 60px; }
-    h1 { margin:8px 0 10px; font-size:clamp(23px,3vw,32px); }
-    .muted { color:var(--muted); line-height:1.6; }
-    .intro { background:var(--surface); border:1px solid var(--line); border-radius:15px;
-      padding:15px 19px; margin:20px 0; }
-    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:22px 0 15px; }
-    .toolbar label { font-size:13px; font-weight:800; }
-    .control { border:1px solid var(--line); background:#132530; color:#fff;
-      min-height:42px; border-radius:10px; padding:9px 12px; font:inherit; }
-    .search { min-width:250px; flex:1; }
-    #count { margin-left:auto; color:var(--muted); font-size:13px; }
-    .notice { background:#1c3541; border-left:3px solid #45bfce; padding:12px 14px;
-      border-radius:8px; margin-bottom:18px; }
-    .hidden { display:none!important; }
-    .order-list { display:grid; gap:14px; }
-    .order-card { background:var(--surface); border:1px solid var(--line);
-      border-radius:15px; padding:18px; }
-    .order-top { display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; align-items:start; }
-    .order-num { font-size:18px; font-weight:850; overflow-wrap:anywhere; }
-    .meta { color:var(--muted); font-size:13px; line-height:1.6; margin-top:6px; }
-    .amount { font-size:24px; color:#92e2e6; font-weight:850; }
-    .pill { display:inline-block; margin-top:8px; font-size:11px; font-weight:800;
-      border:1px solid #52626a; padding:6px 10px; border-radius:999px; }
-    .pill.pending { color:#ffe2a0; border-color:#aa7932; }
-    .pill.paid { color:#a5f1c7; border-color:#21855a; }
-    .pill.rejected { color:#ffd0cd; border-color:#b95a55; }
-    .details { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(185px,1fr));
-      border-top:1px solid var(--line); margin-top:15px; padding-top:13px; }
-    .details dt { color:var(--muted); font-size:11px; margin-bottom:6px; }
-    .details dd { margin:0; font-size:14px; overflow-wrap:anywhere; font-weight:700; }
-    .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:14px; }
-    button { padding:12px 16px; border:1px solid var(--line); background:#263e4a;
-      color:#fff; border-radius:10px; font-weight:750; cursor:pointer; }
-    button:disabled { cursor:wait; opacity:.55; }
-    button.confirm { background:#087c79; border-color:#15a29e; }
-    button.reject { background:#613030; border-color:#a35b5b; }
-    .center { padding:36px 15px; text-align:center; background:var(--surface); border-radius:15px; }
-    .danger { color:#ffb3ad; }
-    .check { display:flex; align-items:flex-start; gap:8px; font-size:13px;
-      color:#cadfe6; padding:10px 0; }
-    input[type=checkbox] { width:18px; height:18px; accent-color:#21a8a8; flex:none; }
-    @media(max-width:540px) { .toolbar { align-items:stretch; } .toolbar label { width:100%; }
-      .toolbar select, .toolbar input { width:100%; } #count { margin-left:0; } }
+    :root {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: dark;
+      --bg: #101d28;
+      --sidebar: #15232f;
+      --surface: #1b2d39;
+      --surface-alt: #213744;
+      --border: #334b59;
+      --text: #f0f7fb;
+      --muted: #aec2cc;
+      --accent: #4dd2dc;
+      --teal: #097d86;
+      --green: #53ddae;
+      --yellow: #ffd681;
+      --red: #ff9a9a;
+      --shadow: 0 12px 38px rgba(0, 0, 0, .13);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .50; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .sr-only { position: absolute; height: 1px; width: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip: rect(0,0,0,0); border: 0; white-space: nowrap; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      flex: 0 0 222px; width: 222px; background: var(--sidebar);
+      border-right: 1px solid var(--border); position: sticky; top: 0;
+      height: 100vh; padding: 25px 15px 18px; display: flex; flex-direction: column;
+      overflow-y: auto; scrollbar-width: thin; scrollbar-color: #41596a transparent;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;
+      border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 850; }
+    .brand img { width: 39px; height: 39px; object-fit: contain; }
+    .brand small { display: block; font-size: 11px; color: var(--muted); font-weight: 550; margin-top: 3px; }
+    .nav-heading { margin: 25px 9px 8px; color: #8fa9b7; text-transform: uppercase;
+      letter-spacing: .07em; font-size: 10px; font-weight: 850; }
+    .nav { display: grid; gap: 4px; }
+    .nav a { display: flex; align-items: center; gap: 11px; padding: 11px 11px;
+      border-radius: 9px; color: #b8c9d3; font-weight: 650; font-size: 12px;
+      transition: background .15s ease, color .15s ease; }
+    .nav a:hover { background: #203a48; color: #fff; }
+    .nav a[hidden] { display: none !important; }
+    .nav a.active { color: #70d4fa; background: #244754; border-left: 3px solid #60c5e3; padding-left: 8px; }
+    .nav svg { width: 17px; height: 17px; flex: none; }
+    .nav-count[hidden] { display: none !important; }
+    .nav-count { margin-left: auto; border-radius: 999px; min-width: 23px; text-align: center;
+      font-size: 10px; padding: 3px 6px; color: #17242f; font-weight: 900; background: var(--yellow); }
+    .sidebar-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 14px; }
+    .main { flex: 1; min-width: 0; }
+    .topbar { min-height: 75px; border-bottom: 1px solid var(--border); padding: 16px clamp(18px, 3vw, 42px);
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #162631; }
+    .topbar-name { color: #d7e6ef; font-size: 12px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+    .avatar { display: inline-grid; place-items: center; width: 34px; height: 34px;
+      border-radius: 50%; background: #0874ac; color: white; font-weight: 900; }
+    .account-label { max-width: 240px; overflow-wrap: anywhere; font-size: 12px; font-weight: 750; }
+    .account-label small { display: block; color: var(--muted); font-weight: 500; margin-top: 3px; }
+    .admin-content { max-width: 1500px; margin: auto; padding: 28px clamp(18px, 3vw, 42px) 64px; }
+    .heading { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 22px; }
+    .eyebrow { display: block; color: #78cddd; text-transform: uppercase; letter-spacing: .11em;
+      font-size: 10px; font-weight: 850; margin-bottom: 7px; }
+    h1 { font-size: clamp(25px, 3vw, 32px); margin: 0 0 8px; letter-spacing: -.035em; }
+    .muted { color: var(--muted); line-height: 1.55; }
+    .heading p { margin: 0; font-size: 13px; }
+    .outlined { border: 1px solid var(--border); background: transparent; color: var(--text);
+      min-height: 40px; padding: 10px 14px; border-radius: 9px; font-weight: 700; font-size: 12px; }
+    .outlined:hover { border-color: #5b8898; background: #213b48; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
+      padding: 17px 19px; box-shadow: var(--shadow); min-height: 127px; }
+    .stat-head { color: #b9cad3; text-transform: uppercase; letter-spacing: .04em;
+      font-size: 10px; font-weight: 750; display: flex; align-items: center; justify-content: space-between; }
+    .stat-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 8px;
+      color: #8bdbe0; background: #274551; font-size: 17px; }
+    .stat strong { display: block; font-size: clamp(24px, 2.3vw, 32px); margin-top: 11px;
+      letter-spacing: -.04em; font-weight: 850; }
+    .stat small { display: block; color: var(--muted); font-size: 11px; margin-top: 5px; }
+    .stat.attention { border-color: #427983; background: #116d6a; }
+    .stat.attention .stat-head, .stat.attention small { color: #d6f8f6; }
+    .stat.attention .stat-icon { color: #f5f9fa; background: #1a8582; }
+    .notice { background: #193847; border-left: 3px solid #5cc5d3; padding: 13px 16px;
+      border-radius: 10px; margin-bottom: 19px; line-height: 1.55; font-size: 12px; }
+    .notice.error { background: #4b292d; color: #ffd1d4; border-color: #fb8e96; }
+    .hidden { display: none !important; }
+    .queue { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; overflow: hidden; }
+    .queue-heading { padding: 19px 22px 15px; display: flex; align-items: start;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .queue-heading h2 { margin: 0 0 5px; font-size: 17px; }
+    .queue-heading p { margin: 0; font-size: 12px; }
+    .live { color: #80ebc9; display: inline-flex; align-items: center; gap: 7px;
+      font-weight: 750; font-size: 11px; }
+    .live::before { content: ""; width: 7px; height: 7px; background: #4fe5a7; border-radius: 50%; }
+    .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 0 22px 15px; }
+    .search { flex: 1; min-width: 205px; }
+    .control { width: 100%; border: 1px solid #486474; background: #122530; color: var(--text);
+      min-height: 43px; border-radius: 9px; padding: 10px 13px; font-size: 13px; }
+    .control::placeholder { color: #8cabb9; }
+    .toolbar .outlined { flex: none; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 17px;
+      border-bottom: 1px solid var(--border); }
+    .tab { border: 1px solid #405967; background: #203442; color: #bdd1db;
+      border-radius: 8px; padding: 9px 13px; font-weight: 750; font-size: 12px; }
+    .tab:hover { color: white; background: #294857; }
+    .tab[aria-pressed="true"] { background: #096f79; color: white; border-color: #159ba6; }
+    .tab small { font-weight: 850; opacity: .85; margin-left: 5px; }
+    .results-head { padding: 14px 22px 5px; font-size: 12px; color: var(--muted);
+      display: flex; justify-content: space-between; gap: 12px; }
+    .records { padding: 12px 20px 20px; display: grid; gap: 13px; }
+    .record { border-radius: 13px; background: #142735; border: 1px solid #36515e;
+      padding: 19px; animation: popIn .28s ease both; }
+    .record-top { display: flex; justify-content: space-between; align-items: start; gap: 12px;
+      flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid #2d4552; }
+    .order-number { font-size: 17px; font-weight: 850; letter-spacing: -.01em; }
+    .customer { color: #b7cdd9; font-size: 12px; margin-top: 5px; }
+    .record-price { text-align: right; font-size: 22px; font-weight: 900; color: #80d8e6; }
+    .pill { display: inline-flex; align-items: center; margin-top: 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 850; padding: 6px 10px; border: 1px solid; }
+    .pill.waiting { color: #ffdc96; background: #4c381f; border-color: #8f6d32; }
+    .pill.paid { color: #9af0c3; background: #1e4339; border-color: #348e63; }
+    .pill.rejected { color: #ffb9b7; background: #512b2e; border-color: #98545a; }
+    .details { display: grid; gap: 13px; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 15px 0 0; }
+    .details div { min-width: 0; }
+    .details dt { font-size: 10px; color: #99b3c1; font-weight: 750; margin-bottom: 7px; }
+    .details dd { margin: 0; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
+    .ref { display: flex; gap: 7px; align-items: center; }
+    .copy { padding: 4px 7px; color: #8ed7ee; background: transparent;
+      border: 1px solid #4a6676; border-radius: 6px; font-size: 10px; }
+    .rejection-note { margin: 14px 0 0; padding: 12px 14px; color: #ffd1d1;
+      border-radius: 9px; border: 1px solid #92575d; background: #422e36; line-height: 1.5; font-size: 12px; }
+    .action-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid #2d4552; }
+    .action-note { color: #a7bfca; font-size: 11px; line-height: 1.5; max-width: 470px; }
+    .btn { padding: 11px 14px; background: #29424f; border: 1px solid #496978; border-radius: 9px;
+      color: #fff; font-weight: 800; font-size: 12px; min-height: 40px; }
+    .btn:hover:not(:disabled) { filter: brightness(1.12); }
+    .btn.confirm { background: #087e80; border-color: #1baeb1; }
+    .btn.reject { background: #663637; border-color: #c17077; }
+    .empty { text-align: center; padding: 48px 20px 54px; color: var(--muted); }
+    .empty-mark { width: 50px; height: 50px; border-radius: 13px; background: #264451;
+      display: grid; place-items: center; margin: 0 auto 12px; font-size: 24px; }
+    .empty strong { display: block; margin-bottom: 7px; color: var(--text); font-size: 15px; }
+    .empty p { margin: 0; font-size: 12px; }
+    .loading { opacity: .7; }
+    dialog { padding: 0; border: 1px solid #4f6977; background: var(--surface);
+      color: var(--text); width: min(470px, calc(100% - 28px)); border-radius: 15px;
+      box-shadow: 0 24px 90px rgba(0,0,0,.6); }
+    dialog::backdrop { background: rgba(1,10,16,.72); }
+    .modal-inner { padding: 24px; }
+    .modal-inner h2 { margin: 0 0 10px; font-size: 20px; }
+    .modal-inner p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .modal-inner label { display: block; font-size: 12px; font-weight: 800; margin: 12px 0 7px; }
+    .modal-inner textarea { resize: vertical; min-height: 100px; }
+    .modal-actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 19px; }
+    .safety-check { display: flex !important; align-items: flex-start; gap: 10px; font-size: 12px !important; line-height: 1.55; }
+    .safety-check input { width: 18px; height: 18px; flex: none; accent-color: #37cbb6; }
+    .toast { position: fixed; bottom: 20px; right: 20px; max-width: calc(100vw - 40px);
+      padding: 13px 16px; border: 1px solid #339d91; background: #1e524a; color: #fff;
+      border-radius: 10px; z-index: 30; box-shadow: var(--shadow); font-size: 12px; }
+    @keyframes popIn { from { opacity: .4; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1110px) {
+      .summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .details { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 740px) {
+      .layout { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 12px 14px; }
+      .brand { padding: 0 0 12px; border: 0; }
+      .nav-heading, .sidebar-foot { display: none; }
+      .nav { display: flex; gap: 6px; overflow-x: auto; }
+      .nav a { white-space: nowrap; padding: 10px 11px; flex: none; }
+      .nav a.active { padding-left: 8px; }
+      .topbar { min-height: 58px; padding: 13px 16px; }
+      .admin-content { padding: 20px 14px 45px; }
+      .stat { padding: 14px; min-height: 115px; }
+      .queue-heading, .toolbar, .tabs, .results-head { padding-left: 14px; padding-right: 14px; }
+      .records { padding-left: 12px; padding-right: 12px; }
+      .record { padding: 13px; }
+      .record-price { text-align: left; }
+      .details { gap: 12px; }
+      .action-bar .btn { flex: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+    /* No duplicated navigation: parent admin.html owns the sidebar. */
+    html.embedded body { background: transparent; }
+    html.embedded .layout { display:block; min-height:0; }
+    html.embedded .topbar,
+    html.embedded .heading .outlined { display:none !important; }
+    html.embedded .main { width:100%; }
+    html.embedded .admin-content { max-width:none; margin:0; padding:4px 4px 20px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -68,264 +214,387 @@
   <script src="js/firebase-config.js"></script>
 </head>
 <body>
-  <header>
-    <div class="brand">SmileHub Admin <small>GCash manual verification</small></div>
-    <a class="back" href="admin.html#orders">← Back to Admin Orders</a>
-  </header>
-  <main>
-    <h1>GCash Payment Verification</h1>
-    <p class="muted">Review transaction references submitted from the SmileHub mobile app.
-      Only confirm payment after checking the actual transfer in your GCash account.</p>
-    <div class="intro"><strong>Payment workflow:</strong>
-      <span class="muted">Pending Payment → Customer submits GCash reference → For Verification → Admin verifies → Paid (or Rejected).</span>
+  <div class="layout">
+
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-name">SmileHub <strong> / Payments / GCash Verification</strong></div>
+        <div class="topbar-right"><span class="avatar" aria-hidden="true" id="avatar">A</span><div class="account-label" id="accountLabel">Checking login…<small>Admin Access</small></div></div>
+      </header>
+      <main class="admin-content">
+        <div class="heading">
+          <div><span class="eyebrow">Payment management</span><h1>GCash Payment Verification</h1>
+            <p class="muted">Review customer-submitted references, verify actual transfers, and manage payment decisions.</p></div>
+          <a href="admin.html#orders" class="outlined">&#8592; Back to Orders</a>
+        </div>
+
+        <div class="summary" id="summary" aria-label="GCash payment summary">
+          <div class="stat attention"><div class="stat-head">For Verification <span class="stat-icon">&#8987;</span></div>
+            <strong id="statPending">—</strong><small>Awaiting admin review</small></div>
+          <div class="stat"><div class="stat-head">Paid <span class="stat-icon">&#10003;</span></div>
+            <strong id="statPaid">—</strong><small>Verified transfers</small></div>
+          <div class="stat"><div class="stat-head">Rejected <span class="stat-icon">!</span></div>
+            <strong id="statRejected">—</strong><small>Waiting for customer correction</small></div>
+          <div class="stat"><div class="stat-head">Recorded Paid Total <span class="stat-icon">&#8369;</span></div>
+            <strong id="statAmount">—</strong><small>Based on admin-confirmed orders</small></div>
+        </div>
+
+        <div class="notice" id="authMessage" role="status">Checking staff account permissions…</div>
+        <div class="notice error hidden" id="error" role="alert"></div>
+
+        <section class="queue hidden" id="dashboard" aria-labelledby="queueTitle">
+          <div class="queue-heading">
+            <div><h2 id="queueTitle">GCash transaction queue</h2>
+              <p class="muted">A submitted reference is not proof of a successful payment.</p></div>
+            <span class="live">Live Firestore updates</span>
+          </div>
+          <div class="toolbar">
+            <div class="search"><label class="sr-only" for="search">Search GCash transactions</label>
+              <input class="control" type="search" id="search" placeholder="Search order number, customer, or reference" autocomplete="off"></div>
+            <button class="outlined" id="clearSearch" type="button">Clear search</button>
+          </div>
+          <div class="tabs" id="tabs" role="group" aria-label="Filter by payment status">
+            <button class="tab" type="button" data-filter="For Verification" aria-pressed="true">For Verification <small id="tabPending">0</small></button>
+            <button class="tab" type="button" data-filter="Rejected" aria-pressed="false">Rejected <small id="tabRejected">0</small></button>
+            <button class="tab" type="button" data-filter="Paid" aria-pressed="false">Paid <small id="tabPaid">0</small></button>
+            <button class="tab" type="button" data-filter="all" aria-pressed="false">All <small id="tabAll">0</small></button>
+          </div>
+          <div class="results-head"><span id="count" role="status">Loading…</span><span>Newest submissions first</span></div>
+          <div class="records" id="orders" aria-live="polite">
+            <div class="empty loading">Loading GCash payments…</div>
+          </div>
+        </section>
+      </main>
     </div>
-    <div id="authMessage" class="notice" role="status">Checking staff access…</div>
-    <section id="dashboard" class="hidden" aria-label="GCash verification queue">
-      <div class="toolbar">
-        <label for="statusFilter">Status</label>
-        <select id="statusFilter" class="control">
-          <option value="For Verification">For Verification</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Paid">Paid</option>
-          <option value="all">All submitted</option>
-        </select>
-        <input id="search" class="control search" type="search" placeholder="Search order, customer, or reference" aria-label="Search payment claims">
-        <span id="count" role="status"></span>
-      </div>
-      <div id="error" class="notice danger hidden" role="alert"></div>
-      <div id="orders" class="order-list" aria-live="polite"></div>
-    </section>
-  </main>
+  </div>
+
+  <dialog id="rejectDialog" aria-labelledby="rejectTitle">
+    <form id="rejectForm" class="modal-inner">
+      <h2 id="rejectTitle">Reject GCash reference</h2>
+      <p id="rejectSummary">The customer will see the rejection reason and can submit another reference.</p>
+      <label for="rejectReason">Reason for rejection</label>
+      <textarea id="rejectReason" class="control" required minlength="1" maxlength="240" placeholder="Example: No matching transfer found for this reference."></textarea>
+      <div class="modal-actions"><button type="button" class="btn" data-close="rejectDialog">Cancel</button>
+        <button type="submit" class="btn reject" id="rejectSubmit">Reject Reference</button></div>
+    </form>
+  </dialog>
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+    <div class="modal-inner">
+      <h2 id="confirmTitle">Confirm payment received?</h2>
+      <p id="confirmSummary"></p>
+      <label class="safety-check"><input type="checkbox" id="actualPaymentCheck">
+        <span>I personally checked the real GCash transaction, recipient, amount, and reference. This payment was actually received.</span></label>
+      <div class="modal-actions"><button type="button" class="btn" data-close="confirmDialog">Cancel</button>
+        <button type="button" class="btn confirm" id="confirmSubmit" disabled>Confirm Payment &#8594; Paid</button></div>
+    </div>
+  </dialog>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
   <script>
   (function () {
     'use strict';
     const db = firebase.firestore();
     const auth = firebase.auth();
     const $ = id => document.getElementById(id);
-    const money = value => new Intl.NumberFormat('en-PH', { style:'currency', currency:'PHP' }).format(Number(value) || 0);
+    const money = value => new Intl.NumberFormat('en-PH', {style: 'currency', currency: 'PHP'}).format(Number(value) || 0);
+    const staffRoles = ['admin', 'staff', 'superadmin'];
     let user = null;
     let stopWatching = null;
     let entries = [];
+    let selectedId = null;
+    let activeFilter = 'For Verification';
     let revision = 0;
-    const staffRoles = ['admin', 'staff', 'superadmin'];
+    let processing = false;
+    let toastTimer = null;
 
-    function setError(message) {
+    function node(tag, css, content) {
+      const e = document.createElement(tag);
+      if (css) e.className = css;
+      if (content !== undefined) e.textContent = String(content);
+      return e;
+    }
+    function addDetail(list, label, value, copyText) {
+      const wrap = node('div');
+      wrap.append(node('dt', '', label));
+      const dd = node('dd');
+      if (copyText) {
+        const row = node('span', 'ref');
+        row.append(node('span', '', value || '—'));
+        const copy = node('button', 'copy', 'Copy');
+        copy.type = 'button';
+        copy.setAttribute('aria-label', 'Copy ' + label);
+        copy.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(String(copyText)); showToast('Copied ' + label.toLowerCase()); }
+          catch (err) { showToast('Cannot copy automatically. Please select the text.', true); }
+        });
+        row.append(copy); dd.append(row);
+      } else dd.textContent = value || '—';
+      wrap.append(dd); list.append(wrap);
+    }
+    function prettyDate(value) {
+      try { return value?.toDate ? value.toDate().toLocaleString('en-PH', {dateStyle: 'medium', timeStyle: 'short'}) : '—'; }
+      catch (_) { return '—'; }
+    }
+    function showError(message) {
       $('error').textContent = message || '';
       $('error').classList.toggle('hidden', !message);
     }
-    function el(tag, className, text) {
-      const node = document.createElement(tag);
-      if (className) node.className = className;
-      if (text !== undefined) node.textContent = String(text);
-      return node;
+    function showToast(message, isError = false) {
+      clearTimeout(toastTimer);
+      const el = $('toast');
+      el.textContent = message;
+      el.style.background = isError ? '#632f33' : '#1e524a';
+      el.classList.remove('hidden');
+      toastTimer = setTimeout(() => el.classList.add('hidden'), 4500);
     }
-    function line(parent, label, value) {
-      const wrap = el('div');
-      wrap.append(el('dt', '', label), el('dd', '', value || '—'));
-      parent.append(wrap);
-    }
-    function time(value) {
-      try { return value && value.toDate ? value.toDate().toLocaleString('en-PH') : '—'; }
-      catch (_) { return '—'; }
-    }
-    function labelStatus(status) {
-      return status === 'Paid' ? 'paid' : status === 'Rejected' ? 'rejected' : 'pending';
-    }
-
-    function render() {
-      const filter = $('statusFilter').value;
-      const search = $('search').value.trim().toLowerCase();
-      const records = entries.filter(({ claim, order }) => {
-        if (filter !== 'all' && claim.status !== filter) return false;
-        const haystack = [claim.reference, claim.orderId,
-          order && (order.orderNumber || order.number),
-          order && (order.customerName || order.customer || order.customerEmail || order.email)]
-          .filter(Boolean).join(' ').toLowerCase();
-        return !search || haystack.includes(search);
+    function selectedEntry() { return entries.find(e => e.claim.orderId === selectedId); }
+    function getStatusClass(status) { return status === 'Paid' ? 'paid' : status === 'Rejected' ? 'rejected' : 'waiting'; }
+    function syncSummary() {
+      const counts = { 'For Verification': 0, Paid: 0, Rejected: 0 };
+      let amount = 0;
+      entries.forEach(({claim,order}) => {
+        if (Object.prototype.hasOwnProperty.call(counts, claim.status)) counts[claim.status] += 1;
+        if (claim.status === 'Paid') amount += Number(order?.total) || 0;
       });
-      $('orders').replaceChildren();
-      $('count').textContent = records.length + ' payment(s)';
-      if (!records.length) {
-        $('orders').append(el('div', 'center muted', 'No matching GCash payment submissions yet.'));
+      $('statPending').textContent = counts['For Verification'];
+      $('statPaid').textContent = counts.Paid;
+      $('statRejected').textContent = counts.Rejected;
+      $('statAmount').textContent = money(amount);
+      $('tabPending').textContent = counts['For Verification'];
+      $('tabPaid').textContent = counts.Paid;
+      $('tabRejected').textContent = counts.Rejected;
+      $('tabAll').textContent = entries.length;
+    }
+    function render() {
+      syncSummary();
+      const search = $('search').value.trim().toLowerCase();
+      const filtered = entries.filter(({claim,order}) => {
+        if (activeFilter !== 'all' && claim.status !== activeFilter) return false;
+        const corpus = [claim.orderId, claim.reference, order?.orderNumber, order?.number,
+          order?.customerName, order?.customer, order?.customerEmail, order?.email]
+          .filter(Boolean).join(' ').toLowerCase();
+        return !search || corpus.includes(search);
+      });
+      $('count').textContent = filtered.length + (filtered.length === 1 ? ' payment' : ' payments');
+      const list = $('orders');
+      list.replaceChildren();
+      if (!filtered.length) {
+        const empty = node('div', 'empty');
+        empty.append(node('div', 'empty-mark', '\u2713'),
+          node('strong', '', entries.length ? 'No matching transactions' : 'No GCash submissions yet'),
+          node('p', '', entries.length ? 'Try a different status or search term.' : 'Submitted GCash references will appear here automatically.'));
+        list.append(empty);
         return;
       }
-      records.forEach(({ claim, order }) => {
-        const card = el('article', 'order-card');
-        const top = el('div', 'order-top');
-        const titleSide = el('div');
-        titleSide.append(
-          el('div', 'order-num', order?.orderNumber || order?.number || claim.orderId),
-          el('div', 'meta', (order?.customerName || order?.customer || order?.customerEmail || 'Customer') +
-            ' · ' + time(claim.submittedAt))
-        );
-        const priceSide = el('div');
-        priceSide.append(el('div', 'amount', money(order?.total)));
-        priceSide.append(el('div', 'pill ' + labelStatus(claim.status), claim.status));
-        top.append(titleSide, priceSide);
+      filtered.forEach(({claim,order}) => {
+        const card = node('article', 'record');
+        const top = node('div', 'record-top');
+        const left = node('div');
+        const num = order?.orderNumber || order?.number || claim.orderId;
+        left.append(node('div', 'order-number', num),
+          node('div', 'customer', (order?.customerName || order?.customer || order?.customerEmail || 'Customer') + ' · ' + prettyDate(claim.submittedAt)));
+        const right = node('div');
+        right.append(node('div', 'record-price', money(order?.total)), node('div', 'pill ' + getStatusClass(claim.status), claim.status));
+        top.append(left, right);
         card.append(top);
-        const details = el('dl', 'details');
-        line(details, 'Submitted GCash reference', claim.reference);
-        line(details, 'Order payment method', order?.paymentMethod || order?.payment);
-        line(details, 'Order status', order?.status);
-        line(details, 'Customer email', order?.customerEmail || order?.email);
-        if (claim.reason) line(details, 'Rejection note', claim.reason);
-        card.append(details);
-
-        if (claim.status === 'For Verification' && order) {
-          const confirmation = el('label', 'check');
-          const check = document.createElement('input');
-          check.type = 'checkbox';
-          confirmation.append(check, el('span', '', 'I checked my actual GCash transactions and verified the recipient, amount, and reference.'));
-          card.append(confirmation);
-          const actions = el('div', 'actions');
-          const confirm = el('button', 'confirm', 'Confirm Payment → Paid');
-          const reject = el('button', 'reject', 'Reject Reference');
-          confirm.disabled = true;
-          check.addEventListener('change', () => { confirm.disabled = !check.checked; });
-          confirm.addEventListener('click', () => review(claim.orderId, 'Paid', '', confirm, reject));
-          reject.addEventListener('click', () => {
-            const note = prompt('Why was this GCash reference rejected? This will be shown to the customer.');
-            if (note === null) return;
-            if (!note.trim() || note.trim().length > 240) {
-              alert('Enter a reason between 1 and 240 characters.');
-              return;
-            }
-            review(claim.orderId, 'Rejected', note.trim(), confirm, reject);
-          });
-          actions.append(confirm, reject);
-          card.append(actions);
+        const dl = node('dl', 'details');
+        addDetail(dl, 'Submitted GCash reference', claim.reference, claim.reference);
+        addDetail(dl, 'Payment Method', order?.paymentMethod || order?.payment);
+        addDetail(dl, 'Order Status', order?.status);
+        addDetail(dl, 'Customer Email', order?.customerEmail || order?.email);
+        card.append(dl);
+        if (claim.status === 'Rejected') {
+          card.append(node('div', 'rejection-note', 'Rejection reason: ' + (claim.reason || 'No reason recorded.') + ' Customer can submit a new reference.'));
         }
-        $('orders').append(card);
+        if (claim.status === 'For Verification' && order) {
+          const bar = node('div', 'action-bar');
+          bar.append(node('div', 'action-note', 'Review the transfer in your GCash account. Never approve based on the reference alone.'));
+          const actions = node('div');
+          actions.style.cssText = 'display:flex; flex-wrap:wrap; gap:9px;';
+          const approve = node('button', 'btn confirm', 'Confirm Payment \u2192 Paid');
+          const reject = node('button', 'btn reject', 'Reject Reference');
+          approve.type = reject.type = 'button';
+          approve.disabled = reject.disabled = processing;
+          approve.addEventListener('click', () => openConfirmation(claim.orderId));
+          reject.addEventListener('click', () => openRejection(claim.orderId));
+          actions.append(approve, reject);
+          bar.append(actions);
+          card.append(bar);
+        }
+        list.append(card);
       });
     }
-
-    async function review(id, decision, reason, confirmButton, rejectButton) {
-      if (!user) return;
-      const item = entries.find(entry => entry.claim.orderId === id);
+    function openRejection(id) {
+      selectedId = id;
+      const item = selectedEntry();
       if (!item) return;
-      if (decision === 'Paid') {
-        const number = item.order?.orderNumber || item.order?.number || id;
-        if (!window.confirm('Confirm that you received ' + money(item.order?.total) +
-          ' in your real GCash account for order ' + number + '? This will mark the order PAID.')) return;
-      }
-      confirmButton.disabled = true;
-      rejectButton.disabled = true;
-      setError('');
+      $('rejectSummary').textContent = 'Order ' + (item.order?.orderNumber || id) +
+        ': the customer will see this reason and may submit a corrected reference.';
+      $('rejectReason').value = '';
+      $('rejectDialog').showModal();
+      $('rejectReason').focus();
+    }
+    function openConfirmation(id) {
+      selectedId = id;
+      const item = selectedEntry();
+      if (!item) return;
+      $('actualPaymentCheck').checked = false;
+      $('confirmSubmit').disabled = true;
+      $('confirmSummary').textContent = 'Order ' + (item.order?.orderNumber || id) + ': ' + money(item.order?.total) +
+        '. Reference: ' + item.claim.reference + '. This action records the payment as Paid.';
+      $('confirmDialog').showModal();
+    }
+    async function reviewPayment(id, decision, reason) {
+      if (!user || processing) return;
+      processing = true;
+      $('confirmSubmit').disabled = true;
+      $('rejectSubmit').disabled = true;
+      showError('');
       try {
         const claimRef = db.collection('gcash_payment_claims').doc(id);
         const orderRef = db.collection('orders').doc(id);
         const auditRef = db.collection('audit_logs').doc();
-        await db.runTransaction(async transaction => {
-          const claimSnap = await transaction.get(claimRef);
-          const orderSnap = await transaction.get(orderRef);
-          if (!claimSnap.exists || !orderSnap.exists) throw new Error('Order or reference does not exist.');
+        await db.runTransaction(async tx => {
+          const claimSnap = await tx.get(claimRef);
+          const orderSnap = await tx.get(orderRef);
+          if (!claimSnap.exists || !orderSnap.exists) throw new Error('Order or submitted reference was not found.');
           const claim = claimSnap.data();
           const order = orderSnap.data();
-          if (claim.status !== 'For Verification') throw new Error('This submission has already been reviewed.');
-          if (order.status === 'Cancelled') throw new Error('This order is cancelled.');
-          if (!['GCash', 'GCash (SmileHub QR)'].includes(order.paymentMethod || order.payment)) {
-            throw new Error('Not a GCash order.');
-          }
-          if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
-            throw new Error('Invalid order total. Do not confirm this payment.');
-          }
-          if (decision === 'Paid' && order.paymentStatus === 'paid') {
-            throw new Error('This order is already marked Paid.');
-          }
-          const stamp = firebase.firestore.FieldValue.serverTimestamp();
+          if (claim.status !== 'For Verification') throw new Error('This reference has already been reviewed.');
+          if (order.status === 'Cancelled') throw new Error('The order was cancelled.');
+          if (!['GCash', 'GCash (SmileHub QR)'].includes(order.paymentMethod || order.payment)) throw new Error('This is not a GCash order.');
+          if (!(Number(order.total) > 0 && Number.isFinite(Number(order.total)))) throw new Error('Invalid order total.');
+          const time = firebase.firestore.FieldValue.serverTimestamp();
           if (decision === 'Paid') {
-            const fields = {
-              paymentStatus:'paid', gcashPaymentStatus:'Paid',
-              paymentVerifiedBy:user.email || user.uid,
-              paymentVerifiedAt:stamp, updatedAt:stamp
+            if (String(order.paymentStatus || '').toLowerCase() === 'paid') throw new Error('Order is already marked Paid.');
+            const update = {
+              paymentStatus: 'paid', gcashPaymentStatus: 'Paid',
+              paymentVerifiedBy: user.email || user.uid, paymentVerifiedAt: time, updatedAt: time
             };
             if (['Pending', 'Pending Payment'].includes(order.status)) {
-              fields.status = 'Processing';
-              fields.statusHistory = firebase.firestore.FieldValue.arrayUnion({
-                status:'Processing', createdAt:firebase.firestore.Timestamp.now()
+              update.status = 'Processing';
+              update.statusHistory = firebase.firestore.FieldValue.arrayUnion({
+                status: 'Processing', createdAt: firebase.firestore.Timestamp.now()
               });
             }
-            transaction.update(orderRef, fields);
-            transaction.update(claimRef, {
-              status:'Paid', reviewedBy:user.email || user.uid,
-              reviewedAt:stamp, reason:''
-            });
+            tx.update(orderRef, update);
+            tx.update(claimRef, {status: 'Paid', reason: '', reviewedBy: user.email || user.uid, reviewedAt: time});
           } else {
-            transaction.update(claimRef, {
-              status:'Rejected', reason,
-              reviewedBy:user.email || user.uid, reviewedAt:stamp
-            });
+            tx.update(claimRef, {status: 'Rejected', reason: reason, reviewedBy: user.email || user.uid, reviewedAt: time});
           }
-          transaction.set(auditRef, {
-            admin:user.email || user.uid,
-            action:(decision === 'Paid' ? 'Verified GCash payment' : 'Rejected GCash reference') +
-              ' for ' + (order.orderNumber || order.number || id),
-            createdAt:stamp,
-            orderId:id
+          tx.set(auditRef, {
+            admin: user.email || user.uid,
+            action: (decision === 'Paid' ? 'Verified GCash payment' : 'Rejected GCash reference') +
+              ' for ' + (order.orderNumber || order.number || id), createdAt: time, orderId: id
           });
         });
-      } catch (err) {
-        console.error('[SmileHub GCash] Failed to review payment', err);
-        setError('Could not save decision: ' + String(err?.message || err));
+        $('confirmDialog').close();
+        $('rejectDialog').close();
+        showToast(decision === 'Paid' ? 'Payment confirmed and recorded as Paid.' : 'Reference rejected. Customer may submit a correction.');
+        selectedId = null;
+      } catch (error) {
+        console.error('[SmileHub GCash] Payment review failed:', error);
+        showError('Unable to save decision: ' + String(error?.message || error));
+        showToast('Could not save the payment decision.', true);
       } finally {
-        rejectButton.disabled = false;
+        processing = false;
+        $('rejectSubmit').disabled = false;
+        $('confirmSubmit').disabled = !$('actualPaymentCheck').checked;
         render();
       }
     }
-
     function startQueue() {
-      $('authMessage').textContent = 'Signed in as ' + (user.email || 'authorized staff') +
-        '. Real payment verification must be performed in GCash.';
       $('dashboard').classList.remove('hidden');
+      $('authMessage').textContent = 'Signed in as ' + (user.email || 'authorized SmileHub staff') +
+        '. Approve only transfers verified in the actual GCash account.';
       stopWatching?.();
-      stopWatching = db.collection('gcash_payment_claims').onSnapshot(async snap => {
-        const version = ++revision;
+      stopWatching = db.collection('gcash_payment_claims').onSnapshot(async snapshot => {
+        const localRevision = ++revision;
         try {
-          const fetched = await Promise.all(snap.docs.map(async claimDoc => {
-            const claim = claimDoc.data();
-            const orderSnap = await db.collection('orders').doc(claimDoc.id).get();
-            return { claim:{...claim, orderId:claimDoc.id}, order:orderSnap.exists ? orderSnap.data() : null };
+          const loaded = await Promise.all(snapshot.docs.map(async doc => {
+            const claim = doc.data();
+            const orderSnap = await db.collection('orders').doc(doc.id).get();
+            return {claim: {...claim, orderId: doc.id}, order: orderSnap.exists ? orderSnap.data() : null};
           }));
-          if (version !== revision) return;
-          fetched.sort((a,b) => (b.claim.submittedAt?.toMillis?.() || 0) -
-            (a.claim.submittedAt?.toMillis?.() || 0));
-          entries = fetched;
-          setError('');
+          if (localRevision !== revision) return;
+          entries = loaded.sort((a,b) => (b.claim.submittedAt?.toMillis?.() || 0) - (a.claim.submittedAt?.toMillis?.() || 0));
+          showError('');
           render();
-        } catch (err) {
-          setError('Could not load linked order records: ' + String(err?.message || err));
+        } catch (error) {
+          showError('Unable to load linked orders: ' + String(error?.message || error));
         }
-      }, err => setError('Could not load GCash claims: ' + String(err?.message || err)));
+      }, error => showError('Unable to load payment queue: ' + String(error?.message || error)));
     }
-
-    $('statusFilter').addEventListener('change', render);
+    document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      render();
+    }));
     $('search').addEventListener('input', render);
+    $('clearSearch').addEventListener('click', () => { $('search').value = ''; render(); $('search').focus(); });
+    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => $(btn.dataset.close).close()));
+    $('actualPaymentCheck').addEventListener('change', () => { $('confirmSubmit').disabled = !$('actualPaymentCheck').checked || processing; });
+    $('confirmSubmit').addEventListener('click', async () => {
+      if (!$('actualPaymentCheck').checked || !selectedId) return;
+      await reviewPayment(selectedId, 'Paid', '');
+    });
+    $('rejectForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const reason = $('rejectReason').value.trim();
+      if (reason.length < 1 || reason.length > 240) return;
+      if (selectedId) await reviewPayment(selectedId, 'Rejected', reason);
+    });
     auth.onAuthStateChanged(async nextUser => {
       stopWatching?.();
       stopWatching = null;
       user = null;
+      entries = [];
+      revision++;
       $('dashboard').classList.add('hidden');
       if (!nextUser) {
         $('authMessage').replaceChildren(
-          document.createTextNode('Please sign in to the SmileHub Admin account first. '),
-          Object.assign(el('a', '', 'Open Login'), { href:'login.html' })
+          document.createTextNode('Please sign in to SmileHub Admin first. '),
+          Object.assign(node('a', '', 'Open Login'), {href: 'login.html'})
         );
+        $('accountLabel').textContent = 'Not signed in';
         return;
       }
       try {
-        const userDoc = await db.collection('users').doc(nextUser.uid).get();
-        const role = String(userDoc.data()?.role || '').toLowerCase();
+        const staff = await db.collection('users').doc(nextUser.uid).get();
+        const role = String(staff.data()?.role || '').toLowerCase();
         if (!staffRoles.includes(role)) {
-          $('authMessage').textContent = 'Access denied: this account is not SmileHub staff.';
+          $('authMessage').textContent = 'Access denied: this account does not have SmileHub staff permissions.';
           return;
         }
         user = nextUser;
+        $('avatar').textContent = (nextUser.email || 'A').slice(0,1).toUpperCase();
+        $('accountLabel').replaceChildren(
+          document.createTextNode(nextUser.email || 'Staff account'),
+          node('small', '', role === 'superadmin' ? 'Super Admin' : role === 'admin' ? 'Admin' : 'Staff')
+        );
         startQueue();
-      } catch (err) {
-        $('authMessage').textContent = 'Could not verify staff role: ' + String(err?.message || err);
+      } catch (error) {
+        $('authMessage').textContent = 'Unable to verify staff account: ' + String(error?.message || error);
       }
     });
   })();
   </script>
+<script>
+(function () {
+  if (!document.documentElement.classList.contains('embedded')) return;
+  let lastHeight = 0;
+  function sendHeight() {
+    const height = Math.ceil(document.body.scrollHeight);
+    if (Math.abs(height - lastHeight) < 4) return;
+    lastHeight = height;
+    window.parent.postMessage({type:'smilehub-gcash-height',height},window.location.origin);
+  }
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(sendHeight).observe(document.body);
+  window.addEventListener('load',sendHeight);
+  document.addEventListener('click',() => requestAnimationFrame(sendHeight));
+  sendHeight();
+})();
+</script>
 </body>
 </html>
