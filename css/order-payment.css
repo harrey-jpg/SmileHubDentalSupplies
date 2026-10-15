@@ -7,3 +7,15 @@
 .dark .order-payment-state.is-paid { color: #76dec8; }
 .dark .order-payment-state.is-failed { color: #ffb4a9; }
 .dark .order-payment-state.is-pending { color: #f6d383; }
+@media (max-width: 640px) {
+  .orders-page .table-wrap { overflow: visible; border: 0; background: transparent; }
+  .orders-page .table-wrap > table, .orders-page #ordersBody { display: block; width: 100%; min-width: 0; }
+  .orders-page .table-wrap > table > thead { display: none; }
+  .orders-page .order-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-bottom: 16px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--white); }
+  .orders-page .order-row > td { display: block; min-width: 0; width: auto; padding: 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+  .orders-page .order-row > td::before { content: attr(data-label); display: block; margin-bottom: 5px; color: var(--muted); font-size: .75rem; font-weight: 700; }
+  .orders-page .order-row > td:nth-child(5), .orders-page .order-row > td:last-child { grid-column: 1 / -1; }
+  .orders-page .order-expand:not(.hidden), .orders-page .order-expand > td { display: block; width: 100%; min-width: 0; }
+  .orders-page .order-details-grid { grid-template-columns: minmax(0, 1fr); }
+  .orders-page .orders-controls { align-items: stretch; }
+}
