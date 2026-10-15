@@ -173,10 +173,18 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <main class="section-sm">
 <section id="paymentReturnPanel" class="container payment-return" aria-labelledby="paymentReturnTitle" hidden>
 <div class="payment-return-card">
-<p class="muted">PAYMONGO TEST PAYMENT</p>
+<p class="muted" id="paymentReturnLabel">PAYMONGO TEST PAYMENT</p>
 <h2 id="paymentReturnTitle" tabindex="-1">Checking your payment…</h2>
 <p>Order <strong id="paymentReturnOrder"></strong></p>
 <p id="paymentReturnNotice" role="status" aria-live="polite">Please wait while we confirm your test payment.</p>
+<section id="bankSimulationDetails" hidden aria-label="Sample bank transfer details">
+<p><strong>Demo bank — simulation only</strong><br>Account: <strong>DEMO-ACCOUNT-0001</strong><br>Amount: <strong id="bankSimulationAmount"></strong></p>
+<p>These details cannot receive money. Do not transfer funds or enter real bank credentials. Use the order number above as your sample reference.</p>
+<div class="payment-return-actions">
+<button class="btn btn-primary" id="bankSimulateSuccess" type="button">Simulate successful transfer</button>
+<button class="btn btn-light" id="bankSimulateFailure" type="button">Simulate failed transfer</button>
+</div>
+</section>
 <div class="payment-return-actions">
 <a class="btn btn-primary" href="orders.html">View Your Orders</a>
 <button id="paymentReturnRetry" type="button" class="btn btn-light" hidden>Retry test payment</button>
@@ -301,6 +309,11 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <input name="payment" type="radio" value="Credit Card"/>
 <span class="payment-card-icon" aria-hidden="true">◰</span>
 <span class="payment-card-body"><strong>Credit Card</strong><br/><small class="muted">Visa, Mastercard, JCB</small><br/><small class="payment-helper">PayMongo test mode • No real charge</small></span>
+</label>
+<label class="payment-card" data-payment="Bank Transfer (Simulation)">
+<input name="payment" type="radio" value="Bank Transfer (Simulation)"/>
+<span class="payment-card-icon" aria-hidden="true">B</span>
+<span class="payment-card-body"><strong>Bank Transfer — Simulation</strong><br/><small class="muted">Try a successful or failed transfer</small><br/><small class="payment-helper">Demo only • No money moves</small></span>
 </label>
 <label class="payment-card" data-payment="Cash on Delivery" id="codPaymentCard">
 <input name="payment" type="radio" value="Cash on Delivery"/>
@@ -503,6 +516,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <script src="js/shared-data.js?v=1.0.0"></script>
 <script src="js/firestore-data.js?v=6.4.0"></script>
 <script src="js/chatbot.js?v=1.0.1"></script>
+<script src="js/bank-simulation.js?v=1.0.0"></script>
 <script src="js/ph-address.js?v=6.3.1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -519,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 <script src="js/phone-input.js?v=6.3.0"></script>
 <script src="js/account-verification.js?v=6.3.0"></script>
-<script src="js/checkout.js?v=6.4.6">
+<script src="js/checkout.js?v=6.4.7">
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){

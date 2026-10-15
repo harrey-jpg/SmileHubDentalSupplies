@@ -57,6 +57,26 @@ module.exports = function createPayments({ db, auth, secret, fetch: request = fe
       const snap = await orderRef.get();
       if (!snap.exists || snap.data().userId !== user.uid) return res.status(404).json({ error: 'Order not found.' });
       const order = snap.data();
+      if (req.method === 'POST' && path === '/bank') {
+        const outcome = req.body.outcome || 'status';
+        if (!['status', 'success', 'failed'].includes(outcome) || order.payment !== 'Bank Transfer (Simulation)') {
+          return res.status(400).json({ error: 'Invalid bank simulation.' });
+        }
+        let result;
+        await db.runTransaction(async tx => {
+          const current = (await tx.get(orderRef)).data();
+          if (current.userId !== user.uid || current.payment !== 'Bank Transfer (Simulation)') throw new Error('Order changed');
+          if (outcome !== 'status' && current.paymentStatus !== 'paid') {
+            if (current.status !== 'Pending Payment' || !Number.isFinite(current.total) || current.total <= 0) throw new Error('Order is not payable');
+            const update = { paymentMode: 'simulation', paymentProvider: 'demo-bank', paymentSimulationResult: outcome,
+              paymentStatus: outcome === 'success' ? 'paid' : 'unpaid', status: outcome === 'success' ? 'Processing' : 'Pending Payment' };
+            tx.update(orderRef, update);
+            Object.assign(current, update);
+          }
+          result = { mode: 'simulation', paid: current.paymentStatus === 'paid', outcome: current.paymentSimulationResult || 'pending', total: current.total };
+        });
+        return res.json(result);
+      }
       const sessions = db.collection('paymongo_sessions');
       if (req.method === 'POST' && path === '/status') {
         const saved = await sessions.where('orderId', '==', orderId).get();

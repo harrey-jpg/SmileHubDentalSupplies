@@ -5,7 +5,7 @@ let payments;
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const action = req.query?.action;
-  if (!['checkout', 'status', 'webhook'].includes(action)) return res.status(404).json({ error: 'Not found.' });
+  if (!['checkout', 'status', 'webhook', 'bank'].includes(action)) return res.status(404).json({ error: 'Not found.' });
   if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
   try {
     if (!payments) {

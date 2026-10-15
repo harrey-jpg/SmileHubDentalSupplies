@@ -5,6 +5,13 @@ Vercel hosts the website and `/api/payments/checkout`, `/api/payments/status`,
 and `/api/payments/webhook`. Firebase Functions and Blaze are not needed for
 these three payment endpoints. PayMongo live keys and live payments are refused.
 
+Bank Transfer (Simulation) uses `/api/payments/bank`, without contacting
+PayMongo or a bank. Its sample account cannot receive transfers. Customers can
+simulate failure (order stays unpaid) or success (order marked paid with
+`paymentMode: simulation` and `paymentProvider: demo-bank`). This endpoint
+requires the authenticated order owner and only accepts orders explicitly
+created using Bank Transfer (Simulation). It cannot pay a GCash or card order.
+
 ## First deployment
 
 1. Create a Vercel account using GitHub. Choose Hobby for a personal,

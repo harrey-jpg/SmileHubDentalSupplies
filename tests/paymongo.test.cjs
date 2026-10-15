@@ -62,6 +62,17 @@ async function run() {
   assert.equal(records.get('orders/ORDER-1').paymentMode, 'test');
   assert.equal(records.get('orders/ORDER-1').status, 'Processing');
   assert.equal((await request('status')).body.paid, true);
+  records.set('orders/ORDER-1', { userId: 'buyer', total: 100, payment: 'Bank Transfer (Simulation)', paymentStatus: 'unpaid', status: 'Pending Payment' });
+  const bankCalls = calls;
+  assert.equal((await request('bank')).body.outcome, 'pending');
+  assert.equal((await request('bank', { orderId: 'ORDER-1', outcome: 'failed' })).body.paid, false);
+  assert.equal(records.get('orders/ORDER-1').status, 'Pending Payment');
+  assert.equal((await request('bank', { orderId: 'ORDER-1', outcome: 'success' })).body.paid, true);
+  assert.equal(records.get('orders/ORDER-1').paymentMode, 'simulation');
+  assert.equal((await request('bank', { orderId: 'ORDER-1', outcome: 'failed' })).body.paid, true, 'Never undo a completed simulation');
+  assert.equal(calls, bankCalls, 'Bank simulation must never contact PayMongo or a bank');
+  records.set('orders/ORDER-1', { userId: 'buyer', total: 100, payment: 'Credit Card', status: 'Pending Payment' });
+  assert.equal((await request('bank', { orderId: 'ORDER-1', outcome: 'success' })).code, 400, 'Cannot simulate payment for another method');
   console.log('PayMongo checks passed: authentication, test-only keys/sessions, session reuse, amount verification, webhook reconciliation.');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

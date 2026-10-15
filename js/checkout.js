@@ -36,13 +36,13 @@ window.validateCheckoutStep = function(step, showErrors) {
   return !firstInvalid && (step !== 2 || Boolean(payment));
 };
 
-async function paymongoRequest(action, orderId) {
+async function paymongoRequest(action, orderId, outcome) {
   var user = firebase.auth().currentUser;
   if (!user) throw new Error('Sign in to continue.');
   var token = await user.getIdToken();
   var response = await fetch('/api/payments/' + action, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ orderId: orderId })
+    body: JSON.stringify({ orderId: orderId, outcome: outcome })
   });
   var data;
   try { data = await response.json(); } catch (_) { throw new Error('Test payments are not configured yet.'); }
@@ -647,6 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
           }
           retryOrderSave = null;
+          if (!needsQuote && paymentMethod === 'Bank Transfer (Simulation)') {
+            result = { status: 'redirect', url: 'checkout.html?bank_order=' + encodeURIComponent(order.number) };
+          }
           if (!needsQuote && ['GCash', 'Credit Card'].indexOf(paymentMethod) !== -1) {
             if (submitBtn) submitBtn.textContent = 'Opening test checkout…';
             try {

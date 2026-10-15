@@ -31,7 +31,7 @@ async function run() {
   env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({ project_id: 'demo-unit-test', client_email: 'test@example.test', private_key: 'placeholder' });
   env.VERCEL_PROJECT_PRODUCTION_URL = 'smilehub.example.test';
   env.PAYMONGO_SECRET_KEY = 'sk_test_placeholder';
-  for (const action of ['checkout', 'status', 'webhook']) {
+  for (const action of ['checkout', 'status', 'webhook', 'bank']) {
     const res = await request(action);
     assert.equal(res.code, 200);
     assert.equal(res.headers['Cache-Control'], 'no-store');
