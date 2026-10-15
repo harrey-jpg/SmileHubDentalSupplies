@@ -3817,7 +3817,16 @@ document.addEventListener('DOMContentLoaded', function() {
     return 'other';
   }
   function getAuditIcon(cat) {
-    return '';
+    var paths = {
+      order: '<rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V3h6v2M9 10h6M9 14h6M9 18h3"/>',
+      stock: '<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7M12 11v10M8 5l9 4"/>',
+      product: '<path d="M4 4h7l10 10-7 7L4 11V4Z"/><circle cx="8" cy="8" r="1"/>',
+      account: '<circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+      cms: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+      payment: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h4"/>',
+      other: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+    };
+    return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (paths[cat] || paths.other) + '</svg>';
   }
   function getAuditBadge(cat) {
     var colors = {
@@ -3975,7 +3984,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if(!listEl) return;
     var logs = getAuditLogs() || [];
     var paymentMarkup = (pendingPaymentClaims || []).slice(0,7).map(function(entry) {
-      return '<a class="notif-dropdown-item" href="#gcash" data-gcash-notification><span style="min-width:0;flex:1;overflow-wrap:anywhere"><strong>GCash reference awaiting review</strong><span style="display:block">Order ' + escapeHtml(entry.id) + '</span></span></a>';
+      var order = getOrders().find(function(order) { return String(order.docId || order.orderId || '') === entry.id; });
+      var label = order && (order.orderNumber || order.number);
+      return '<a class="notif-dropdown-item" href="#gcash" data-gcash-notification><span class="notif-dropdown-icon payment">' + getAuditIcon('payment') + '</span><span style="min-width:0;flex:1;overflow-wrap:anywhere"><strong>GCash reference awaiting review</strong><span class="muted" style="display:block;font-size:.8rem">' + (label ? 'Order ' + escapeHtml(label) : 'Open payment details') + '</span></span></a>';
     }).join('');
     if (paymentClaimError) paymentMarkup += '<a class="notif-dropdown-item" href="#gcash" data-gcash-notification>' + escapeHtml(paymentClaimError) + '</a>';
     function wirePayments() { listEl.querySelectorAll('[data-gcash-notification]').forEach(function(link) { link.onclick = function(event) { event.preventDefault(); setNotifDropdownOpen(false); if (paymentClaimError) startPaymentNotifications(); window.navigateTo('#gcash'); }; }); }
@@ -4003,7 +4014,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var slice = logs.slice(0,Math.max(0,7 - (pendingPaymentClaims || []).length));
     listEl.innerHTML = paymentMarkup + slice.map(function(log){
       var cat = getAuditCategory(log.action);
-      var icon = getAuditIcon(cat);
+      var icon = getAuditIcon(/gcash|payment/i.test(log.action || '') ? 'payment' : cat);
       var time = formatNotifTime(log);
       return '<div class="notif-dropdown-item"><span class="notif-dropdown-icon ' + cat + '">' + icon + '</span><span style="min-width:0;flex:1;"><span style="display:block;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(log.action||'') + '</span><span class="muted" style="font-size:0.78rem;">' + escapeHtml(log.admin||'') + (time ? ' • ' + escapeHtml(time) : '') + '</span></span></div>';
     }).join('');

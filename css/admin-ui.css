@@ -120,7 +120,17 @@ body.admin-body .modal-body { padding:20px; }
 body.admin-body .modal-foot { gap:8px; padding:0 20px 20px; }
 body.admin-body .notif-dropdown { background:var(--white); border-color:var(--border); border-radius:12px; box-shadow:var(--shadow-lg); }
 body.admin-body .notif-dropdown-foot { background:var(--admin-sidebar); }
-body.admin-body .notif-dropdown-icon { color:var(--text); }
+body.admin-body .notif-dropdown-icon { width:32px; height:32px; color:var(--text); background:color-mix(in srgb,currentColor 12%,var(--white)); border:1px solid color-mix(in srgb,currentColor 24%,transparent); }
+body.admin-body .notif-dropdown-icon.order { color:#075985; }
+body.admin-body .notif-dropdown-icon.stock, body.admin-body .notif-dropdown-icon.cms { color:#92400e; }
+body.admin-body .notif-dropdown-icon.product { color:#166534; }
+body.admin-body .notif-dropdown-icon.account { color:#6b21a8; }
+body.admin-body .notif-dropdown-icon.payment { color:#115e59; }
+body.admin-body.dark .notif-dropdown-icon.order { color:#7dd3fc; }
+body.admin-body.dark .notif-dropdown-icon.stock, body.admin-body.dark .notif-dropdown-icon.cms { color:#fcd34d; }
+body.admin-body.dark .notif-dropdown-icon.product { color:#86efac; }
+body.admin-body.dark .notif-dropdown-icon.account { color:#d8b4fe; }
+body.admin-body.dark .notif-dropdown-icon.payment { color:#5eead4; }
 body.admin-body :is(.btn,.icon-btn,.rail-link,.dash-link,.theme-button,.modal-close,input,select,textarea,.admin-menu a):focus-visible { outline:2px solid var(--blue); outline-offset:3px; }
 body.admin-body [role="alert"] { color:var(--danger-dark); }
 body.admin-body.dark [role="alert"] { color:#fda4a4; }
