@@ -6,36 +6,32 @@ service cloud.firestore {
     function userDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
-    function role() {
-      return signedIn() ? userDoc().data.role : null;
-    }
+    function role() { return signedIn() ? userDoc().data.role : null; }
     function isStaff() {
       return signedIn() && role() in ['admin', 'staff', 'superadmin'];
     }
     function isProductAdmin() {
       return signedIn() && role() in ['admin', 'superadmin'];
     }
-    function isAdmin() {
-      return isStaff();
-    }
+    function isAdmin() { return isStaff(); }
     function validProfile(uid) {
       return own(uid)
         && request.resource.data.email == request.auth.token.email
         && (!('phoneVerified' in request.resource.data) || request.resource.data.phoneVerified is bool);
     }
-    // The role a write would set. Defaults to 'customer' when absent.
     function requestedRole() {
       return request.resource.data.get('role', 'customer');
     }
     function currentRole() {
       return resource.data.get('role', 'customer');
     }
-    // Elevated roles may only be claimed once, from an unclaimed invitation
-    // document that an admin created in user_registrations with that role.
     function invitedRole() {
       let regPath = /databases/$(database)/documents/user_registrations/$(request.auth.token.email);
-      return exists(regPath)
-        && get(regPath).data.claimed == false
+      // Never grant staff roles through an unverified email address.
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && exists(regPath)
+        && get(regPath).data.get('claimed', true) == false
         ? get(regPath).data.get('role', 'customer')
         : null;
     }
@@ -43,10 +39,10 @@ service cloud.firestore {
     match /products/{id} {
       allow read: if true;
       allow create, delete: if isProductAdmin();
-      // Product admins may edit anything. Staff (orders+stock role) may only
-      // touch stock controls — inventory is merged into the products section.
       allow update: if isProductAdmin() || (isStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'minStock', 'status', 'updatedAt']));
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'stock', 'minStock', 'status', 'updatedAt'
+        ]));
     }
     match /products_meta/{id} {
       allow read: if true;
@@ -57,25 +53,17 @@ service cloud.firestore {
       allow write: if isProductAdmin();
     }
     match /users/{uid} {
-      // Create: self-registration is allowed as 'customer'. Elevated roles
-      // require a matching unclaimed admin-created invitation. Admins may also
-      // create/repair other users' docs directly (for account re-linking).
       allow create: if (validProfile(uid)
         && (requestedRole() == 'customer'
-            || (requestedRole() in ['admin', 'staff', 'superadmin']
-                && invitedRole() == requestedRole()))) || isProductAdmin();
-      // Update: profile fields may change, but the role can NEVER be changed
-      // by the owner. Product admins may update any user's profile (e.g., to repair roles).
+          || (requestedRole() in ['admin', 'staff', 'superadmin']
+            && invitedRole() == requestedRole()))) || isProductAdmin();
       allow update: if (validProfile(uid) && requestedRole() == currentRole()) || isProductAdmin();
       allow read: if own(uid) || isProductAdmin();
       allow delete: if own(uid) || isProductAdmin();
-
-      // Saved shipping addresses subcollection (mobile app).
       match /addresses/{addressId} {
         allow read, create, update, delete: if own(uid);
       }
     }
-
     match /carts/{uid} {
       allow read, create, update, delete: if own(uid);
     }
@@ -93,17 +81,83 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Both website and mobile orders use this existing shared collection.
     match /orders/{id} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
-      // Staff may transition any status. Owners may only request a return or
-      // cancel their own pending order — not set Delivered/Shipped.
-      allow update: if isStaff() || (signedIn() && resource.data.userId == request.auth.uid
-        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['returnRequest','updatedAt'])
-          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt'])
-            && resource.data.status == 'Pending' && request.resource.data.status == 'Cancelled')));
+      // This is a school/demo checkout: totals come from the client and are
+      // NOT trusted for real payments. Only staff may subsequently mark Paid.
+      // Both the existing website and the mobile app must initially create
+      // Pending orders; this prevents forged Paid/Delivered orders for ANY method.
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.get('paymentStatus', 'unpaid') in ['unpaid', 'pending', 'Pending']
+        && request.resource.data.get('gcashPaymentStatus', 'Pending Payment')
+             in ['Pending Payment', 'Not Applicable']
+        && request.resource.data.get('status', '')
+             in ['Pending', 'Pending Payment', 'Pending Quotation']
+        && request.resource.data.total is number
+        && request.resource.data.total >= 0
+        && (request.resource.data.get('source', '') != 'mobile'
+          || (request.resource.data.get('paymentStatus', '') == 'unpaid'
+            && request.resource.data.get('gcashPaymentStatus', '')
+                 in ['Pending Payment', 'Not Applicable']
+            && request.resource.data.status in ['Pending', 'Pending Payment']));
+      // The mobile idempotent checkout checks whether its new UUID doc exists.
+      // Permit GET on missing paths, but never reveal another user's real order.
+      allow get: if signedIn() && (!exists(/databases/$(database)/documents/orders/$(id))
+        || resource.data.userId == request.auth.uid || isStaff());
+      allow list: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update: if isStaff() || (signedIn()
+        && resource.data.userId == request.auth.uid
+        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['returnRequest', 'updatedAt'])
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+            && resource.data.status in ['Pending', 'Pending Payment']
+            && resource.data.get('paymentStatus', 'unpaid') != 'paid'
+            && !exists(/databases/$(database)/documents/gcash_payment_claims/$(id))
+            && request.resource.data.status == 'Cancelled')));
       allow delete: if isProductAdmin();
     }
+
+    // Customer-submitted GCash references are claims, not confirmed payments.
+    // Only an authenticated staff account can set status to Paid / Rejected.
+    match /gcash_payment_claims/{orderId} {
+      function orderPath() {
+        return /databases/$(database)/documents/orders/$(orderId);
+      }
+      function isGcashOwner() {
+        return signedIn() && exists(orderPath())
+          && get(orderPath()).data.userId == request.auth.uid
+          && get(orderPath()).data.get('paymentMethod', get(orderPath()).data.get('payment', ''))
+              in ['GCash (SmileHub QR)', 'GCash']
+          && get(orderPath()).data.get('paymentStatus', 'unpaid') != 'paid'
+          && get(orderPath()).data.status != 'Cancelled';
+      }
+      function validReference() {
+        return request.resource.data.reference is string
+          && request.resource.data.reference.matches('^[A-Za-z0-9-]{6,40}$');
+      }
+      allow create: if isGcashOwner()
+        && request.resource.data.keys().hasOnly(['orderId', 'userId', 'reference', 'status', 'submittedAt'])
+        && request.resource.data.orderId == orderId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'For Verification'
+        && validReference();
+      // A customer may read their claim even before it exists, and after
+      // staff mark it Paid. Staff may list the entire verification queue.
+      allow get: if isStaff() || (signedIn() && exists(orderPath())
+        && get(orderPath()).data.userId == request.auth.uid);
+      allow list: if isStaff();
+      allow update: if isStaff() || (isGcashOwner()
+        && resource.data.userId == request.auth.uid
+        && resource.data.status == 'Rejected'
+        && request.resource.data.status == 'For Verification'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'reference', 'status', 'submittedAt', 'reason'
+        ])
+        && request.resource.data.get('reason', '') == ''
+        && validReference());
+      allow delete: if isProductAdmin();
+    }
+
     match /reviews/{id} {
       allow read: if true;
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
@@ -115,22 +169,26 @@ service cloud.firestore {
     }
     match /accounts/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      // New sign-ups (web or mobile) may create their own account record;
-      // product admins may create missing records too (e.g. merged user profiles).
-      // Only product admins may modify or remove records afterwards.
-      allow create: if signedIn()
-        && (request.auth.token.email == email || isProductAdmin());
+      allow create: if signedIn() && (request.auth.token.email == email || isProductAdmin());
       allow update, delete: if isProductAdmin();
     }
     match /user_registrations/{email} {
+      // This collection contains staff invitations. Customers must NEVER
+      // create one, even with their own email address.
       allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      allow create: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      // The invited account may claim its own invitation, but may only touch
-      // the claim fields — everything else stays admin-managed.
+      allow create: if isProductAdmin();
+      // The invited recipient may CLAIM (not reset) their invitation once.
       allow update: if isProductAdmin()
-        || (signedIn() && request.auth.token.email == email
-            && request.resource.data.diff(resource.data).affectedKeys()
-                 .hasOnly(['claimed', 'claimedUid', 'claimedAt']));
+        || (signedIn()
+          && request.auth.token.email_verified == true
+          && request.auth.token.email == email
+          && resource.data.get('claimed', true) == false
+          && request.resource.data.claimed == true
+          && request.resource.data.claimedUid == request.auth.uid
+          && request.resource.data.claimedAt is timestamp
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'claimed', 'claimedUid', 'claimedAt'
+          ]));
       allow delete: if isProductAdmin();
     }
     match /contact_messages/{id} {

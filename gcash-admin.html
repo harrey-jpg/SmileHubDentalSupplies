@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f2b">
+  <title>GCash Payment Verification | SmileHub Admin</title>
+  <link rel="icon" href="assets/favicon-32.png">
+  <style>
+    :root { font-family:Arial,Helvetica,sans-serif; color-scheme:dark;
+      --bg:#101c27; --surface:#192b36; --line:#314754;
+      --text:#ebf5f8; --muted:#adc1cb; --teal:#078f98; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); }
+    header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      gap:14px; padding:20px clamp(16px,4vw,48px); border-bottom:1px solid var(--line); }
+    a { color:#8ee1e9; } a:hover { color:#fff; }
+    .back { border:1px solid var(--line); padding:11px 14px; border-radius:10px; text-decoration:none; }
+    .brand { font-size:20px; font-weight:850; }
+    .brand small { color:var(--muted); font-size:12px; display:block; margin-top:4px; }
+    main { margin:auto; width:min(1140px,100%); padding:24px 16px 60px; }
+    h1 { margin:8px 0 10px; font-size:clamp(23px,3vw,32px); }
+    .muted { color:var(--muted); line-height:1.6; }
+    .intro { background:var(--surface); border:1px solid var(--line); border-radius:15px;
+      padding:15px 19px; margin:20px 0; }
+    .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:22px 0 15px; }
+    .toolbar label { font-size:13px; font-weight:800; }
+    .control { border:1px solid var(--line); background:#132530; color:#fff;
+      min-height:42px; border-radius:10px; padding:9px 12px; font:inherit; }
+    .search { min-width:250px; flex:1; }
+    #count { margin-left:auto; color:var(--muted); font-size:13px; }
+    .notice { background:#1c3541; border-left:3px solid #45bfce; padding:12px 14px;
+      border-radius:8px; margin-bottom:18px; }
+    .hidden { display:none!important; }
+    .order-list { display:grid; gap:14px; }
+    .order-card { background:var(--surface); border:1px solid var(--line);
+      border-radius:15px; padding:18px; }
+    .order-top { display:flex; justify-content:space-between; flex-wrap:wrap; gap:15px; align-items:start; }
+    .order-num { font-size:18px; font-weight:850; overflow-wrap:anywhere; }
+    .meta { color:var(--muted); font-size:13px; line-height:1.6; margin-top:6px; }
+    .amount { font-size:24px; color:#92e2e6; font-weight:850; }
+    .pill { display:inline-block; margin-top:8px; font-size:11px; font-weight:800;
+      border:1px solid #52626a; padding:6px 10px; border-radius:999px; }
+    .pill.pending { color:#ffe2a0; border-color:#aa7932; }
+    .pill.paid { color:#a5f1c7; border-color:#21855a; }
+    .pill.rejected { color:#ffd0cd; border-color:#b95a55; }
+    .details { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(185px,1fr));
+      border-top:1px solid var(--line); margin-top:15px; padding-top:13px; }
+    .details dt { color:var(--muted); font-size:11px; margin-bottom:6px; }
+    .details dd { margin:0; font-size:14px; overflow-wrap:anywhere; font-weight:700; }
+    .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:14px; }
+    button { padding:12px 16px; border:1px solid var(--line); background:#263e4a;
+      color:#fff; border-radius:10px; font-weight:750; cursor:pointer; }
+    button:disabled { cursor:wait; opacity:.55; }
+    button.confirm { background:#087c79; border-color:#15a29e; }
+    button.reject { background:#613030; border-color:#a35b5b; }
+    .center { padding:36px 15px; text-align:center; background:var(--surface); border-radius:15px; }
+    .danger { color:#ffb3ad; }
+    .check { display:flex; align-items:flex-start; gap:8px; font-size:13px;
+      color:#cadfe6; padding:10px 0; }
+    input[type=checkbox] { width:18px; height:18px; accent-color:#21a8a8; flex:none; }
+    @media(max-width:540px) { .toolbar { align-items:stretch; } .toolbar label { width:100%; }
+      .toolbar select, .toolbar input { width:100%; } #count { margin-left:0; } }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+</head>
+<body>
+  <header>
+    <div class="brand">SmileHub Admin <small>GCash manual verification</small></div>
+    <a class="back" href="admin.html#orders">← Back to Admin Orders</a>
+  </header>
+  <main>
+    <h1>GCash Payment Verification</h1>
+    <p class="muted">Review transaction references submitted from the SmileHub mobile app.
+      Only confirm payment after checking the actual transfer in your GCash account.</p>
+    <div class="intro"><strong>Payment workflow:</strong>
+      <span class="muted">Pending Payment → Customer submits GCash reference → For Verification → Admin verifies → Paid (or Rejected).</span>
+    </div>
+    <div id="authMessage" class="notice" role="status">Checking staff access…</div>
+    <section id="dashboard" class="hidden" aria-label="GCash verification queue">
+      <div class="toolbar">
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter" class="control">
+          <option value="For Verification">For Verification</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Paid">Paid</option>
+          <option value="all">All submitted</option>
+        </select>
+        <input id="search" class="control search" type="search" placeholder="Search order, customer, or reference" aria-label="Search payment claims">
+        <span id="count" role="status"></span>
+      </div>
+      <div id="error" class="notice danger hidden" role="alert"></div>
+      <div id="orders" class="order-list" aria-live="polite"></div>
+    </section>
+  </main>
+  <script>
+  (function () {
+    'use strict';
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const $ = id => document.getElementById(id);
+    const money = value => new Intl.NumberFormat('en-PH', { style:'currency', currency:'PHP' }).format(Number(value) || 0);
+    let user = null;
+    let stopWatching = null;
+    let entries = [];
+    let revision = 0;
+    const staffRoles = ['admin', 'staff', 'superadmin'];
+
+    function setError(message) {
+      $('error').textContent = message || '';
+      $('error').classList.toggle('hidden', !message);
+    }
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = String(text);
+      return node;
+    }
+    function line(parent, label, value) {
+      const wrap = el('div');
+      wrap.append(el('dt', '', label), el('dd', '', value || '—'));
+      parent.append(wrap);
+    }
+    function time(value) {
+      try { return value && value.toDate ? value.toDate().toLocaleString('en-PH') : '—'; }
+      catch (_) { return '—'; }
+    }
+    function labelStatus(status) {
+      return status === 'Paid' ? 'paid' : status === 'Rejected' ? 'rejected' : 'pending';
+    }
+
+    function render() {
+      const filter = $('statusFilter').value;
+      const search = $('search').value.trim().toLowerCase();
+      const records = entries.filter(({ claim, order }) => {
+        if (filter !== 'all' && claim.status !== filter) return false;
+        const haystack = [claim.reference, claim.orderId,
+          order && (order.orderNumber || order.number),
+          order && (order.customerName || order.customer || order.customerEmail || order.email)]
+          .filter(Boolean).join(' ').toLowerCase();
+        return !search || haystack.includes(search);
+      });
+      $('orders').replaceChildren();
+      $('count').textContent = records.length + ' payment(s)';
+      if (!records.length) {
+        $('orders').append(el('div', 'center muted', 'No matching GCash payment submissions yet.'));
+        return;
+      }
+      records.forEach(({ claim, order }) => {
+        const card = el('article', 'order-card');
+        const top = el('div', 'order-top');
+        const titleSide = el('div');
+        titleSide.append(
+          el('div', 'order-num', order?.orderNumber || order?.number || claim.orderId),
+          el('div', 'meta', (order?.customerName || order?.customer || order?.customerEmail || 'Customer') +
+            ' · ' + time(claim.submittedAt))
+        );
+        const priceSide = el('div');
+        priceSide.append(el('div', 'amount', money(order?.total)));
+        priceSide.append(el('div', 'pill ' + labelStatus(claim.status), claim.status));
+        top.append(titleSide, priceSide);
+        card.append(top);
+        const details = el('dl', 'details');
+        line(details, 'Submitted GCash reference', claim.reference);
+        line(details, 'Order payment method', order?.paymentMethod || order?.payment);
+        line(details, 'Order status', order?.status);
+        line(details, 'Customer email', order?.customerEmail || order?.email);
+        if (claim.reason) line(details, 'Rejection note', claim.reason);
+        card.append(details);
+
+        if (claim.status === 'For Verification' && order) {
+          const confirmation = el('label', 'check');
+          const check = document.createElement('input');
+          check.type = 'checkbox';
+          confirmation.append(check, el('span', '', 'I checked my actual GCash transactions and verified the recipient, amount, and reference.'));
+          card.append(confirmation);
+          const actions = el('div', 'actions');
+          const confirm = el('button', 'confirm', 'Confirm Payment → Paid');
+          const reject = el('button', 'reject', 'Reject Reference');
+          confirm.disabled = true;
+          check.addEventListener('change', () => { confirm.disabled = !check.checked; });
+          confirm.addEventListener('click', () => review(claim.orderId, 'Paid', '', confirm, reject));
+          reject.addEventListener('click', () => {
+            const note = prompt('Why was this GCash reference rejected? This will be shown to the customer.');
+            if (note === null) return;
+            if (!note.trim() || note.trim().length > 240) {
+              alert('Enter a reason between 1 and 240 characters.');
+              return;
+            }
+            review(claim.orderId, 'Rejected', note.trim(), confirm, reject);
+          });
+          actions.append(confirm, reject);
+          card.append(actions);
+        }
+        $('orders').append(card);
+      });
+    }
+
+    async function review(id, decision, reason, confirmButton, rejectButton) {
+      if (!user) return;
+      const item = entries.find(entry => entry.claim.orderId === id);
+      if (!item) return;
+      if (decision === 'Paid') {
+        const number = item.order?.orderNumber || item.order?.number || id;
+        if (!window.confirm('Confirm that you received ' + money(item.order?.total) +
+          ' in your real GCash account for order ' + number + '? This will mark the order PAID.')) return;
+      }
+      confirmButton.disabled = true;
+      rejectButton.disabled = true;
+      setError('');
+      try {
+        const claimRef = db.collection('gcash_payment_claims').doc(id);
+        const orderRef = db.collection('orders').doc(id);
+        const auditRef = db.collection('audit_logs').doc();
+        await db.runTransaction(async transaction => {
+          const claimSnap = await transaction.get(claimRef);
+          const orderSnap = await transaction.get(orderRef);
+          if (!claimSnap.exists || !orderSnap.exists) throw new Error('Order or reference does not exist.');
+          const claim = claimSnap.data();
+          const order = orderSnap.data();
+          if (claim.status !== 'For Verification') throw new Error('This submission has already been reviewed.');
+          if (order.status === 'Cancelled') throw new Error('This order is cancelled.');
+          if (!['GCash', 'GCash (SmileHub QR)'].includes(order.paymentMethod || order.payment)) {
+            throw new Error('Not a GCash order.');
+          }
+          if (!Number.isFinite(Number(order.total)) || Number(order.total) <= 0) {
+            throw new Error('Invalid order total. Do not confirm this payment.');
+          }
+          if (decision === 'Paid' && order.paymentStatus === 'paid') {
+            throw new Error('This order is already marked Paid.');
+          }
+          const stamp = firebase.firestore.FieldValue.serverTimestamp();
+          if (decision === 'Paid') {
+            const fields = {
+              paymentStatus:'paid', gcashPaymentStatus:'Paid',
+              paymentVerifiedBy:user.email || user.uid,
+              paymentVerifiedAt:stamp, updatedAt:stamp
+            };
+            if (['Pending', 'Pending Payment'].includes(order.status)) {
+              fields.status = 'Processing';
+              fields.statusHistory = firebase.firestore.FieldValue.arrayUnion({
+                status:'Processing', createdAt:firebase.firestore.Timestamp.now()
+              });
+            }
+            transaction.update(orderRef, fields);
+            transaction.update(claimRef, {
+              status:'Paid', reviewedBy:user.email || user.uid,
+              reviewedAt:stamp, reason:''
+            });
+          } else {
+            transaction.update(claimRef, {
+              status:'Rejected', reason,
+              reviewedBy:user.email || user.uid, reviewedAt:stamp
+            });
+          }
+          transaction.set(auditRef, {
+            admin:user.email || user.uid,
+            action:(decision === 'Paid' ? 'Verified GCash payment' : 'Rejected GCash reference') +
+              ' for ' + (order.orderNumber || order.number || id),
+            createdAt:stamp,
+            orderId:id
+          });
+        });
+      } catch (err) {
+        console.error('[SmileHub GCash] Failed to review payment', err);
+        setError('Could not save decision: ' + String(err?.message || err));
+      } finally {
+        rejectButton.disabled = false;
+        render();
+      }
+    }
+
+    function startQueue() {
+      $('authMessage').textContent = 'Signed in as ' + (user.email || 'authorized staff') +
+        '. Real payment verification must be performed in GCash.';
+      $('dashboard').classList.remove('hidden');
+      stopWatching?.();
+      stopWatching = db.collection('gcash_payment_claims').onSnapshot(async snap => {
+        const version = ++revision;
+        try {
+          const fetched = await Promise.all(snap.docs.map(async claimDoc => {
+            const claim = claimDoc.data();
+            const orderSnap = await db.collection('orders').doc(claimDoc.id).get();
+            return { claim:{...claim, orderId:claimDoc.id}, order:orderSnap.exists ? orderSnap.data() : null };
+          }));
+          if (version !== revision) return;
+          fetched.sort((a,b) => (b.claim.submittedAt?.toMillis?.() || 0) -
+            (a.claim.submittedAt?.toMillis?.() || 0));
+          entries = fetched;
+          setError('');
+          render();
+        } catch (err) {
+          setError('Could not load linked order records: ' + String(err?.message || err));
+        }
+      }, err => setError('Could not load GCash claims: ' + String(err?.message || err)));
+    }
+
+    $('statusFilter').addEventListener('change', render);
+    $('search').addEventListener('input', render);
+    auth.onAuthStateChanged(async nextUser => {
+      stopWatching?.();
+      stopWatching = null;
+      user = null;
+      $('dashboard').classList.add('hidden');
+      if (!nextUser) {
+        $('authMessage').replaceChildren(
+          document.createTextNode('Please sign in to the SmileHub Admin account first. '),
+          Object.assign(el('a', '', 'Open Login'), { href:'login.html' })
+        );
+        return;
+      }
+      try {
+        const userDoc = await db.collection('users').doc(nextUser.uid).get();
+        const role = String(userDoc.data()?.role || '').toLowerCase();
+        if (!staffRoles.includes(role)) {
+          $('authMessage').textContent = 'Access denied: this account is not SmileHub staff.';
+          return;
+        }
+        user = nextUser;
+        startQueue();
+      } catch (err) {
+        $('authMessage').textContent = 'Could not verify staff role: ' + String(err?.message || err);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
