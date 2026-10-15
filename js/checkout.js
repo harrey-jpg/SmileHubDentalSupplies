@@ -562,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
       shippingDetails: { address: address, barangay: barangay, city: city, province: province, postal: postal, method: (document.querySelector('input[name="shippingMethod"]:checked')||{}).value || 'Standard' },
       billing: billingInfo,
       payment: paymentMethod,
+      paymentMode: paymentMethod === 'Bank Transfer (Simulation)' ? 'simulation' : ['GCash', 'Credit Card'].indexOf(paymentMethod) !== -1 ? 'test' : 'offline',
       items: cart.map(function(item) {
         return { productId: item.id, name: item.name, price: item.price, quantity: item.quantity, image: item.image || 'assets/products/default.svg' };
       }),

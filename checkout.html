@@ -68,7 +68,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
 <link rel="stylesheet" href="css/navbar.css?v=1.0.0">
-<link rel="stylesheet" href="css/checkout-polish.css?v=21.0.0">
+<link rel="stylesheet" href="css/checkout-polish.css?v=21.0.1">
 </head>
 <body class="checkout-page">
 <div class="topbar">
@@ -321,6 +321,19 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <span class="payment-card-body"><strong>Cash on Delivery</strong><br/><small class="muted">Pay when the order arrives</small><br/><small class="payment-helper" id="codHelper">Metro Manila only • Pay to rider</small></span>
 </label>
 </div>
+<details class="payment-test-guide" open>
+<summary>Test a payment failure — no real money</summary>
+<p>Sign in with your own test account, add an item, and choose a method below. Do not use real card or bank details.</p>
+<button class="btn btn-light" id="chooseBankFailureTest" type="button">Use bank failure simulator</button>
+<p id="paymentTestSelection" role="status" aria-live="polite"></p>
+<ul>
+<li><strong>Bank simulation:</strong> place the order, then choose <strong>Simulate failed transfer</strong>. The order stays unpaid; you can retry successfully on the same screen.</li>
+<li><strong>GCash:</strong> finish the test checkout, then choose <strong>Expire/Fail Test Payment</strong> on PayMongo's test page. No GCash login or real OTP is needed.</li>
+<li><strong>Card decline:</strong> select Credit Card and use <code>5100000000000198</code> (insufficient funds), expiry <code>12/30</code>, CVC <code>123</code>, and a sample name. Retry with <code>4343434343434345</code> for success.</li>
+</ul>
+<p>After failure or cancellation, open <strong>Your Orders → Check / retry payment</strong>. Continue the saved order instead of placing a duplicate.</p>
+<a href="https://docs.paymongo.com/docs/payment-acceptance-testing" target="_blank" rel="noopener">Official PayMongo test details</a>
+</details>
 <div id="billingSection" style="display:none;margin-top:16px;">
 <h2>Billing Details</h2>
 <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:0.9rem;cursor:pointer;">
@@ -516,7 +529,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <script src="js/shared-data.js?v=1.0.0"></script>
 <script src="js/firestore-data.js?v=6.4.0"></script>
 <script src="js/chatbot.js?v=1.0.1"></script>
-<script src="js/bank-simulation.js?v=1.0.0"></script>
+<script src="js/bank-simulation.js?v=1.0.1"></script>
 <script src="js/ph-address.js?v=6.3.1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -533,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 <script src="js/phone-input.js?v=6.3.0"></script>
 <script src="js/account-verification.js?v=6.3.0"></script>
-<script src="js/checkout.js?v=6.4.7">
+<script src="js/checkout.js?v=6.4.8">
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){

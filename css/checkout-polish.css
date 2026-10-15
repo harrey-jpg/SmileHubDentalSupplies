@@ -18,6 +18,14 @@
   --co-selected: #1c3b38;
 }
 .checkout-page #coStepC { background: transparent; }
+.payment-test-guide { margin: 20px 0; padding: 18px; background: var(--co-soft); border: 1px solid var(--co-border); border-radius: 10px; color: var(--co-text); font-size: .9rem; line-height: 1.6; }
+.payment-test-guide summary { cursor: pointer; font-weight: 700; }
+.payment-test-guide p { margin: 12px 0; }
+.payment-test-guide li + li { margin-top: 12px; }
+.payment-test-guide ul { padding-left: 20px; }
+.payment-test-guide code { overflow-wrap: anywhere; user-select: all; }
+.payment-test-guide a { color: var(--co-accent); text-decoration: underline; }
+.payment-test-guide button { min-height: 44px; white-space: normal; }
 .checkout-page #deliverySection { border: 0; background: transparent; padding: 0 0 12px; box-shadow: none; }
 .checkout-page #deliverySection > .muted { color: var(--co-muted); }
 .checkout-page .delivery-options { display: grid; gap: 12px; }

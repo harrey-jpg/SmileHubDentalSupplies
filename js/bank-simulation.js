@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
+  var shortcut = document.getElementById('chooseBankFailureTest');
+  if (shortcut) shortcut.addEventListener('click', function() {
+    var method = document.querySelector('input[name="payment"][value="Bank Transfer (Simulation)"]');
+    method.click();
+    document.getElementById('paymentTestSelection').textContent = 'Bank simulation selected. Continue to Review, place the order, then choose Simulate failed transfer.';
+    method.focus();
+  });
   var orderId = new URLSearchParams(window.location.search).get('bank_order');
   if (!orderId) return;
   var title = document.getElementById('paymentReturnTitle');

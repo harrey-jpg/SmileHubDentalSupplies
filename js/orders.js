@@ -1,3 +1,11 @@
+function orderPaymentRetryUrl(order) {
+  if (String(order.status || '').toLowerCase() !== 'pending payment' || order.paymentStatus === 'paid') return null;
+  var bank = order.payment === 'Bank Transfer (Simulation)';
+  if (!bank && !(order.paymentMode === 'test' && ['GCash', 'Credit Card'].indexOf(order.payment) !== -1)) return null;
+  var id = order.docId || order.number || order.orderNumber;
+  if (!id) return null;
+  return 'checkout.html?' + (bank ? 'bank_order' : 'paymongo_order') + '=' + encodeURIComponent(id);
+}
 document.addEventListener('DOMContentLoaded', function() {
   var table = document.getElementById('ordersBody');
   if (!table) return;
@@ -215,6 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
         + '<button class="btn btn-light btn-sm order-reorder" data-order="' + id + '" type="button">Reorder</button>'
         + '<button class="btn btn-light btn-sm order-invoice" data-order="' + id + '" type="button">Invoice</button>';
       if(canCancel) actions += '<button class="btn btn-light btn-sm order-cancel" data-order="' + id + '" type="button" style="color:var(--danger);border-color:var(--danger)">Cancel</button>';
+      var retryUrl = orderPaymentRetryUrl(order);
+      if (retryUrl) actions += '<a class="btn btn-light btn-sm" href="' + escapeHtml(retryUrl) + '">Check / retry payment</a>';
       if(canReturn) actions += '<button class="btn btn-light btn-sm order-return" data-order="' + id + '" type="button">Return</button>';
       else if(returnDisabled) actions += '<button class="btn btn-light btn-sm order-return" data-order="' + id + '" type="button" disabled title="Return window closed or already requested">' + escapeHtml(returnLabel) + '</button>';
       actions += '<button class="btn btn-light btn-sm order-remove" data-order="' + id + '" type="button" style="color:var(--muted);border-color:var(--border)">Hide</button></div>';
