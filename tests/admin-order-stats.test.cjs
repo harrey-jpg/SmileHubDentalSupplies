@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('js/admin.js', 'utf8');
+const stats = source.slice(source.indexOf('  function updateOrderStats('), source.indexOf('  // --- MAKE DASHBOARD CLICKABLE'));
+const elements = Object.fromEntries(['totalOrders','pendingOrders','processingOrders','deliveredToday'].map(id => [id, {}]));
+const context = {document: {getElementById: id => elements[id]}};
+vm.createContext(context);
+vm.runInContext(stats + ';updateOrderStats(' + JSON.stringify(['Pending','Pending Payment','Pending Quotation','Processing','Shipped','Delivered','Delivered','Cancelled'].map(status => ({status, date:'2020-01-01'}))) + ');', context);
+assert.deepEqual(Object.values(elements).map(el => el.textContent), [8,1,1,2]);
+const statuses = source.match(/var statuses = (\[[^;]+\]);/)[1];
+assert.deepEqual(JSON.parse(statuses.replace(/'/g,'"')), ['Pending','Pending Payment','Pending Quotation','Processing','Shipped','Delivered','Cancelled','Returned','Refunded']);
+assert.ok(!source.includes('renderOrdersRail(filtered);'));
+console.log('Admin order totals: passed (separate statuses, historical deliveries, complete chart, consistent filter scope).');

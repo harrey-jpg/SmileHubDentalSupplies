@@ -1529,7 +1529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var sub = document.getElementById('ordersStatusSub');
     if (bars) {
       var total = filtered.length || 0;
-      var statuses = ['Pending','Processing','Shipped','Delivered','Cancelled','Returned','Refunded'];
+      var statuses = ['Pending','Pending Payment','Pending Quotation','Processing','Shipped','Delivered','Cancelled','Returned','Refunded'];
       var colors = { Pending:'#f0a320', Processing:'#1261a0', Shipped:'#0f9d9a', Delivered:'#1e9b61', Cancelled:'#d64545', Returned:'#D97706', Refunded:'#7C3AED' };
       if (total === 0) {
         bars.innerHTML = '<p class="muted" style="padding:10px 0;">No orders in this view.</p>';
@@ -1620,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       updateOrderStats(orders);
       syncOrdersBulkBar([]);
-      renderOrdersRail(filtered);
+      renderOrdersRail(orders);
       return;
     }
 
@@ -2085,13 +2085,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateOrderStats(orders) {
     const total = orders.length;
     const pending = orders.filter(function(o) { return o.status === 'Pending'; }).length;
-    const processing = orders.filter(function(o) { return o.status === 'Processing' || o.status === 'Shipped'; }).length;
-    const todayStr = new Date().toDateString();
-    const deliveredTodayCount = orders.filter(function(o) {
-      if (o.status !== 'Delivered') return false;
-      var ts = orderTime(o);
-      return ts && new Date(ts).toDateString() === todayStr;
-    }).length;
+    const processing = orders.filter(function(o) { return o.status === 'Processing'; }).length;
+    const deliveredCount = orders.filter(function(o) { return o.status === 'Delivered'; }).length;
 
     const el1 = document.getElementById('totalOrders');
     const el2 = document.getElementById('pendingOrders');
@@ -2100,7 +2095,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (el1) el1.textContent = total;
     if (el2) el2.textContent = pending;
     if (el3) el3.textContent = processing;
-    if (el4) el4.textContent = deliveredTodayCount;
+    if (el4) el4.textContent = deliveredCount;
   }
 
   // --- MAKE DASHBOARD CLICKABLE ---
