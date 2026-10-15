@@ -31,6 +31,7 @@ for (const [flags, expected] of [
   [{ paymentMethod: 'Cash on Delivery' }, 'due on delivery'],
   [{ needsQuote: true }, 'quotation is required'],
   [{ result: { demo: true } }, 'no charge was made'],
+  [{ result: { demo: true } }, 'submit your GCash reference for staff verification'],
   [{ paymentError: true }, 'could not be confirmed'],
   [{}, 'awaiting confirmation'],
 ]) {

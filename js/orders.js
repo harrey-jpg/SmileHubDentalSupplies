@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (emptyEl) emptyEl.classList.add('hidden');
     if (noMatchEl) noMatchEl.classList.add('hidden');
 
-    table.innerHTML = filtered.map(function(order) {
+    table.innerHTML = filtered.map(function(order, orderIndex) {
       var num = escapeHtml(order.number || order.orderNumber || '');
       var date = escapeHtml(order.date || '');
       var total = money(order.total || 0);
@@ -217,9 +217,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if(canReturn) actions += '<button class="btn btn-light btn-sm order-return" data-order="' + id + '" type="button">Return</button>';
       else if(returnDisabled) actions += '<button class="btn btn-light btn-sm order-return" data-order="' + id + '" type="button" disabled title="Return window closed or already requested">' + escapeHtml(returnLabel) + '</button>';
       actions += '<button class="btn btn-light btn-sm order-remove" data-order="' + id + '" type="button" style="color:var(--muted);border-color:var(--border)">Hide</button></div>';
+      var gcash = order.docId && ['GCash', 'GCash (SmileHub QR)'].indexOf(order.paymentMethod || order.payment) !== -1
+        ? '<section class="gcash-claim" data-gcash-index="' + orderIndex + '" data-gcash-order="' + escapeHtml(order.docId) + '"></section>' : '';
       return '<tr class="order-row" data-order="' + id + '"><td>' + num + '</td><td>' + date + '</td><td>' + itemsCount + ' items</td><td>' + total + '</td><td><span class="status ' + cls + '">' + status + '</span></td><td>' + actions + '</td></tr>' +
-        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p></div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
+        '<tr class="order-expand hidden" data-expand="' + id + '"><td colspan="6"><div class="order-details"><div class="order-details-grid"><div><h3 style="margin:0 0 8px">Items</h3>' + formatItems(order.items) + '<p class="muted" style="margin-top:8px">Ship to: ' + escapeHtml(order.address || '') + '</p>' + gcash + '</div><div><h3 style="margin:0 0 8px">Tracking</h3><div class="order-timeline">' + timelineSteps(order) + '</div></div></div></div></td></tr>';
     }).join('');
+    if (window.SmileHubGcash) window.SmileHubGcash.mount();
   }
 
   function reorder(orderId) {

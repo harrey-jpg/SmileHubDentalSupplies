@@ -200,23 +200,41 @@ exports.onOrderCreated = onDocumentCreated({
 
   try {
     await db.runTransaction(async tx => {
-      const refs = items.map(item => db.collection("products").doc(String(item.productId)));
+      // Mobile placement already reserves stock and creates this receipt.
+      // The same receipt also makes repeated web creation events harmless.
+      const inventoryRef = db.collection("order_inventory").doc(event.params.orderId);
+      const inventory = await tx.get(inventoryRef);
+      if (inventory.exists) return;
+      const quantities = new Map();
+      for (const item of items) {
+        const id = String(item.productId);
+        const quantity = Number(item.quantity);
+        if (!Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Invalid order quantity");
+        quantities.set(id, (quantities.get(id) || 0) + quantity);
+        if (!Number.isSafeInteger(Number(id)) || Number(id) <= 0 || !Number.isSafeInteger(quantities.get(id))) throw new Error("Invalid order item");
+      }
+      const reserved = [];
+      const refs = [...quantities.keys()].map(id => db.collection("products").doc(id));
       const snaps = await tx.getAll(...refs);
 
       snaps.forEach((snap, index) => {
         if (!snap.exists) {
-          logger.warn("Stock update skipped, product missing", { productId: items[index].productId });
+          logger.warn("Stock update skipped, product missing", { productId: refs[index].id });
           return;
         }
         const product = snap.data() || {};
-        const qty = Math.max(0, Number(items[index].quantity || 0));
-        const newStock = Math.max(0, Number(product.stock || 0) - qty);
+        const stock = Math.max(0, Number(product.stock || 0));
+        if (!Number.isSafeInteger(stock)) throw new Error("Invalid product stock");
+        const qty = Math.min(stock, quantities.get(refs[index].id));
+        const newStock = stock - qty;
         const updates = { stock: newStock };
         if (product.status !== "Out of Stock") {
           updates.status = newStock === 0 ? "Out of Stock" : newStock <= 10 ? "Low Stock" : "Active";
         }
         tx.update(snap.ref, updates);
+        if (qty > 0) reserved.push({ productId: Number(refs[index].id), quantity: qty });
       });
+      tx.set(inventoryRef, { userId: order.userId, items: reserved, restored: false });
     });
     logger.info("Stock updated for order", { orderId: event.params.orderId });
   } catch (error) {

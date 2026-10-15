@@ -392,10 +392,10 @@
   <iframe
     id="gcashVerificationFrame"
     title="GCash Payment Verification"
-    src="gcash-admin.html?embedded=1"
+    src="gcash-admin.html?embedded=1&v=1.1.0"
     loading="lazy"
     scrolling="no"
-    style="display:block;width:100%;height:900px;min-height:720px;border:0;background:transparent;border-radius:14px;"
+    style="display:block;width:100%;height:600px;min-height:0;border:0;background:transparent;"
   ></iframe>
 </section>
 <!-- ===== PRODUCTS SECTION ===== -->
@@ -2161,7 +2161,7 @@
     if (!event.data || event.data.type !== 'smilehub-gcash-height') return;
     const height = Number(event.data.height);
     if (!Number.isFinite(height) || height < 200 || height > 25000) return;
-    const finalHeight = Math.max(720, Math.ceil(height + 16));
+    const finalHeight = Math.max(360, Math.ceil(height));
     if (Math.abs(iframe.getBoundingClientRect().height - finalHeight) > 4) {
       iframe.style.height = finalHeight + 'px';
     }

@@ -678,6 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
               : (paymentMethod === 'Cash on Delivery'
                 ? 'Order saved. Payment is due on delivery.'
                 : (needsQuote ? 'Order saved. A quotation is required before payment.'
+              : result.demo && paymentMethod === 'GCash' ? 'Order saved with payment pending; no charge was made. After transferring, open Your Orders, choose View, and submit your GCash reference for staff verification.'
               : result.demo ? 'Order saved with payment pending. Online payments are not enabled; no charge was made.'
               : paymentError ? 'Order saved, but payment could not be confirmed. Check the order status before attempting another payment.'
               : 'Order saved. Payment is awaiting confirmation.'));

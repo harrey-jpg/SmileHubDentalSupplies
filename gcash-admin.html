@@ -12,231 +12,39 @@
     document.documentElement.classList.add('embedded');
   }
 </script>
-  <style>
-    :root {
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color-scheme: dark;
-      --bg: #101d28;
-      --sidebar: #15232f;
-      --surface: #1b2d39;
-      --surface-alt: #213744;
-      --border: #334b59;
-      --text: #f0f7fb;
-      --muted: #aec2cc;
-      --accent: #4dd2dc;
-      --teal: #097d86;
-      --green: #53ddae;
-      --yellow: #ffd681;
-      --red: #ff9a9a;
-      --shadow: 0 12px 38px rgba(0, 0, 0, .13);
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); }
-    a { color: inherit; text-decoration: none; }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    button:disabled { cursor: not-allowed; opacity: .50; }
-    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-    .sr-only { position: absolute; height: 1px; width: 1px; margin: -1px; padding: 0;
-      overflow: hidden; clip: rect(0,0,0,0); border: 0; white-space: nowrap; }
-    .layout { display: flex; min-height: 100vh; }
-    .sidebar {
-      flex: 0 0 222px; width: 222px; background: var(--sidebar);
-      border-right: 1px solid var(--border); position: sticky; top: 0;
-      height: 100vh; padding: 25px 15px 18px; display: flex; flex-direction: column;
-      overflow-y: auto; scrollbar-width: thin; scrollbar-color: #41596a transparent;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;
-      border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 850; }
-    .brand img { width: 39px; height: 39px; object-fit: contain; }
-    .brand small { display: block; font-size: 11px; color: var(--muted); font-weight: 550; margin-top: 3px; }
-    .nav-heading { margin: 25px 9px 8px; color: #8fa9b7; text-transform: uppercase;
-      letter-spacing: .07em; font-size: 10px; font-weight: 850; }
-    .nav { display: grid; gap: 4px; }
-    .nav a { display: flex; align-items: center; gap: 11px; padding: 11px 11px;
-      border-radius: 9px; color: #b8c9d3; font-weight: 650; font-size: 12px;
-      transition: background .15s ease, color .15s ease; }
-    .nav a:hover { background: #203a48; color: #fff; }
-    .nav a[hidden] { display: none !important; }
-    .nav a.active { color: #70d4fa; background: #244754; border-left: 3px solid #60c5e3; padding-left: 8px; }
-    .nav svg { width: 17px; height: 17px; flex: none; }
-    .nav-count[hidden] { display: none !important; }
-    .nav-count { margin-left: auto; border-radius: 999px; min-width: 23px; text-align: center;
-      font-size: 10px; padding: 3px 6px; color: #17242f; font-weight: 900; background: var(--yellow); }
-    .sidebar-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 14px; }
-    .main { flex: 1; min-width: 0; }
-    .topbar { min-height: 75px; border-bottom: 1px solid var(--border); padding: 16px clamp(18px, 3vw, 42px);
-      display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #162631; }
-    .topbar-name { color: #d7e6ef; font-size: 12px; }
-    .topbar-right { display: flex; align-items: center; gap: 12px; font-size: 12px; }
-    .avatar { display: inline-grid; place-items: center; width: 34px; height: 34px;
-      border-radius: 50%; background: #0874ac; color: white; font-weight: 900; }
-    .account-label { max-width: 240px; overflow-wrap: anywhere; font-size: 12px; font-weight: 750; }
-    .account-label small { display: block; color: var(--muted); font-weight: 500; margin-top: 3px; }
-    .admin-content { max-width: 1500px; margin: auto; padding: 28px clamp(18px, 3vw, 42px) 64px; }
-    .heading { display: flex; align-items: start; justify-content: space-between; flex-wrap: wrap; gap: 15px; margin-bottom: 22px; }
-    .eyebrow { display: block; color: #78cddd; text-transform: uppercase; letter-spacing: .11em;
-      font-size: 10px; font-weight: 850; margin-bottom: 7px; }
-    h1 { font-size: clamp(25px, 3vw, 32px); margin: 0 0 8px; letter-spacing: -.035em; }
-    .muted { color: var(--muted); line-height: 1.55; }
-    .heading p { margin: 0; font-size: 13px; }
-    .outlined { border: 1px solid var(--border); background: transparent; color: var(--text);
-      min-height: 40px; padding: 10px 14px; border-radius: 9px; font-weight: 700; font-size: 12px; }
-    .outlined:hover { border-color: #5b8898; background: #213b48; }
-    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 13px;
-      padding: 17px 19px; box-shadow: var(--shadow); min-height: 127px; }
-    .stat-head { color: #b9cad3; text-transform: uppercase; letter-spacing: .04em;
-      font-size: 10px; font-weight: 750; display: flex; align-items: center; justify-content: space-between; }
-    .stat-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 8px;
-      color: #8bdbe0; background: #274551; font-size: 17px; }
-    .stat strong { display: block; font-size: clamp(24px, 2.3vw, 32px); margin-top: 11px;
-      letter-spacing: -.04em; font-weight: 850; }
-    .stat small { display: block; color: var(--muted); font-size: 11px; margin-top: 5px; }
-    .stat.attention { border-color: #427983; background: #116d6a; }
-    .stat.attention .stat-head, .stat.attention small { color: #d6f8f6; }
-    .stat.attention .stat-icon { color: #f5f9fa; background: #1a8582; }
-    .notice { background: #193847; border-left: 3px solid #5cc5d3; padding: 13px 16px;
-      border-radius: 10px; margin-bottom: 19px; line-height: 1.55; font-size: 12px; }
-    .notice.error { background: #4b292d; color: #ffd1d4; border-color: #fb8e96; }
-    .hidden { display: none !important; }
-    .queue { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; overflow: hidden; }
-    .queue-heading { padding: 19px 22px 15px; display: flex; align-items: start;
-      justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-    .queue-heading h2 { margin: 0 0 5px; font-size: 17px; }
-    .queue-heading p { margin: 0; font-size: 12px; }
-    .live { color: #80ebc9; display: inline-flex; align-items: center; gap: 7px;
-      font-weight: 750; font-size: 11px; }
-    .live::before { content: ""; width: 7px; height: 7px; background: #4fe5a7; border-radius: 50%; }
-    .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 0 22px 15px; }
-    .search { flex: 1; min-width: 205px; }
-    .control { width: 100%; border: 1px solid #486474; background: #122530; color: var(--text);
-      min-height: 43px; border-radius: 9px; padding: 10px 13px; font-size: 13px; }
-    .control::placeholder { color: #8cabb9; }
-    .toolbar .outlined { flex: none; }
-    .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 17px;
-      border-bottom: 1px solid var(--border); }
-    .tab { border: 1px solid #405967; background: #203442; color: #bdd1db;
-      border-radius: 8px; padding: 9px 13px; font-weight: 750; font-size: 12px; }
-    .tab:hover { color: white; background: #294857; }
-    .tab[aria-pressed="true"] { background: #096f79; color: white; border-color: #159ba6; }
-    .tab small { font-weight: 850; opacity: .85; margin-left: 5px; }
-    .results-head { padding: 14px 22px 5px; font-size: 12px; color: var(--muted);
-      display: flex; justify-content: space-between; gap: 12px; }
-    .records { padding: 12px 20px 20px; display: grid; gap: 13px; }
-    .record { border-radius: 13px; background: #142735; border: 1px solid #36515e;
-      padding: 19px; animation: popIn .28s ease both; }
-    .record-top { display: flex; justify-content: space-between; align-items: start; gap: 12px;
-      flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid #2d4552; }
-    .order-number { font-size: 17px; font-weight: 850; letter-spacing: -.01em; }
-    .customer { color: #b7cdd9; font-size: 12px; margin-top: 5px; }
-    .record-price { text-align: right; font-size: 22px; font-weight: 900; color: #80d8e6; }
-    .pill { display: inline-flex; align-items: center; margin-top: 8px; border-radius: 999px;
-      font-size: 10px; font-weight: 850; padding: 6px 10px; border: 1px solid; }
-    .pill.waiting { color: #ffdc96; background: #4c381f; border-color: #8f6d32; }
-    .pill.paid { color: #9af0c3; background: #1e4339; border-color: #348e63; }
-    .pill.rejected { color: #ffb9b7; background: #512b2e; border-color: #98545a; }
-    .details { display: grid; gap: 13px; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 15px 0 0; }
-    .details div { min-width: 0; }
-    .details dt { font-size: 10px; color: #99b3c1; font-weight: 750; margin-bottom: 7px; }
-    .details dd { margin: 0; font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
-    .ref { display: flex; gap: 7px; align-items: center; }
-    .copy { padding: 4px 7px; color: #8ed7ee; background: transparent;
-      border: 1px solid #4a6676; border-radius: 6px; font-size: 10px; }
-    .rejection-note { margin: 14px 0 0; padding: 12px 14px; color: #ffd1d1;
-      border-radius: 9px; border: 1px solid #92575d; background: #422e36; line-height: 1.5; font-size: 12px; }
-    .action-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
-      justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid #2d4552; }
-    .action-note { color: #a7bfca; font-size: 11px; line-height: 1.5; max-width: 470px; }
-    .btn { padding: 11px 14px; background: #29424f; border: 1px solid #496978; border-radius: 9px;
-      color: #fff; font-weight: 800; font-size: 12px; min-height: 40px; }
-    .btn:hover:not(:disabled) { filter: brightness(1.12); }
-    .btn.confirm { background: #087e80; border-color: #1baeb1; }
-    .btn.reject { background: #663637; border-color: #c17077; }
-    .empty { text-align: center; padding: 48px 20px 54px; color: var(--muted); }
-    .empty-mark { width: 50px; height: 50px; border-radius: 13px; background: #264451;
-      display: grid; place-items: center; margin: 0 auto 12px; font-size: 24px; }
-    .empty strong { display: block; margin-bottom: 7px; color: var(--text); font-size: 15px; }
-    .empty p { margin: 0; font-size: 12px; }
-    .loading { opacity: .7; }
-    dialog { padding: 0; border: 1px solid #4f6977; background: var(--surface);
-      color: var(--text); width: min(470px, calc(100% - 28px)); border-radius: 15px;
-      box-shadow: 0 24px 90px rgba(0,0,0,.6); }
-    dialog::backdrop { background: rgba(1,10,16,.72); }
-    .modal-inner { padding: 24px; }
-    .modal-inner h2 { margin: 0 0 10px; font-size: 20px; }
-    .modal-inner p { font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .modal-inner label { display: block; font-size: 12px; font-weight: 800; margin: 12px 0 7px; }
-    .modal-inner textarea { resize: vertical; min-height: 100px; }
-    .modal-actions { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; margin-top: 19px; }
-    .safety-check { display: flex !important; align-items: flex-start; gap: 10px; font-size: 12px !important; line-height: 1.55; }
-    .safety-check input { width: 18px; height: 18px; flex: none; accent-color: #37cbb6; }
-    .toast { position: fixed; bottom: 20px; right: 20px; max-width: calc(100vw - 40px);
-      padding: 13px 16px; border: 1px solid #339d91; background: #1e524a; color: #fff;
-      border-radius: 10px; z-index: 30; box-shadow: var(--shadow); font-size: 12px; }
-    @keyframes popIn { from { opacity: .4; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @media (max-width: 1110px) {
-      .summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
-      .details { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    }
-    @media (max-width: 740px) {
-      .layout { display: block; }
-      .sidebar { position: static; width: 100%; height: auto; padding: 12px 14px; }
-      .brand { padding: 0 0 12px; border: 0; }
-      .nav-heading, .sidebar-foot { display: none; }
-      .nav { display: flex; gap: 6px; overflow-x: auto; }
-      .nav a { white-space: nowrap; padding: 10px 11px; flex: none; }
-      .nav a.active { padding-left: 8px; }
-      .topbar { min-height: 58px; padding: 13px 16px; }
-      .admin-content { padding: 20px 14px 45px; }
-      .stat { padding: 14px; min-height: 115px; }
-      .queue-heading, .toolbar, .tabs, .results-head { padding-left: 14px; padding-right: 14px; }
-      .records { padding-left: 12px; padding-right: 12px; }
-      .record { padding: 13px; }
-      .record-price { text-align: left; }
-      .details { gap: 12px; }
-      .action-bar .btn { flex: 1; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; transition: none !important; }
-    }
-    /* No duplicated navigation: parent admin.html owns the sidebar. */
-    html.embedded body { background: transparent; }
-    html.embedded .layout { display:block; min-height:0; }
-    html.embedded .topbar,
-    html.embedded .heading .outlined { display:none !important; }
-    html.embedded .main { width:100%; }
-    html.embedded .admin-content { max-width:none; margin:0; padding:4px 4px 20px; }
-  </style>
+  <link rel="stylesheet" href="css/style.css?v=6.3.3">
+  <link rel="stylesheet" href="css/admin-ui.css?v=1.0.4">
+  <link rel="stylesheet" href="css/admin-payments.css?v=1.0.1">
+  <script defer src="js/admin-payments.js?v=1.0.0"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="js/firebase-config.js"></script>
 </head>
-<body>
+<body class="admin-body payment-page">
   <div class="layout">
 
 
     <div class="main">
-      <header class="topbar">
-        <div class="topbar-name">SmileHub <strong> / Payments / GCash Verification</strong></div>
-        <div class="topbar-right"><span class="avatar" aria-hidden="true" id="avatar">A</span><div class="account-label" id="accountLabel">Checking login…<small>Admin Access</small></div></div>
+      <header class="payments-utility">
+        <div class="payments-utility-name">SmileHub <strong> / Payments / GCash Verification</strong></div>
+        <div class="payments-utility-account"><span class="avatar" aria-hidden="true" id="avatar">A</span><div class="account-label" id="accountLabel">Checking login…<small>Admin Access</small></div></div>
       </header>
       <main class="admin-content">
         <div class="heading">
-          <div><span class="eyebrow">Payment management</span><h1>GCash Payment Verification</h1>
+          <div><h1>GCash Verification</h1>
             <p class="muted">Review customer-submitted references, verify actual transfers, and manage payment decisions.</p></div>
-          <a href="admin.html#orders" class="outlined">&#8592; Back to Orders</a>
+          <a href="admin.html#orders" class="btn btn-light">Back to Orders</a>
         </div>
 
         <div class="summary" id="summary" aria-label="GCash payment summary">
-          <div class="stat attention"><div class="stat-head">For Verification <span class="stat-icon">&#8987;</span></div>
+          <div class="stat attention"><div class="stat-head">For Verification <span class="stat-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8M8 21h8M9 3v4l6 10v4M15 3v4L9 17v4"/></svg></span></div>
             <strong id="statPending">—</strong><small>Awaiting admin review</small></div>
-          <div class="stat"><div class="stat-head">Paid <span class="stat-icon">&#10003;</span></div>
+          <div class="stat"><div class="stat-head">Paid <span class="stat-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span></div>
             <strong id="statPaid">—</strong><small>Verified transfers</small></div>
-          <div class="stat"><div class="stat-head">Rejected <span class="stat-icon">!</span></div>
+          <div class="stat"><div class="stat-head">Rejected <span class="stat-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 17h.01M10.3 3.8 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/></svg></span></div>
             <strong id="statRejected">—</strong><small>Waiting for customer correction</small></div>
-          <div class="stat"><div class="stat-head">Recorded Paid Total <span class="stat-icon">&#8369;</span></div>
+          <div class="stat"><div class="stat-head">Recorded Paid Total <span class="stat-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 15h5"/></svg></span></div>
             <strong id="statAmount">—</strong><small>Based on admin-confirmed orders</small></div>
         </div>
 
@@ -252,7 +60,7 @@
           <div class="toolbar">
             <div class="search"><label class="sr-only" for="search">Search GCash transactions</label>
               <input class="control" type="search" id="search" placeholder="Search order number, customer, or reference" autocomplete="off"></div>
-            <button class="outlined" id="clearSearch" type="button">Clear search</button>
+            <button class="btn btn-light" id="clearSearch" type="button">Clear search</button>
           </div>
           <div class="tabs" id="tabs" role="group" aria-label="Filter by payment status">
             <button class="tab" type="button" data-filter="For Verification" aria-pressed="true">For Verification <small id="tabPending">0</small></button>
@@ -275,8 +83,8 @@
       <p id="rejectSummary">The customer will see the rejection reason and can submit another reference.</p>
       <label for="rejectReason">Reason for rejection</label>
       <textarea id="rejectReason" class="control" required minlength="1" maxlength="240" placeholder="Example: No matching transfer found for this reference."></textarea>
-      <div class="modal-actions"><button type="button" class="btn" data-close="rejectDialog">Cancel</button>
-        <button type="submit" class="btn reject" id="rejectSubmit">Reject Reference</button></div>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close="rejectDialog">Cancel</button>
+        <button type="submit" class="btn btn-danger reject" id="rejectSubmit">Reject reference</button></div>
     </form>
   </dialog>
   <dialog id="confirmDialog" aria-labelledby="confirmTitle">
@@ -285,8 +93,8 @@
       <p id="confirmSummary"></p>
       <label class="safety-check"><input type="checkbox" id="actualPaymentCheck">
         <span>I personally checked the real GCash transaction, recipient, amount, and reference. This payment was actually received.</span></label>
-      <div class="modal-actions"><button type="button" class="btn" data-close="confirmDialog">Cancel</button>
-        <button type="button" class="btn confirm" id="confirmSubmit" disabled>Confirm Payment &#8594; Paid</button></div>
+      <div class="modal-actions"><button type="button" class="btn btn-light" data-close="confirmDialog">Cancel</button>
+        <button type="button" class="btn btn-primary confirm" id="confirmSubmit" disabled>Confirm payment</button></div>
     </div>
   </dialog>
   <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
@@ -321,7 +129,7 @@
       if (copyText) {
         const row = node('span', 'ref');
         row.append(node('span', '', value || '—'));
-        const copy = node('button', 'copy', 'Copy');
+        const copy = node('button', 'btn btn-light copy', 'Copy');
         copy.type = 'button';
         copy.setAttribute('aria-label', 'Copy ' + label);
         copy.addEventListener('click', async () => {
@@ -344,7 +152,7 @@
       clearTimeout(toastTimer);
       const el = $('toast');
       el.textContent = message;
-      el.style.background = isError ? '#632f33' : '#1e524a';
+      el.classList.toggle('error', isError);
       el.classList.remove('hidden');
       toastTimer = setTimeout(() => el.classList.add('hidden'), 4500);
     }
@@ -381,8 +189,7 @@
       list.replaceChildren();
       if (!filtered.length) {
         const empty = node('div', 'empty');
-        empty.append(node('div', 'empty-mark', '\u2713'),
-          node('strong', '', entries.length ? 'No matching transactions' : 'No GCash submissions yet'),
+        empty.append(node('strong', '', entries.length ? 'No matching transactions' : 'No GCash submissions yet'),
           node('p', '', entries.length ? 'Try a different status or search term.' : 'Submitted GCash references will appear here automatically.'));
         list.append(empty);
         return;
@@ -411,9 +218,9 @@
           const bar = node('div', 'action-bar');
           bar.append(node('div', 'action-note', 'Review the transfer in your GCash account. Never approve based on the reference alone.'));
           const actions = node('div');
-          actions.style.cssText = 'display:flex; flex-wrap:wrap; gap:9px;';
-          const approve = node('button', 'btn confirm', 'Confirm Payment \u2192 Paid');
-          const reject = node('button', 'btn reject', 'Reject Reference');
+          actions.className = 'payment-actions';
+          const approve = node('button', 'btn btn-primary confirm', 'Confirm payment');
+          const reject = node('button', 'btn btn-danger reject', 'Reject reference');
           approve.type = reject.type = 'button';
           approve.disabled = reject.disabled = processing;
           approve.addEventListener('click', () => openConfirmation(claim.orderId));
@@ -585,12 +392,12 @@
   if (!document.documentElement.classList.contains('embedded')) return;
   let lastHeight = 0;
   function sendHeight() {
-    const height = Math.ceil(document.body.scrollHeight);
+    const height = Math.ceil(document.querySelector('.layout').getBoundingClientRect().height);
     if (Math.abs(height - lastHeight) < 4) return;
     lastHeight = height;
     window.parent.postMessage({type:'smilehub-gcash-height',height},window.location.origin);
   }
-  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(sendHeight).observe(document.body);
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(sendHeight).observe(document.querySelector('.layout'));
   window.addEventListener('load',sendHeight);
   document.addEventListener('click',() => requestAnimationFrame(sendHeight));
   sendHeight();

@@ -1,0 +1,11 @@
+.gcash-claim { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); width: 100%; min-width: 0; max-width: min(65ch, calc(100vw - 80px)); box-sizing: border-box; overflow-wrap: anywhere; }
+.gcash-claim h3 { margin: 0 0 8px; }
+.gcash-claim p { margin: 8px 0 12px; }
+.gcash-claim .muted { color: var(--text); }
+.gcash-claim label { display: grid; gap: 8px; font-weight: 600; }
+.gcash-claim input { width: 100%; min-height: 44px; box-sizing: border-box; background: var(--white); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font: inherit; }
+.gcash-claim input:focus-visible, .gcash-claim button:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.gcash-claim button { min-height: 44px; white-space: normal; }
+.gcash-claim .btn-primary { background: var(--blue-dark); color: #fff; }
+.gcash-claim button:disabled { opacity: .65; cursor: wait; transform: none; }
+.gcash-claim [hidden] { display: none !important; }
