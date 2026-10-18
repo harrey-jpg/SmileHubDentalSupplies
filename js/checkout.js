@@ -63,13 +63,13 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   var checked = false;
   firebase.auth().onAuthStateChanged(function(user) {
-    if (!user) { notice.textContent = 'Sign in to check your test payment in this account.'; return; }
+    if (!user) { notice.textContent = 'Sign in to check your payment in this account.'; return; }
     if (checked) return; checked = true;
     paymongoRequest('status', orderId).then(function(data) {
       retry.hidden = data.paid === true;
-      title.textContent = data.paid ? 'Test payment confirmed' : data.outcome === 'failed' ? 'Test payment failed' : 'Payment not completed';
-      notice.textContent = data.paid ? 'Test payment confirmed. No real money was charged. View the order in Your Orders.'
-        : data.outcome === 'failed' ? 'The test payment failed. No real money was charged. Retry this saved order below.' : 'Test payment is pending or cancelled. No real payment was made. Check Your Orders for updates.';
+      title.textContent = data.paid ? 'Payment confirmed' : data.outcome === 'failed' ? 'Payment failed' : 'Payment not completed';
+      notice.textContent = data.paid ? 'Payment confirmed. View the order in Your Orders.'
+        : data.outcome === 'failed' ? 'Payment failed. Retry this saved order below.' : 'Payment is pending or cancelled. Check Your Orders for updates.';
     }).catch(function(error) { title.textContent = 'Unable to confirm payment'; notice.textContent = error.message; retry.hidden = false; });
   });
 });
@@ -707,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (paymentError && !needsQuote && payNote) {
             var retryPayment = document.createElement('a');
             retryPayment.id = 'retryTestPayment'; retryPayment.className = 'btn btn-primary';
-            retryPayment.textContent = 'Check or retry test payment';
+            retryPayment.textContent = 'Check or retry payment';
             retryPayment.href = 'checkout.html?paymongo_order=' + encodeURIComponent(order.number);
             payNote.insertAdjacentElement('afterend', retryPayment);
           }

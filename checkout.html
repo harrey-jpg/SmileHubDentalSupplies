@@ -166,7 +166,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
           Checkout
         </h1>
 <p class="muted">
-          Enter shipping information and select a simulated payment method.
+          Enter shipping information and choose your payment method.
         </p>
 </div>
 </section>
@@ -176,9 +176,9 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <p class="muted" id="paymentReturnLabel">PAYMONGO TEST PAYMENT</p>
 <h2 id="paymentReturnTitle" tabindex="-1">Checking your payment…</h2>
 <p>Order <strong id="paymentReturnOrder"></strong></p>
-<p id="paymentReturnNotice" role="status" aria-live="polite">Please wait while we confirm your test payment.</p>
+<p id="paymentReturnNotice" role="status" aria-live="polite">Please wait while we confirm your payment.</p>
 <section id="bankSimulationDetails" hidden aria-label="Sample bank transfer details">
-<p><strong>Demo bank — simulation only</strong><br>Account: <strong>DEMO-ACCOUNT-0001</strong><br>Amount: <strong id="bankSimulationAmount"></strong></p>
+<p><strong>Sample bank account</strong><br>Account: <strong>DEMO-ACCOUNT-0001</strong><br>Amount: <strong id="bankSimulationAmount"></strong></p>
 <p>These details cannot receive money. Do not transfer funds or enter real bank credentials. Use the order number above as your sample reference.</p>
 <div class="payment-return-actions">
 <button class="btn btn-primary" id="bankSimulateSuccess" type="button">Simulate successful transfer</button>
@@ -187,7 +187,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 </section>
 <div class="payment-return-actions">
 <a class="btn btn-primary" href="orders.html">View Your Orders</a>
-<button id="paymentReturnRetry" type="button" class="btn btn-light" hidden>Retry test payment</button>
+<button id="paymentReturnRetry" type="button" class="btn btn-light" hidden>Retry payment</button>
 <a class="btn btn-light" href="products.html">Continue shopping</a>
 </div>
 </div>
@@ -298,22 +298,22 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <div class="step-header"><h2 id="step2Title"><svg class="step-complete-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>2 Payment</h2><span class="step-summary" id="step2Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="2">Edit</button></div>
 <div class="step-body">
 <h2>Payment Method</h2>
-<p class="muted" style="font-size:.88rem;margin:-6px 0 12px">GCash and card payments open PayMongo Test Mode. Use simulated payment details only. No real money is charged. Orders requiring a quotation are saved without payment.</p>
+<p class="muted" style="font-size:.88rem;margin:-6px 0 12px">Test environment — no real money is charged. Orders requiring a quotation are saved without payment.</p>
 <div class="payment-options payment-cards">
 <label class="payment-card is-selected" data-payment="GCash">
 <input checked="" name="payment" type="radio" value="GCash"/>
 <span class="payment-card-icon" aria-hidden="true">G</span>
-<span class="payment-card-body"><strong>GCash</strong><br/><small class="muted">Simulate a GCash payment with PayMongo</small><br/><small class="payment-helper">Test mode • No real charge</small></span>
+<span class="payment-card-body"><strong>GCash</strong><br/><small class="muted">Pay with GCash through PayMongo</small><br/><small class="payment-helper">Continue securely with PayMongo</small></span>
 </label>
 <label class="payment-card" data-payment="Credit Card">
 <input name="payment" type="radio" value="Credit Card"/>
 <span class="payment-card-icon" aria-hidden="true">◰</span>
-<span class="payment-card-body"><strong>Credit Card</strong><br/><small class="muted">Visa, Mastercard, JCB</small><br/><small class="payment-helper">PayMongo test mode • No real charge</small></span>
+<span class="payment-card-body"><strong>Credit Card</strong><br/><small class="muted">Visa, Mastercard, JCB</small><br/><small class="payment-helper">Continue securely with PayMongo</small></span>
 </label>
 <label class="payment-card" data-payment="Bank Transfer (Simulation)">
 <input name="payment" type="radio" value="Bank Transfer (Simulation)"/>
 <span class="payment-card-icon" aria-hidden="true">B</span>
-<span class="payment-card-body"><strong>Bank Transfer — Simulation</strong><br/><small class="muted">Try a successful or failed transfer</small><br/><small class="payment-helper">Demo only • No money moves</small></span>
+<span class="payment-card-body"><strong>Bank Transfer</strong><br/><small class="muted">Try a successful or failed transfer</small><br/><small class="payment-helper">No bank account required</small></span>
 </label>
 <label class="payment-card" data-payment="Cash on Delivery" id="codPaymentCard">
 <input name="payment" type="radio" value="Cash on Delivery"/>
@@ -377,7 +377,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <div class="step-header"><h2 id="step3Title">3 Review & Place Order</h2></div>
 <div class="step-body">
 <div id="reviewSummary" class="checkout-review-summary"></div>
-<p class="muted" style="font-size:.88rem;margin-bottom:16px">Review your details above. By placing your order you agree to the demo terms.</p>
+<p class="muted" style="font-size:.88rem;margin-bottom:16px">Review your details above. By placing your order you agree to the terms.</p>
 <label class="checkout-save-profile"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
 <button class="btn btn-primary btn-block" type="submit">Place Order</button>
 <div class="checkout-review-back"><button type="button" class="link-button" data-prev="2">Back to payment</button></div>
@@ -530,7 +530,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <script src="js/firestore-data.js?v=6.4.0"></script>
 <script src="js/chatbot.js?v=1.0.1"></script>
 <script src="js/order-api.js?v=1.0.0"></script>
-<script src="js/bank-simulation.js?v=1.0.1"></script>
+<script src="js/bank-simulation.js?v=1.0.2"></script>
 <script src="js/ph-address.js?v=6.3.1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 <script src="js/phone-input.js?v=6.3.0"></script>
 <script src="js/account-verification.js?v=6.3.0"></script>
-<script src="js/checkout.js?v=6.4.9">
+<script src="js/checkout.js?v=6.4.10">
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){

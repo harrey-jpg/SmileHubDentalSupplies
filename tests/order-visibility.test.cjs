@@ -2,8 +2,8 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), vm = requ
 const context = { window: {} };
 vm.runInNewContext(fs.readFileSync('js/order-payment.js', 'utf8'), context);
 const p = context.window.SmileHubOrderPayment;
-assert.equal(p.describe({ paymentStatus: 'paid', paymentMode: 'test', payment: 'GCash' }).label, 'Test payment confirmed');
-assert.equal(p.describe({ paymentStatus: 'paid', payment: 'Bank Transfer (Simulation)' }).label, 'Simulated payment confirmed');
+assert.equal(p.describe({ paymentStatus: 'paid', paymentMode: 'test', payment: 'GCash' }).label, 'Payment confirmed');
+assert.equal(p.describe({ paymentStatus: 'paid', payment: 'Bank Transfer (Simulation)' }).label, 'Payment confirmed');
 assert.equal(p.describe({ paymentStatus: 'unpaid', paymentSimulationResult: 'failed' }).label, 'Payment failed — unpaid');
 assert.equal(p.describe({ paymentStatus: 'paid', paymentSimulationResult: 'failed' }).tone, 'paid');
 assert.equal(p.describe({ payment: 'Cash on Delivery' }).label, 'Due on delivery');

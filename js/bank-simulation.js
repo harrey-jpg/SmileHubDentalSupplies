@@ -16,15 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('paymentReturnPanel').hidden = false;
   document.querySelector('.page-title').hidden = true;
   document.querySelector('.checkout-layout').hidden = true;
-  document.getElementById('paymentReturnLabel').textContent = 'BANK TRANSFER SIMULATION';
+  document.getElementById('paymentReturnLabel').textContent = 'BANK TRANSFER';
   document.getElementById('paymentReturnOrder').textContent = orderId;
-  title.textContent = 'Loading bank simulation…';
+  title.textContent = 'Loading bank transfer…';
   title.focus();
   function display(data) {
     details.hidden = false;
     document.getElementById('bankSimulationAmount').textContent = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(data.total);
-    title.textContent = data.paid ? 'Simulated transfer successful' : data.outcome === 'failed' ? 'Simulated transfer failed' : 'Try a bank transfer';
-    notice.textContent = data.paid ? 'Demo payment confirmed. No money was transferred. View your order below.'
+    title.textContent = data.paid ? 'Transfer successful' : data.outcome === 'failed' ? 'Transfer failed' : 'Try a bank transfer';
+    notice.textContent = data.paid ? 'Payment confirmed. View your order below.'
       : data.outcome === 'failed' ? 'The simulated transfer failed. Your order is unpaid. You can try the simulation again.'
       : 'Choose a result below to try the payment experience. This is a simulation; no bank is contacted.';
     success.hidden = failure.hidden = data.paid;
