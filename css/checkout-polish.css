@@ -113,3 +113,37 @@
   .receipt-details > div { grid-template-columns: 1fr; gap: 3px; }
   .receipt-actions { grid-template-columns: 1fr; }
 }
+
+/* Checkout progress and final review */
+.checkout-page .checkout-step { background: var(--co-surface); color: var(--co-text); border-color: var(--co-border); box-shadow: none; }
+.checkout-page .checkout-step.is-active { border-color: var(--co-accent); }
+.checkout-page .checkout-step.is-collapsed { padding: 12px 20px; }
+.checkout-page .checkout-step.is-collapsed > :not(.step-header) { display: none !important; }
+.checkout-page .step-header { gap: 12px; border-color: var(--co-border); }
+.checkout-page .is-collapsed .step-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; margin: 0; padding: 0; border: 0; }
+.checkout-page .step-header h2 { display: flex; align-items: center; gap: 8px; line-height: 1.4; }
+.checkout-page .step-summary { color: var(--co-muted); white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.checkout-page .step-complete-icon { display: none; width: 20px; height: 20px; color: var(--co-accent); flex-shrink: 0; }
+.checkout-page .is-collapsed .step-complete-icon { display: inline-block; }
+.checkout-page .step-edit { color: var(--co-accent); min-width: 44px; min-height: 44px; }
+.checkout-page .checkout-step-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.checkout-page .checkout-step button { min-height: 44px; }
+.checkout-page .checkout-review-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin: 24px 0; }
+.checkout-page .review-address, .checkout-page .review-total { grid-column: 1 / -1; }
+.checkout-page .review-label { display: block; color: var(--co-muted); font-size: .875rem; line-height: 1.5; margin-bottom: 6px; }
+.checkout-page .review-value { margin: 0; font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
+.checkout-page .review-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-top: 1px solid var(--co-border); padding-top: 20px; }
+.checkout-page .review-total .review-value { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.checkout-page .checkout-save-profile { display: flex; gap: 12px; align-items: flex-start; min-height: 44px; padding: 12px 0; margin-bottom: 16px; cursor: pointer; line-height: 1.5; }
+.checkout-page .checkout-save-profile input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 3px; accent-color: var(--co-accent); }
+.checkout-page .checkout-review-back { text-align: center; margin-top: 8px; }
+.checkout-page .checkout-review-back button { color: var(--co-accent); padding: 10px 16px; }
+.checkout-page .checkout-step :focus-visible { outline: 2px solid var(--co-accent); outline-offset: 4px; }
+@media (max-width: 480px) {
+  .checkout-page .checkout-step { padding: 20px 16px; }
+  .checkout-page .is-collapsed .step-header { grid-template-columns: minmax(0,1fr) auto; gap: 0 12px; }
+  .checkout-page .is-collapsed .step-summary { grid-column: 1; grid-row: 2; }
+  .checkout-page .is-collapsed .step-edit { grid-column: 2; grid-row: 1 / 3; }
+  .checkout-page .checkout-review-summary { grid-template-columns: minmax(0,1fr); gap: 20px; }
+  .checkout-page .checkout-step-actions .btn-primary { flex: 1; }
+}

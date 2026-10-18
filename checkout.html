@@ -68,7 +68,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.0">
 <link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
 <link rel="stylesheet" href="css/navbar.css?v=1.0.0">
-<link rel="stylesheet" href="css/checkout-polish.css?v=21.0.1">
+<link rel="stylesheet" href="css/checkout-polish.css?v=21.0.2">
 </head>
 <body class="checkout-page">
 <div class="topbar">
@@ -203,7 +203,7 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <button type="button" role="tab" aria-selected="false" data-step="3" id="tab3"><span class="step-num">3</span> Review</button>
 </div>
 <section class="checkout-step is-active" data-step="1" id="step1" aria-labelledby="step1Title">
-<div class="step-header"><h2 id="step1Title">1 Details</h2><span class="step-summary" id="step1Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="1">Edit</button></div>
+<div class="step-header"><h2 id="step1Title"><svg class="step-complete-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>1 Details</h2><span class="step-summary" id="step1Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="1">Edit</button></div>
 <div class="step-body">
 
 <div id="checkoutPhoneVerification" class="checkout-verified-note is-warning">Phone verification is recommended. Checkout will still work if SMS is unavailable.</div>
@@ -292,10 +292,10 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 </div>
 </section>
 </div>
-<button type="button" class="btn btn-primary" data-next="2">Continue to Payment</button>
+<div class="checkout-step-actions"><button type="button" class="btn btn-primary" data-next="2">Continue to Payment</button></div>
 </section>
 <section class="checkout-step" data-step="2" id="step2" aria-labelledby="step2Title">
-<div class="step-header"><h2 id="step2Title">2 Payment</h2><span class="step-summary" id="step2Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="2">Edit</button></div>
+<div class="step-header"><h2 id="step2Title"><svg class="step-complete-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>2 Payment</h2><span class="step-summary" id="step2Summary"></span><button type="button" class="link-button step-edit hidden" data-edit="2">Edit</button></div>
 <div class="step-body">
 <h2>Payment Method</h2>
 <p class="muted" style="font-size:.88rem;margin:-6px 0 12px">GCash and card payments open PayMongo Test Mode. Use simulated payment details only. No real money is charged. Orders requiring a quotation are saved without payment.</p>
@@ -371,16 +371,16 @@ html.dark .order-timeline li.is-done,body.dark .order-timeline li.is-done{backgr
 <p class="muted" style="font-size:0.85rem;">Payment will remain pending until it is confirmed. Do not enter real card details while online payments are unavailable.</p>
 </div>
 </div>
-<div style="display:flex;gap:12px;margin-top:16px"><button type="button" class="btn btn-light" data-prev="1">Back</button><button type="button" class="btn btn-primary" data-next="3">Continue to Review</button></div>
+<div class="checkout-step-actions"><button type="button" class="btn btn-light" data-prev="1">Back</button><button type="button" class="btn btn-primary" data-next="3">Continue to Review</button></div>
 </section>
 <section class="checkout-step" data-step="3" id="step3" aria-labelledby="step3Title">
 <div class="step-header"><h2 id="step3Title">3 Review & Place Order</h2></div>
 <div class="step-body">
-<div id="reviewSummary" style="margin-bottom:16px"></div>
+<div id="reviewSummary" class="checkout-review-summary"></div>
 <p class="muted" style="font-size:.88rem;margin-bottom:16px">Review your details above. By placing your order you agree to the demo terms.</p>
-<label style="display:flex;gap:9px;align-items:flex-start;margin:0 0 16px"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
+<label class="checkout-save-profile"><input id="saveCheckoutProfile" type="checkbox" checked> <span>Save these details as my default profile and delivery address</span></label>
 <button class="btn btn-primary btn-block" type="submit">Place Order</button>
-<div style="display:flex;gap:12px;margin-top:12px"><button type="button" class="btn btn-light" data-prev="2">Back</button></div>
+<div class="checkout-review-back"><button type="button" class="link-button" data-prev="2">Back to payment</button></div>
 </div>
 </section>
 <!-- hidden fallback submit for non-JS -->
@@ -763,7 +763,15 @@ document.addEventListener('DOMContentLoaded', function(){
       var fullAddr=[addr?addr.value.trim():'', brgyRv, cityRv, provRv].filter(Boolean).join(', ') + (postalRv?' '+postalRv:'');
       var payR=document.querySelector('input[name="payment"]:checked');
       var shipR=document.querySelector('input[name="shippingMethod"]:checked');
-      reviewSummary.innerHTML='<p><strong>Ship to:</strong> '+(fullAddr||'—')+'</p><p><strong>Delivery:</strong> '+(shipR?shipR.value:'Standard')+' • <strong>Payment:</strong> '+(payR?payR.value:'GCash')+'</p><p><strong>Total:</strong> '+(totalEl?totalEl.textContent:'—')+'</p>';
+      reviewSummary.replaceChildren();
+      var reviewFields = [['Shipping address', fullAddr || '—'], ['Delivery method', shipR ? shipR.value : 'Standard'], ['Payment method', payR ? payR.value : 'GCash'], ['Total', totalEl ? totalEl.textContent : '—']];
+      reviewFields.forEach(function(field, index){
+        var row = document.createElement('div');
+        row.className = 'checkout-review-field' + (index === 0 ? ' review-address' : '') + (index === 3 ? ' review-total' : '');
+        var label = document.createElement('span'); label.className = 'review-label'; label.textContent = field[0];
+        var value = document.createElement(index === 3 ? 'strong' : 'p'); value.className = 'review-value'; value.textContent = field[1];
+        row.append(label, value); reviewSummary.appendChild(row);
+      });
     }
 
   }

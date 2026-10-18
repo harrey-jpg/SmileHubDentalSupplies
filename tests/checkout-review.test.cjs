@@ -1,0 +1,15 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const html = fs.readFileSync('checkout.html','utf8');
+const start = html.indexOf('      reviewSummary.replaceChildren();');
+const end = html.indexOf('\n    }', start);
+const element = () => ({ children: [], append(...nodes) { this.children.push(...nodes); }, appendChild(node) { this.children.push(node); }, replaceChildren() { this.children = []; } });
+const summary = element();
+const address = '<img src=x onerror=alert(1)> Very long delivery address';
+vm.runInNewContext(html.slice(start,end), {reviewSummary:summary, fullAddr:address, shipR:{value:'Standard'}, payR:{value:'Bank Transfer (Simulation)'},totalEl:{textContent:'₱1,234.56'}, document:{createElement:element}});
+assert.equal(summary.children.length,4);
+assert.equal(summary.children[0].children[1].textContent,address);
+assert.equal(summary.children[3].children[1].textContent,'₱1,234.56');
+assert.ok(!html.includes('reviewSummary.innerHTML'));
+console.log('Checkout review: safe address rendering and formatted total passed.');
