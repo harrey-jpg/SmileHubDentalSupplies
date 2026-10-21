@@ -106,12 +106,29 @@ service cloud.firestore {
       allow read, update, delete: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
     match /returns/{id} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow update: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['orderId', 'userId', 'reason', 'note', 'status', 'requestedAt', 'updatedAt'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.orderId is string
+        && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.status == 'Delivered'
+        && validReturnRequest(request.resource.data);
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
+      allow update, delete: if isProductAdmin();
     }
 
+    function validReturnRequest(value) {
+      return value.status == 'requested'
+        && value.reason is string && value.reason.size() >= 1 && value.reason.size() <= 200
+        && value.get('note', '') is string && value.get('note', '').size() <= 5000
+        && value.requestedAt == request.time;
+    }
+    function newOrderReturn() {
+      return resource.data.status == 'Delivered'
+        && !('returnRequest' in resource.data)
+        && request.resource.data.returnRequest.keys().hasOnly(['reason', 'note', 'requestedAt', 'status'])
+        && validReturnRequest(request.resource.data.returnRequest);
+    }
     // Both website and mobile orders use this existing shared collection.
     match /orders/{id} {
       // This is a school/demo checkout: totals come from the client and are
@@ -137,9 +154,12 @@ service cloud.firestore {
       allow get: if signedIn() && (!exists(/databases/$(database)/documents/orders/$(id))
         || resource.data.userId == request.auth.uid || isStaff());
       allow list: if signedIn() && (resource.data.userId == request.auth.uid || isStaff());
-      allow update: if isStaff() || (signedIn()
+      allow update: if isProductAdmin()
+        || (isStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['returnRequest'])
+          && !(request.resource.data.status in ['Returned', 'Refunded']))
+        || (signedIn()
         && resource.data.userId == request.auth.uid
-        && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['returnRequest', 'updatedAt'])
+        && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['returnRequest', 'updatedAt']) && newOrderReturn())
           || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
             && resource.data.status in ['Pending', 'Pending Payment']
             && resource.data.get('paymentStatus', 'unpaid') != 'paid'
