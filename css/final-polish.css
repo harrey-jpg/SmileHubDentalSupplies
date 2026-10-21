@@ -68,7 +68,7 @@ body.otp-modal-open { overflow:hidden; }
 
 .product-card .product-actions,
 .product-actions-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; }
-/* Solid-orange Buy Now retired: one quiet teal link everywhere (see .buy-now-link below). */
+/* Solid-teal Buy Now CTA restored (revert of quiet-link experiment). */
 
 .sh-toast-stack, .toast-container { pointer-events:none; }
 .sh-toast, .toast { pointer-events:auto; }
@@ -198,20 +198,20 @@ body.dark .profile-photo-help {
 
 
 /* v6.5.2 — calmer product actions and persistent-cart polish
-   v6.3.1 quieter: one solid Add per card, Buy Now as quiet text link (no View button).
-   Quiet teal link only — solid-orange Buy Now retired (see release-hardening.css note). */
+   Restored: solid-teal Buy Now CTA beside Add (high-affordance, no View button).
+   Uses --teal system token so light/dark stay in brand. */
 .product-card .product-actions {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
   gap: 8px !important;
   align-items: stretch;
 }
 .product-card .buy-now-link {
-  background: transparent !important;
-  border: 0 !important;
+  background: var(--teal, #047857) !important;
+  border: 1px solid var(--teal, #047857) !important;
   box-shadow: none !important;
-  color: var(--teal-dark, #0b6e6b) !important;
-  font-size: .88rem !important;
+  color: #fff !important;
+  font-size: .92rem !important;
   font-weight: 700 !important;
   min-height: 44px;
   width: 100%;
@@ -220,25 +220,30 @@ body.dark .profile-photo-help {
   justify-content: center !important;
   gap: 4px;
   cursor: pointer;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  text-decoration: none !important;
+  transition: transform .15s ease, background-color .15s ease, border-color .15s ease;
 }
 .product-card .buy-now-link:hover {
-  text-decoration: underline;
-  background: rgba(15, 157, 154, .08) !important;
+  text-decoration: none;
+  filter: brightness(.92);
+  transform: translateY(-1px);
 }
 .product-card .buy-now-link:disabled {
   opacity: .55;
   cursor: not-allowed;
   text-decoration: none;
+  transform: none;
 }
-body.dark .product-card .buy-now-link { color: #5eead4 !important; }
-body.dark .product-card .buy-now-link:hover { background: rgba(94, 234, 212, .1) !important; }
-/* One Buy Now language everywhere: detail buy-row shares the quiet link treatment. */
+body.dark .product-card .buy-now-link { background: #0f8f7a !important; border-color: #0f8f7a !important; color: #fff !important; }
+body.dark .product-card .buy-now-link:hover { filter: brightness(1.1); }
+/* One Buy Now language everywhere: detail buy-row shares the solid-teal CTA treatment. */
 .buy-row .buy-now-link {
-  background: transparent;
-  border: 0;
+  background: var(--teal, #047857);
+  border: 1px solid var(--teal, #047857);
   box-shadow: none;
-  color: var(--teal-dark, #0b6e6b);
+  color: #fff;
   font-size: .92rem;
   font-weight: 700;
   min-height: 44px;
@@ -247,13 +252,15 @@ body.dark .product-card .buy-now-link:hover { background: rgba(94, 234, 212, .1)
   justify-content: center;
   gap: 4px;
   cursor: pointer;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 10px 18px;
+  text-decoration: none;
+  transition: transform .15s ease, background-color .15s ease, border-color .15s ease;
 }
-.buy-row .buy-now-link:hover { text-decoration: underline; background: rgba(15, 157, 154, .08); }
-.buy-row .buy-now-link:disabled { opacity: .55; cursor: not-allowed; text-decoration: none; }
-body.dark .buy-row .buy-now-link { color: #5eead4; }
-body.dark .buy-row .buy-now-link:hover { background: rgba(94, 234, 212, .1); }
+.buy-row .buy-now-link:hover { text-decoration: none; filter: brightness(.92); transform: translateY(-1px); }
+.buy-row .buy-now-link:disabled { opacity: .55; cursor: not-allowed; text-decoration: none; transform: none; }
+body.dark .buy-row .buy-now-link { background: #0f8f7a; border-color: #0f8f7a; color: #fff; }
+body.dark .buy-row .buy-now-link:hover { filter: brightness(1.1); }
 
 .product-card .product-actions .btn {
   min-height: 44px;
@@ -292,20 +299,27 @@ body.dark .buy-row .buy-now-link:hover { background: rgba(94, 234, 212, .1); }
 }
 
 .product-card .compare-toggle {
-  width: auto !important;
-  margin: 10px 18px 16px !important;
-  padding: 7px 10px !important;
-  border: 0 !important;
+  grid-column: 1 / -1;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+  border: 1px dashed var(--teal, #047857) !important;
   background: transparent !important;
-  color: var(--teal-dark) !important;
-  text-align: left;
+  color: var(--teal-dark, #065F46) !important;
+  text-align: center;
   font-size: .88rem;
-  font-weight: 650;
+  font-weight: 700;
+  border-radius: 10px;
+  min-height: 44px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
 }
 
 .product-card .compare-toggle:hover {
-  background: rgba(20, 184, 166, .08) !important;
-  border-radius: 8px;
+  background: rgba(20, 184, 166, .12) !important;
+  border-radius: 10px;
 }
 
 body.dark .product-card .product-actions .add-cart {
@@ -321,6 +335,7 @@ body.dark .product-card .product-actions .btn-light {
 
 body.dark .product-card .compare-toggle {
   color: #6fd8cf !important;
+  border-color: rgba(111, 216, 207, .6) !important;
 }
 
 .cart-table .remove-item,

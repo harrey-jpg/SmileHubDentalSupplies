@@ -177,7 +177,7 @@ function paintWishlist(button, wished) {
 
 function storedReviewsFor(productId) {
   try {
-    var all = JSON.parse(localStorage.getItem('smilehub_reviews') || '[]');
+    var all = window.SmileHubSharedData ? window.SmileHubSharedData.reviewsFor(productId) : [];
     return all.filter(function(r) { return r && r.productId === productId; });
   } catch (e) {
     return [];
@@ -452,11 +452,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initTabs();
     initReviewForm(id);
+    window.SmileHubSharedData.watchReviews(id, function() { renderOwnReviews(id); paintHeaderRating(id); });
   }
 
   function getStoredReviews() {
     try {
-      var all = JSON.parse(localStorage.getItem('smilehub_reviews') || '[]');
+      var all = window.SmileHubSharedData ? window.SmileHubSharedData.reviewsFor(id) : [];
       return Array.isArray(all) ? all : [];
     } catch (e) {
       return [];
@@ -474,8 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!box) return;
     var mine = getStoredReviews().filter(function(r) { return r && r.productId === productId; }).slice(0, 3);
     box.innerHTML = mine.map(function(r) {
-      var text = escHtml(r.text || '');
-      return '<p class="my-review"><strong>You</strong> <span class="muted"> • ' + escAttr(r.rating || 5) + ' stars • submitted for moderation</span><br>' + text + '</p>';
+      var text = escHtml(r.comment || r.text || '');
+      return '<p class="my-review"><strong>' + escHtml(r.userName || 'Customer') + '</strong> <span class="muted"> • ' + escAttr(r.rating || 5) + ' stars</span><br>' + text + '</p>';
     }).join('');
   }
 
@@ -502,20 +503,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       if (err) { err.textContent = ''; err.classList.remove('show'); }
-      var reviews = getStoredReviews();
-      reviews.unshift({
-        id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-        productId: productId,
-        text: text,
-        rating: ratingEl ? ratingEl.value : '5',
-        date: new Date().toISOString(),
-        status: 'pending'
-      });
-      saveStoredReviews(reviews);
-      ta.value = '';
-      renderOwnReviews(productId);
-      paintHeaderRating(productId);
-      if (typeof showToast === 'function') showToast('Review submitted for moderation.');
+      var submit = reviewForm.querySelector('[type="submit"]');
+      if (submit) submit.disabled = true;
+      window.SmileHubSharedData.addReview(productId, Number(ratingEl ? ratingEl.value : 5), text).then(function() {
+        ta.value = '';
+        if (typeof showToast === 'function') showToast('Review saved.');
+      }).catch(function(error) {
+        if (err) { err.textContent = error.message; err.classList.add('show'); }
+      }).finally(function() { if (submit) submit.disabled = false; });
     });
   }
 

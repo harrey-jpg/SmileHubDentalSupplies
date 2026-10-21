@@ -3,7 +3,7 @@
 .network-status-banner {
   position: sticky;
   top: 0;
-  z-index: 99999;
+  z-index: 9999;
   padding: .7rem 1rem;
   text-align: center;
   background: #7c2d12;
@@ -48,7 +48,7 @@ body.dark .form-card input:not([readonly]),body.dark .form-card textarea,body.da
 body.dark .form-card input::placeholder,body.dark .form-card textarea::placeholder{color:#7d8fa1}
 body.dark .form-card select option{background:#0f172a;color:#e8eef4}
 .form-card input:not([readonly]):focus,.form-card textarea:focus,.form-card select:focus{border-color:#0f8f91;box-shadow:0 0 0 3px rgba(15,143,145,.13)}
-/* Retired: orange Buy Now replaced by one quiet teal .buy-now-link (final-polish.css). */
+/* Solid-teal Buy Now CTA restored (.buy-now-link in final-polish.css). */
 .product-actions{flex-wrap:wrap}.product-actions .btn{flex:1 1 120px}
 .toast{display:flex!important;align-items:center;gap:10px;max-width:min(390px,calc(100vw - 28px));padding:12px 16px!important;border-radius:12px!important;box-shadow:0 14px 40px rgba(0,0,0,.18)!important}
 .toast-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#e4f8ef;color:#137550;font-weight:900}.toast-error .toast-icon{background:#ffe9e9;color:#b42318}

@@ -183,7 +183,7 @@
   }
 
   function fillProfile(data, user) {
-    data = data || {};
+    data = window.SmileHubSharedData.normalizeProfile(data || {});
     currentProfile = data;
     setValue('profileFirstName', data.firstName);
     setValue('profileLastName', data.lastName);
@@ -206,7 +206,7 @@
     var name = [data.firstName, data.lastName].filter(Boolean).join(' ') || data.displayName || (user && user.displayName) || 'Customer';
     if (el('profileName')) el('profileName').textContent = name;
     if (el('profileEmailSummary')) el('profileEmailSummary').textContent = data.email || (user && user.email) || '';
-    var photo = data.photoDataUrl || data.photoURL || cachedProfilePhoto(user && user.uid) || (user && user.photoURL) || 'assets/profile-placeholder.svg';
+    var photo = data.photoRemoved ? 'assets/profile-placeholder.svg' : data.photoDataUrl || data.photoURL || cachedProfilePhoto(user && user.uid) || (user && user.photoURL) || 'assets/profile-placeholder.svg';
     if (el('profilePhoto')) el('profilePhoto').src = photo;
     if (el('removeProfilePhoto')) el('removeProfilePhoto').classList.toggle('hidden', photo.indexOf('profile-placeholder.svg') > -1);
     updatePhoneStatus(Boolean(data.phoneVerified), data.phoneE164 || '');
@@ -246,7 +246,7 @@
         }
       } catch(e){}
       firebase.firestore().collection('users').doc(user.uid).get().then(function (doc) {
-        fillProfile(doc.exists ? doc.data() : {}, user);
+        window.SmileHubSharedData.withAddress(user, doc.exists ? doc.data() : {}).then(function (data) { fillProfile(data, user); }).catch(function(error) { showProfileMessage('Could not load saved addresses: ' + error.message, true); });
       }).catch(function () {
         var cached = window.SmileHubAuth && window.SmileHubAuth.getCurrentAccount();
         fillProfile(cached || {}, user);
@@ -271,16 +271,19 @@
       firstName: value('profileFirstName'),
       lastName: value('profileLastName'),
       displayName: [value('profileFirstName'), value('profileLastName')].filter(Boolean).join(' '),
+      fullName: [value('profileFirstName'), value('profileLastName')].filter(Boolean).join(' '),
       email: user.email || value('profileEmail'),
       birthday: value('profileBirthday'),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    if (pendingProfilePhoto !== null) data.photoDataUrl = pendingProfilePhoto;
+    if (pendingProfilePhoto !== null) { data.photoDataUrl = pendingProfilePhoto; data.photoRemoved = !pendingProfilePhoto; }
     if (phoneChanged) {
       data.phone = phoneE164;
       data.phoneLocal = phoneLocal;
       data.phoneVerified = false;
       data.phoneE164 = phoneE164;
+      data.mobile = phoneLocal;
+      data.verifiedPhoneNumber = "";
     }
     firebase.firestore().collection('users').doc(user.uid).set(data, { merge: true }).then(function () {
       currentProfile = Object.assign({}, currentProfile || {}, data);
@@ -338,13 +341,13 @@
       return showProfileMessage('Please complete all required address fields.', true);
     }
     setFieldError('profilePostal', 'addressFormError', '');
-    firebase.firestore().collection('users').doc(user.uid).set({
+    window.SmileHubSharedData.saveAddress(user, address, currentProfile).then(function () { return firebase.firestore().collection('users').doc(user.uid).set({
       address: address,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).then(function () {
       currentProfile = Object.assign({}, currentProfile || {}, { address: address });
       showProfileMessage('Default delivery address saved. It will be used automatically at checkout.');
-    }).catch(function (error) {
+    }); }).catch(function (error) {
       showProfileMessage('Could not save address: ' + error.message, true);
     });
   }
@@ -503,6 +506,7 @@
         cacheProfilePhoto(user.uid, '');
         firebase.firestore().collection('users').doc(user.uid).set({
           photoDataUrl: '',
+          photoRemoved: true,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).then(function() {
           pendingProfilePhoto = null;

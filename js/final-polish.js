@@ -91,8 +91,7 @@
   function ensureBuyNow(){
     document.querySelectorAll('.product-card').forEach(function(card){
       // Cards rendered by catalog.js/homepage templates already ship a working
-      // quiet Buy Now link; only fill in cards that have none of the variants.
-      // Quiet teal link only — no solid Buy Now anywhere.
+      // solid-teal Buy Now CTA; only fill in cards that have none of the variants.
       if(card.querySelector('[data-buy-now],.buy-now-btn,.buy-now,.buy-now-link')) return;
       var id=card.dataset.productId||card.getAttribute('data-id');
       var price=card.dataset.price;

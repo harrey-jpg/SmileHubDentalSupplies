@@ -91,6 +91,7 @@
       read: false
     };
     items.unshift(note);
+    if (window.SmileHubSharedData) window.SmileHubSharedData.saveNotification(note);
     writeList(items);
     if (!opts.silent && typeof window.showToast === 'function') {
       try { window.showToast(note.title + ' — ' + note.message); } catch (e) {}
