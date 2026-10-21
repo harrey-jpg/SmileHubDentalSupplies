@@ -48,5 +48,8 @@
     "ui": {
       "enabled": true
     }
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

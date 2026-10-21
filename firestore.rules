@@ -1,7 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
+    function signedIn() {
+      return request.auth != null
+        && (!exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'active') != 'suspended')
+        && (!exists(/databases/$(database)/documents/accounts/$(request.auth.token.email))
+          || get(/databases/$(database)/documents/accounts/$(request.auth.token.email)).data.get('status', 'active') != 'suspended');
+    }
     function own(uid) { return signedIn() && request.auth.uid == uid; }
     function userDoc() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
@@ -14,6 +20,23 @@ service cloud.firestore {
       return signedIn() && role() in ['admin', 'superadmin'];
     }
     function isAdmin() { return isStaff(); }
+    function isSuperAdmin() { return signedIn() && role() == 'superadmin'; }
+    function manageableRole(value) {
+      return isSuperAdmin() || (isProductAdmin() && value in ['customer', 'staff']);
+    }
+    function manageAccountCreate() { return manageableRole(requestedRole()); }
+    function manageAccountUpdate() {
+      return manageableRole(currentRole()) && manageableRole(requestedRole());
+    }
+    function safeSelfCreate() {
+      return request.resource.data.get('status', 'active') == 'active'
+        && !request.resource.data.keys().hasAny(['permissions', 'claims', 'disabled', 'suspended', 'isSuspended']);
+    }
+    function safeSelfUpdate() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'status', 'permissions', 'claims', 'disabled', 'suspended', 'isSuspended'
+      ]);
+    }
     function validProfile(uid) {
       return own(uid)
         && request.resource.data.email == request.auth.token.email
@@ -53,13 +76,13 @@ service cloud.firestore {
       allow write: if isProductAdmin();
     }
     match /users/{uid} {
-      allow create: if (validProfile(uid)
+      allow create: if (validProfile(uid) && safeSelfCreate()
         && (requestedRole() == 'customer'
           || (requestedRole() in ['admin', 'staff', 'superadmin']
-            && invitedRole() == requestedRole()))) || isProductAdmin();
-      allow update: if (validProfile(uid) && requestedRole() == currentRole()) || isProductAdmin();
+            && invitedRole() == requestedRole()))) || manageAccountCreate();
+      allow update: if (validProfile(uid) && requestedRole() == currentRole() && safeSelfUpdate()) || manageAccountUpdate();
       allow read: if own(uid) || isProductAdmin();
-      allow delete: if own(uid) || isProductAdmin();
+      allow delete: if manageableRole(currentRole());
       match /addresses/{addressId} {
         allow read, create, update, delete: if own(uid);
       }
@@ -177,16 +200,20 @@ service cloud.firestore {
     }
     match /accounts/{email} {
       allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      allow create: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      allow update, delete: if isProductAdmin();
+      allow create: if (signedIn() && request.auth.token.email == email
+        && (requestedRole() == 'customer'
+          || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && requestedRole() == role()))
+        && safeSelfCreate()) || manageAccountCreate();
+      allow update: if manageAccountUpdate();
+      allow delete: if manageableRole(currentRole());
     }
     match /user_registrations/{email} {
       // This collection contains staff invitations. Customers must NEVER
       // create one, even with their own email address.
       allow read: if signedIn() && (request.auth.token.email == email || isProductAdmin());
-      allow create: if isProductAdmin();
+      allow create: if manageAccountCreate();
       // The invited recipient may CLAIM (not reset) their invitation once.
-      allow update: if isProductAdmin()
+      allow update: if manageAccountUpdate()
         || (signedIn()
           && request.auth.token.email_verified == true
           && request.auth.token.email == email
@@ -197,7 +224,7 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'claimed', 'claimedUid', 'claimedAt'
           ]));
-      allow delete: if isProductAdmin();
+      allow delete: if manageableRole(currentRole());
     }
     match /contact_messages/{id} {
       allow create: if true
