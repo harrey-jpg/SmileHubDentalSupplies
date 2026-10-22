@@ -1013,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
       body.innerHTML = '<tr><td colspan="4" class="text-center muted">' + (!ordersReady ? (ordersLoading ? 'Loading orders…' : 'Orders unavailable. Use Retry above.') : 'No orders need work right now') + '</td></tr>';
       return;
     }
-    var sorted = orders.slice().sort(function(a, b) { return orderTime(a) - orderTime(b); });
+    var sorted = orders.slice().sort(function(a, b) { return orderTime(b) - orderTime(a); });
     var recent = sorted.slice(0, 5);
 
     body.innerHTML = recent.map(function(o) {
@@ -1599,11 +1599,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       return true;
     });
-    filtered.sort(function(a, b) {
-      var ta = a.sortTs || (new Date(a.date).getTime() || 0);
-      var tb = b.sortTs || (new Date(b.date).getTime() || 0);
-      return tb - ta;
-    });
+    filtered.sort(function(a, b) { return orderTime(b) - orderTime(a); });
 
     var fc = document.getElementById('orderFilterCount');
     if (fc) fc.textContent = filtered.length + ' of ' + orders.length;

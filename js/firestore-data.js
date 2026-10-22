@@ -297,10 +297,10 @@ function getOrders(callback) {
       // Remember the real document id so admin edits update the correct
       // record (mobile orders use auto-ids, not their number as id).
       o.docId = doc.id;
-      if (!o.date && o.createdAt && typeof o.createdAt.toDate === 'function') {
+      if (o.createdAt && typeof o.createdAt.toDate === 'function') {
         try {
           var created = o.createdAt.toDate();
-          o.date = created.toLocaleDateString();
+          if (!o.date) o.date = created.toLocaleDateString();
           o.sortTs = created.getTime();
         } catch (e) {}
       }
