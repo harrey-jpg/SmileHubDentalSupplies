@@ -3369,29 +3369,126 @@ document.addEventListener('DOMContentLoaded', function() {
   var reportStackedInstance = null;
   var reportLineInstance = null;
   var reportOrdersBarInstance = null;
-  var reportTrendGranularity = 'monthly';
+  var reportTrendGranularity = 'auto';
+
+  function reportDateInputValue(date) {
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function parseReportDateInput(value) {
+    if (!value) return null;
+    var parts = value.split('-').map(Number);
+    if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return null;
+    var date = new Date(parts[0], parts[1] - 1, parts[2]);
+    if (isNaN(date.getTime()) || date.getFullYear() !== parts[0] || date.getMonth() !== parts[1] - 1 || date.getDate() !== parts[2]) return null;
+    return date;
+  }
+
+  function reportDateLabel(date) {
+    return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function getReportDateRange(period) {
+    var now = new Date();
+    now.setHours(0, 0, 0, 0);
+    var start = null;
+    var end = null;
+    var startInput = document.getElementById('reportStartDate');
+    var endInput = document.getElementById('reportEndDate');
+
+    if (period === 'today') {
+      start = new Date(now);
+      end = new Date(now);
+    } else if (period === 'week') {
+      start = new Date(now);
+      start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+      end = new Date(now);
+    } else if (period === 'month') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now);
+    } else if (period === 'custom') {
+      start = parseReportDateInput(startInput && startInput.value);
+      end = parseReportDateInput(endInput && endInput.value);
+    }
+
+    if (period !== 'custom') {
+      if (startInput) startInput.value = start ? reportDateInputValue(start) : '';
+      if (endInput) endInput.value = end ? reportDateInputValue(end) : '';
+    }
+    if (startInput) startInput.max = endInput && endInput.value ? endInput.value : '';
+    if (endInput) endInput.min = startInput && startInput.value ? startInput.value : '';
+
+    var valid = period !== 'custom' || !!(start && end && end >= start);
+    var endExclusive = valid && end ? new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1) : null;
+    var label = period === 'all' ? 'All Time' : !valid ? 'Choose a valid start and end date' :
+      start && end ? (start.getTime() === end.getTime() ? reportDateLabel(start) : reportDateLabel(start) + ' – ' + reportDateLabel(end)) : period;
+    return { period: period, start: start, end: end, endExclusive: endExclusive, valid: valid, allTime: period === 'all', label: label };
+  }
+
+  function filterOrdersByReportRange(orders, range) {
+    if (!range.valid) return [];
+    return orders.filter(function(order) {
+      var ts = orderTime(order);
+      if (!ts) return range.allTime;
+      return (!range.start || ts >= range.start.getTime()) && (!range.endExclusive || ts < range.endExclusive.getTime());
+    });
+  }
+
+  function reportBucketKey(date, granularity) {
+    if (granularity === 'daily') return reportDateInputValue(date);
+    if (granularity === 'monthly') return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+    return String(date.getFullYear());
+  }
+
+  function buildReportBuckets(range, filtered, requestedGranularity) {
+    if (!range.valid) return { mode: 'daily', buckets: [] };
+    var now = new Date();
+    var start = range.start ? new Date(range.start) : new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    var endExclusive = range.endExclusive ? new Date(range.endExclusive) : new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    var spanDays = Math.max(1, Math.ceil((endExclusive.getTime() - start.getTime()) / 86400000));
+    var mode = requestedGranularity || 'auto';
+    if (mode === 'auto') mode = range.allTime ? 'monthly' : spanDays <= 31 ? 'daily' : spanDays <= 730 ? 'monthly' : 'annually';
+
+    var cursor = mode === 'daily' ? new Date(start.getFullYear(), start.getMonth(), start.getDate()) :
+      mode === 'monthly' ? new Date(start.getFullYear(), start.getMonth(), 1) : new Date(start.getFullYear(), 0, 1);
+    var last = new Date(endExclusive.getTime() - 1);
+    var buckets = [];
+    for (var i = 0; cursor <= last && i < 1000; i++) {
+      var label = mode === 'daily' ? cursor.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' }) :
+        mode === 'monthly' ? cursor.toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : String(cursor.getFullYear());
+      buckets.push({ key: reportBucketKey(cursor, mode), label: label });
+      if (mode === 'daily') cursor.setDate(cursor.getDate() + 1);
+      else if (mode === 'monthly') cursor.setMonth(cursor.getMonth() + 1);
+      else cursor.setFullYear(cursor.getFullYear() + 1);
+    }
+    return { mode: mode, buckets: buckets };
+  }
+
+  function syncReportProductFilter(orders) {
+    var select = document.getElementById('reportProductFilter');
+    if (!select) return 'all';
+    var selected = select.value || 'all';
+    var names = {};
+    orders.forEach(function(order) {
+      (order.items || []).forEach(function(item) { names[item.name || 'Unknown'] = true; });
+    });
+    var sorted = Object.keys(names).sort(function(a, b) { return a.localeCompare(b); });
+    select.innerHTML = '<option value="all">All products</option>' + sorted.map(function(name) {
+      return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>';
+    }).join('');
+    if (selected !== 'all' && !names[selected]) selected = 'all';
+    select.value = selected;
+    return selected;
+  }
 
   function renderReports(period) {
-    period = period || 'all';
+    period = period || (document.getElementById('reportPeriod') || {}).value || 'week';
     var orders = getOrders();
-
-    // Date filter (orderTime-safe: covers createdAt-only mobile orders)
-    var now = new Date();
-    var filtered = orders.filter(function(o) {
-      if (period === 'all') return true;
-      var ts = orderTime(o);
-      if (!ts) return false;
-      var d = new Date(ts);
-      if (period === 'today') return d.toDateString() === now.toDateString();
-      if (period === 'week') {
-        var weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
-        return d >= weekAgo;
-      }
-      if (period === 'month') {
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }
-      return true;
-    });
+    var dateRange = getReportDateRange(period);
+    var filtered = filterOrdersByReportRange(orders, dateRange);
+    var productFilter = syncReportProductFilter(orders);
+    var reportBuckets = buildReportBuckets(dateRange, filtered, 'auto');
+    var trendBuckets = buildReportBuckets(dateRange, filtered, reportTrendGranularity);
 
     // Stats (revenue excludes Cancelled/Returned/Refunded)
     var totalOrders = filtered.length;
@@ -3414,12 +3511,14 @@ document.addEventListener('DOMContentLoaded', function() {
       if (o.items) {
         o.items.forEach(function(item) {
           var name = item.name || 'Unknown';
+          if (productFilter !== 'all' && name !== productFilter) return;
           if (!productMap[name]) { productMap[name] = { orders: 0, units: 0, revenue: 0 }; seenPerProduct[name] = {}; }
           var qty = Number(item.quantity) || 1;
           productMap[name].units += qty;
           productMap[name].revenue += qty * (Number(item.price) || 0);
-          if (o.number && !seenPerProduct[name][o.number]) {
-            seenPerProduct[name][o.number] = true;
+          var orderKey = o.number || o.docId;
+          if (orderKey && !seenPerProduct[name][orderKey]) {
+            seenPerProduct[name][orderKey] = true;
             productMap[name].orders += 1;
           }
         });
@@ -3487,17 +3586,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reports header sub + scope disclosure
     var repSub = document.getElementById('reportsSub');
     var scopeNote = document.getElementById('reportsScopeNote');
-    var labelForSub = (document.getElementById('reportPeriod')||{}).options ? (document.getElementById('reportPeriod').options[document.getElementById('reportPeriod').selectedIndex]||{}).text || period : period;
-    var granForSub = reportTrendGranularity === 'annually' ? 'Annually' : 'Monthly';
+    var labelForSub = dateRange.label;
+    var granForSub = trendBuckets.mode === 'annually' ? 'Annually' : trendBuckets.mode === 'monthly' ? 'Monthly' : 'Daily';
     if (repSub) {
       if (!orders.length && ordersLoadError) {
         repSub.textContent = 'Orders could not load. Check your connection and staff access, then refresh orders.';
+      } else if (!dateRange.valid) {
+        repSub.textContent = 'Choose both dates and make sure the end date is not before the start date.';
       } else {
-        repSub.textContent = labelForSub + ' • ' + granForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
+        repSub.textContent = labelForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
       }
     }
     if (scopeNote) {
-      scopeNote.textContent = 'Period: ' + labelForSub + ' • Granularity: ' + granForSub + ' • Export adds monthly breakdown + top 10 customers';
+      scopeNote.textContent = (dateRange.valid ? 'Period: ' + labelForSub + ' • Trend: ' + (reportTrendGranularity === 'auto' ? 'Automatic (' + granForSub.toLowerCase() + ')' : granForSub) : dateRange.label) + ' • Product filter applies to Sales by Product • Export adds breakdown + top 10 customers';
     }
     // Inspiration: 4-card grid — real-time, theme-aware
     try {
@@ -3505,30 +3606,32 @@ document.addEventListener('DOMContentLoaded', function() {
       var gridColorReports = isDarkReports ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
       var mutedReports = (function(){ try { return getComputedStyle(document.body).getPropertyValue('--muted').trim() || '#475569'; } catch(e){ return '#475569'; } })();
       if (typeof Chart !== 'undefined') { try { Chart.defaults.font.family = '"DM Sans", -apple-system, "Segoe UI", sans-serif'; Chart.defaults.color = mutedReports; } catch(e){} }
-      // Collected vs Pending stacked (last 6 months)
+      // Payment confirmation follows the selected range (daily for short ranges).
       (function(){
         var canvas = document.getElementById('reportStackedBar');
         var empty = document.getElementById('reportStackedEmpty');
         if (!canvas) return;
         if (reportStackedInstance) { reportStackedInstance.destroy(); reportStackedInstance=null; }
-        var now = new Date();
-        var labels=[], collected=[], pending=[];
-        for(var i=5;i>=0;i--){
-          var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
-          labels.push(d.toLocaleDateString('en-PH',{month:'short'}));
-          collected.push(0); pending.push(0);
-        }
+        var labels = reportBuckets.buckets.map(function(bucket){ return bucket.label; });
+        var collected = labels.map(function(){ return 0; });
+        var pending = labels.map(function(){ return 0; });
+        var bucketIndexes = {};
+        reportBuckets.buckets.forEach(function(bucket, index){ bucketIndexes[bucket.key] = index; });
+        var title = document.getElementById('reportStackedTitle');
+        var periodSub = document.getElementById('reportStackedPeriod');
+        var bucketLabel = reportBuckets.mode === 'annually' ? 'year' : reportBuckets.mode === 'monthly' ? 'month' : 'day';
+        if (title) title.textContent = 'Payment confirmation by ' + bucketLabel;
+        if (periodSub) periodSub.textContent = dateRange.allTime ? 'Last 6 months' : dateRange.label;
+        canvas.setAttribute('aria-label', 'Payment confirmation by ' + bucketLabel);
         var hasData=false;
         filtered.forEach(function(o){
           if (!isActiveOrder(o.status) && o.status!=='Pending') return;
-          var t=orderTime(o); var dt=new Date(t);
-          var diff=(now.getFullYear()-dt.getFullYear())*12 + (now.getMonth()-dt.getMonth());
-          if(diff>=0 && diff<6){
-            var idx=5-diff;
-            var val=Number(o.total)||0;
-            if(isPaymentConfirmed(o)) collected[idx]+=val; else pending[idx]+=val;
-            if(val>0) hasData=true;
-          }
+          var dt=new Date(orderTime(o));
+          var idx=bucketIndexes[reportBucketKey(dt, reportBuckets.mode)];
+          if(idx === undefined) return;
+          var val=Number(o.total)||0;
+          if(isPaymentConfirmed(o)) collected[idx]+=val; else pending[idx]+=val;
+          if(val>0) hasData=true;
         });
         if(empty) empty.classList.toggle('hidden', hasData);
         canvas.style.display = hasData ? '' : 'none';
@@ -3558,40 +3661,24 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
       })();
-      // Revenue line — Monthly vs Annually
+      // Revenue line — automatic, daily, monthly, or annual buckets.
       (function(){
         var canvas=document.getElementById('reportRevenueLine');
         var empty=document.getElementById('reportLineEmpty');
         if(!canvas) return;
         if(reportLineInstance){ reportLineInstance.destroy(); reportLineInstance=null; }
+        var labels=trendBuckets.buckets.map(function(bucket){ return bucket.label; });
+        var data=labels.map(function(){ return 0; });
+        var bucketIndexes={};
+        trendBuckets.buckets.forEach(function(bucket,index){ bucketIndexes[bucket.key]=index; });
         var hasData=false;
-        var labels=[], data=[];
-        var now=new Date();
-        if(reportTrendGranularity==='annually'){
-          for(var y=4;y>=0;y--){
-            var yr=now.getFullYear()-y;
-            labels.push(String(yr));
-            var sum=0;
-            filtered.forEach(function(o){
-              var dt=new Date(orderTime(o));
-              if(dt.getFullYear()===yr && isActiveOrder(o.status)){ sum+=Number(o.total)||0; if(sum>0) hasData=true; }
-            });
-            data.push(sum);
-            if(sum>0) hasData=true;
-          }
-        } else {
-          for(var i=5;i>=0;i--){
-            var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
-            labels.push(d.toLocaleDateString('en-PH',{month:'short'}));
-            data.push(0);
-          }
-          filtered.forEach(function(o){
-            if(!isActiveOrder(o.status)) return;
-            var t=orderTime(o); var dt=new Date(t);
-            var diff=(now.getFullYear()-dt.getFullYear())*12 + (now.getMonth()-dt.getMonth());
-            if(diff>=0 && diff<6){ data[5-diff]+=Number(o.total)||0; if(Number(o.total)>0) hasData=true; }
-          });
-        }
+        filtered.forEach(function(o){
+          if(!isActiveOrder(o.status)) return;
+          var idx=bucketIndexes[reportBucketKey(new Date(orderTime(o)), trendBuckets.mode)];
+          if(idx === undefined) return;
+          data[idx]+=Number(o.total)||0;
+          if(Number(o.total)>0) hasData=true;
+        });
         if(empty) empty.classList.toggle('hidden', hasData);
         canvas.style.display = hasData ? '' : 'none';
         if(!hasData) return;
@@ -3610,20 +3697,28 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
       })();
-      // New Orders by Month bars
+      // New order counts use the same automatic buckets as payment confirmation.
       (function(){
         var canvas=document.getElementById('reportOrdersBar');
         var empty=document.getElementById('reportOrdersBarEmpty');
         if(!canvas) return;
         if(reportOrdersBarInstance){ reportOrdersBarInstance.destroy(); reportOrdersBarInstance=null; }
-        var now=new Date();
-        var labels=[], counts=[0,0,0,0,0,0];
-        for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(), now.getMonth()-i, 1); labels.push(d.toLocaleDateString('en-PH',{month:'short'})); }
+        var labels=reportBuckets.buckets.map(function(bucket){ return bucket.label; });
+        var counts=labels.map(function(){ return 0; });
+        var bucketIndexes={};
+        reportBuckets.buckets.forEach(function(bucket,index){ bucketIndexes[bucket.key]=index; });
+        var title=document.getElementById('reportOrdersBarTitle');
+        var periodSub=document.getElementById('reportOrdersBarSub');
+        var bucketLabel=reportBuckets.mode === 'annually' ? 'Year' : reportBuckets.mode === 'monthly' ? 'Month' : 'Day';
+        if(title) title.textContent='New Orders by ' + bucketLabel;
+        if(periodSub) periodSub.textContent=dateRange.allTime ? 'Last 6 months' : dateRange.label;
+        canvas.setAttribute('aria-label', 'New orders by ' + bucketLabel.toLowerCase());
         var hasData=false;
         filtered.forEach(function(o){
-          var t=orderTime(o); var dt=new Date(t);
-          var diff=(now.getFullYear()-dt.getFullYear())*12 + (now.getMonth()-dt.getMonth());
-          if(diff>=0 && diff<6){ counts[5-diff]+=1; hasData=true; }
+          var idx=bucketIndexes[reportBucketKey(new Date(orderTime(o)), reportBuckets.mode)];
+          if(idx === undefined) return;
+          counts[idx]+=1;
+          hasData=true;
         });
         if(empty) empty.classList.toggle('hidden', hasData);
         canvas.style.display = hasData ? '' : 'none';
@@ -3682,7 +3777,14 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     var period = document.getElementById('reportPeriod');
-    var label = period ? period.options[period.selectedIndex].text : 'All Time';
+    var range = getReportDateRange(period ? period.value : 'week');
+    if (!range.valid) {
+      showToast('Choose valid report start and end dates before printing.', true);
+      return;
+    }
+    var productSelect = document.getElementById('reportProductFilter');
+    var selectedProduct = productSelect && productSelect.value !== 'all' ? productSelect.options[productSelect.selectedIndex].text : 'All products';
+    var label = range.label + ' • ' + selectedProduct;
     var section = document.getElementById('reports');
     if (!section) return;
     var win = window.open('', '_blank');
@@ -4502,30 +4604,49 @@ document.addEventListener('DOMContentLoaded', function() {
       var rp=document.getElementById('reportPeriod');
       if(rp) rp.addEventListener('change', function(){ renderReports(this.value); });
       var tt=document.getElementById('reportTrendToggle');
-      if(tt) tt.addEventListener('change', function(){ reportTrendGranularity=this.value; renderReports((document.getElementById('reportPeriod')||{}).value||'all'); });
-        var dl=document.getElementById('downloadReportBtn');
+      if(tt) tt.addEventListener('change', function(){ reportTrendGranularity=this.value; renderReports((document.getElementById('reportPeriod')||{}).value||'week'); });
+      var startDate=document.getElementById('reportStartDate');
+      var endDate=document.getElementById('reportEndDate');
+      function applyCustomReportRange(){
+        if(rp) rp.value='custom';
+        renderReports('custom');
+      }
+      if(startDate) startDate.addEventListener('change', applyCustomReportRange);
+      if(endDate) endDate.addEventListener('change', applyCustomReportRange);
+      var productSelect=document.getElementById('reportProductFilter');
+      if(productSelect) productSelect.addEventListener('change', function(){ renderReports((rp||{}).value||'week'); });
+      var dl=document.getElementById('downloadReportBtn');
       if(dl) dl.addEventListener('click', function(){
         if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
           showToast('Only admins can download reports.', true);
           return;
         }
-        var period=(document.getElementById('reportPeriod')||{}).value||'all';
-        var now=new Date();
-        var filtered=getOrders().filter(function(o){
-          if(period==='all') return true;
-          var ts=orderTime(o);
-          if(!ts) return false;
-          var d=new Date(ts);
-          if(period==='today') return d.toDateString()===now.toDateString();
-          if(period==='week'){ var w=new Date(now); w.setDate(w.getDate()-7); return d>=w; }
-          if(period==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-          return true;
-        });
+        var period=(document.getElementById('reportPeriod')||{}).value||'week';
+        var dateRange=getReportDateRange(period);
+        if(!dateRange.valid){ showToast('Choose valid report start and end dates', true); return; }
+        var filtered=filterOrdersByReportRange(getOrders(), dateRange);
         if(!filtered.length){ showToast('No data to download for this period', true); return; }
-        var csv='Period,'+period+'\nGenerated,'+new Date().toLocaleString()+'\n\nOrder #,Customer,Date,Status,Total,Items\n' + filtered.map(function(o){
+        var csv='Period,'+csvCell(dateRange.label)+'\nGenerated,'+new Date().toLocaleString()+'\n\nOrder #,Customer,Date,Status,Total,Items\n' + filtered.map(function(o){
           var items=(o.items||[]).map(function(it){ return (it.name||'')+' x'+(it.quantity||1); }).join('; ');
           return [csvCell(o.number), csvCell(o.customer), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
         }).join('\n');
+        var productSelect=document.getElementById('reportProductFilter');
+        var selectedProduct=productSelect ? productSelect.value : 'all';
+        var productSummary={};
+        filtered.forEach(function(o){
+          (o.items||[]).forEach(function(item){
+            var name=item.name||'Unknown';
+            if(selectedProduct!=='all' && name!==selectedProduct) return;
+            if(!productSummary[name]) productSummary[name]={orders:{},units:0,revenue:0};
+            var row=productSummary[name];
+            var qty=Number(item.quantity)||1;
+            row.units+=qty;
+            row.revenue+=qty*(Number(item.price)||0);
+            row.orders[o.number||o.docId||String(filtered.indexOf(o))]=true;
+          });
+        });
+        var productRows=Object.keys(productSummary).sort(function(a,b){ return productSummary[b].revenue-productSummary[a].revenue; });
+        csv+='\n\nSales by Product,Orders,Units Sold,Order Value\n' + productRows.map(function(name){ var p=productSummary[name]; return [csvCell(name),Object.keys(p.orders).length,p.units,p.revenue].join(','); }).join('\n');
         // Add monthly summary
         var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(isPaymentConfirmed(o)) months[key].collected+=v; else if(isActiveOrder(o.status)) months[key].pending+=v; months[key].count+=1; });
         csv+='\n\nMonth,Confirmed paid,Payment not confirmed,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
@@ -4533,7 +4654,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var map={}; filtered.forEach(function(o){ var key=String(o.email||o.customer||'Unknown').toLowerCase(); if(!map[key]) map[key]={label:(o.customer||o.email||'Unknown'), orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
         var top=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,10);
         csv+='\n\nTop Customers,Orders,Order value\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
-        downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+period+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
+        downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+dateRange.label+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
       });
     })();
     // Notification bell dropdown wiring
@@ -4639,12 +4760,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close msg modal on backdrop click
     var msgModal = document.getElementById('msgModal');
     if (msgModal) msgModal.addEventListener('click', function(e){ if(e.target===msgModal) closeAdminModal(msgModal); });
-
-    // Report period filter
-    var periodSelect = document.getElementById('reportPeriod');
-    if (periodSelect) {
-      periodSelect.addEventListener('change', function() { renderReports(this.value); });
-    }
 
     // Print report
     var printBtn = document.getElementById('printReportBtn');
