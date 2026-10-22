@@ -1489,11 +1489,11 @@
 
 <select id="reportPeriod" aria-label="Report period" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);">
 
-<option value="all">All Time</option>
+<option value="all" selected>All Time</option>
 
 <option value="today">Today</option>
 
-<option value="week" selected>This Week (Mon–today)</option>
+<option value="week">This Week (Mon–today)</option>
 
 <option value="month">This Month</option>
 
@@ -1513,7 +1513,7 @@
 
 </div>
 
-<p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: This Week (Mon–today) • Trend: Automatic • Export adds breakdown + top 10 customers</p>
+<p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: All Time • Trend: Automatic • Export adds breakdown + top 10 customers</p>
 
 <div class="grid grid-4" style="margin-bottom:20px;">
 
@@ -1565,9 +1565,9 @@
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;">
 
-<h3 style="margin:0;font-size:0.95rem;" id="reportStackedTitle">Payment confirmation by day</h3>
+<h3 style="margin:0;font-size:0.95rem;" id="reportStackedTitle">Payment confirmation by month</h3>
 
-<span class="muted" style="font-size:0.75rem;" id="reportStackedPeriod">This week</span>
+<span class="muted" style="font-size:0.75rem;" id="reportStackedPeriod">Last 6 months</span>
 
 </div>
 
@@ -1631,9 +1631,9 @@
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
 
-<h3 style="margin:0;font-size:0.95rem;" id="reportOrdersBarTitle">New Orders by Day</h3>
+<h3 style="margin:0;font-size:0.95rem;" id="reportOrdersBarTitle">New Orders by Month</h3>
 
-<span class="muted" style="font-size:0.75rem;" id="reportOrdersBarSub">This week</span>
+<span class="muted" style="font-size:0.75rem;" id="reportOrdersBarSub">Last 6 months</span>
 
 </div>
 
@@ -1642,6 +1642,30 @@
 <p class="muted hidden" id="reportOrdersBarEmpty" style="text-align:center;padding:12px 0 0;">No orders yet.</p>
 
 </article>
+
+</div>
+
+<div class="grid grid-2">
+
+<div class="card form-card">
+
+<h3>Orders by Status</h3>
+
+<div style="position:relative;height:180px;">
+
+<canvas id="reportStatusChart" role="img" aria-label="Orders by status chart"></canvas>
+
+</div>
+
+</div>
+
+<div class="card form-card">
+
+<h3>Payment Summary</h3>
+
+<div id="reportPaymentSummary" style="padding:10px 0;"></div>
+
+</div>
 
 </div>
 
@@ -1684,30 +1708,6 @@
 </tbody>
 
 </table>
-
-</div>
-
-</div>
-
-<div class="grid grid-2">
-
-<div class="card form-card">
-
-<h3>Orders by Status</h3>
-
-<div style="position:relative;height:180px;">
-
-<canvas id="reportStatusChart" role="img" aria-label="Orders by status chart"></canvas>
-
-</div>
-
-</div>
-
-<div class="card form-card">
-
-<h3>Payment Summary</h3>
-
-<div id="reportPaymentSummary" style="padding:10px 0;"></div>
 
 </div>
 
@@ -2147,7 +2147,7 @@
 
 <script src="js/order-api.js?v=1.0.0"></script>
 <script src="js/order-payment.js?v=1.0.1"></script>
-<script src="js/admin.js?v=6.4.15"></script>
+<script src="js/admin.js?v=6.4.16"></script>
 
 <script src="js/frontend-enhancements.js?v=1.0.1"></script><script src="js/frontend-suite.js?v=6.4.2"></script><script src="js/premium.js?v=1.0.2"></script>
 

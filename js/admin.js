@@ -3482,7 +3482,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderReports(period) {
-    period = period || (document.getElementById('reportPeriod') || {}).value || 'week';
+    period = period || (document.getElementById('reportPeriod') || {}).value || 'all';
     var orders = getOrders();
     var dateRange = getReportDateRange(period);
     var filtered = filterOrdersByReportRange(orders, dateRange);
@@ -3777,7 +3777,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     var period = document.getElementById('reportPeriod');
-    var range = getReportDateRange(period ? period.value : 'week');
+    var range = getReportDateRange(period ? period.value : 'all');
     if (!range.valid) {
       showToast('Choose valid report start and end dates before printing.', true);
       return;
@@ -4604,7 +4604,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var rp=document.getElementById('reportPeriod');
       if(rp) rp.addEventListener('change', function(){ renderReports(this.value); });
       var tt=document.getElementById('reportTrendToggle');
-      if(tt) tt.addEventListener('change', function(){ reportTrendGranularity=this.value; renderReports((document.getElementById('reportPeriod')||{}).value||'week'); });
+      if(tt) tt.addEventListener('change', function(){ reportTrendGranularity=this.value; renderReports((document.getElementById('reportPeriod')||{}).value||'all'); });
       var startDate=document.getElementById('reportStartDate');
       var endDate=document.getElementById('reportEndDate');
       function applyCustomReportRange(){
@@ -4614,14 +4614,14 @@ document.addEventListener('DOMContentLoaded', function() {
       if(startDate) startDate.addEventListener('change', applyCustomReportRange);
       if(endDate) endDate.addEventListener('change', applyCustomReportRange);
       var productSelect=document.getElementById('reportProductFilter');
-      if(productSelect) productSelect.addEventListener('change', function(){ renderReports((rp||{}).value||'week'); });
+      if(productSelect) productSelect.addEventListener('change', function(){ renderReports((rp||{}).value||'all'); });
       var dl=document.getElementById('downloadReportBtn');
       if(dl) dl.addEventListener('click', function(){
         if (roleResolved && currentRole && !isProductAdminRole(currentRole)) {
           showToast('Only admins can download reports.', true);
           return;
         }
-        var period=(document.getElementById('reportPeriod')||{}).value||'week';
+        var period=(document.getElementById('reportPeriod')||{}).value||'all';
         var dateRange=getReportDateRange(period);
         if(!dateRange.valid){ showToast('Choose valid report start and end dates', true); return; }
         var filtered=filterOrdersByReportRange(getOrders(), dateRange);
