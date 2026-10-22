@@ -4047,14 +4047,22 @@ document.addEventListener('DOMContentLoaded', function() {
   var messagesLoadError = null;
   function fetchMessages(callback) {
     messagesLoadError = null;
-    firebase.firestore().collection('contact_messages').orderBy('createdAt','desc').limit(100).get().then(function(snap){
-      messagesCache = [];
-      snap.forEach(function(doc){
+    var collection = firebase.firestore().collection('contact_messages');
+    // Include legacy submissions that only have the original date field.
+    Promise.all(['createdAt', 'date'].map(function(field) {
+      return collection.orderBy(field, 'desc').limit(100).get();
+    })).then(function(snapshots){
+      var messagesById = new Map();
+      snapshots.forEach(function(snap) { snap.forEach(function(doc){
         var d = doc.data(); d._id = doc.id;
         if (d.createdAt && d.createdAt.toDate) d._time = d.createdAt.toDate().toLocaleString();
-        else d._time = d.createdAt ? String(d.createdAt) : '';
-        messagesCache.push(d);
-      });
+        else d._time = d.createdAt ? String(d.createdAt) : d.date ? new Date(d.date).toLocaleString() : '';
+        messagesById.set(doc.id, d);
+      }); });
+      function messageTime(message) {
+        return message.createdAt && message.createdAt.toDate ? message.createdAt.toDate().getTime() : Date.parse(message.createdAt || message.date || '') || 0;
+      }
+      messagesCache = Array.from(messagesById.values()).sort(function(a, b) { return messageTime(b) - messageTime(a); }).slice(0, 100);
       if (callback) callback(messagesCache);
       renderMessages();
     }).catch(function(err){

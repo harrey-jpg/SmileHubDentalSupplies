@@ -399,7 +399,7 @@
     function finishOnline() { savedOnline = true; finish(); }
     try {
       if (window.firebase && firebase.firestore) {
-        firebase.firestore().collection('contact_messages').add(record).then(finishOnline).catch(finish);
+        firebase.firestore().collection('contact_messages').add(Object.assign({}, record, { createdAt: firebase.firestore.FieldValue.serverTimestamp() })).then(finishOnline).catch(finish);
       } else {
         setTimeout(finish, 400);
       }
@@ -416,7 +416,7 @@
     if (!window.firebase || !firebase.firestore || !navigator.onLine) return;
     var remaining = pending.length;
     pending.forEach(function(msg) {
-      firebase.firestore().collection('contact_messages').add(msg).then(function() {
+      firebase.firestore().collection('contact_messages').add(Object.assign({}, msg, { createdAt: firebase.firestore.FieldValue.serverTimestamp() })).then(function() {
         try {
           var current = JSON.parse(localStorage.getItem(OUTBOX_KEY) || '[]');
           current.forEach(function(m) {
