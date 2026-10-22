@@ -408,6 +408,8 @@ input[type="checkbox"], input[type="radio"] {
 .thumbnails { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
 .thumbnail { border: 1px solid var(--border); border-radius: 10px; background: var(--white); padding: 8px; }
 .product-info h1 { margin: 0 0 10px; }
+.product-page .product-detail > *, .product-card { min-width: 0; }
+.product-page .product-info, .product-card :is(h3,.product-brand) { overflow-wrap: anywhere; }
 .rating-line { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .stars-svg { display: inline-flex; gap: 2px; color: #f0a320; }
 .sample-note { font-size: .75rem; color: var(--muted); font-style: italic; }
@@ -1602,3 +1604,38 @@ body:has(main.auth-experience) .back-to-top { bottom:24px; }
 
 /* verification badges/cards live in css/release-hardening.css (single source) */
 [data-delivery-retry][hidden] { display: none !important; }
+
+/* The form comes first in the DOM; the desktop benefits panel remains alongside it. */
+.login-page .auth-panel { grid-column: 2; grid-row: 1; }
+.login-page .auth-visual { grid-column: 1; grid-row: 1; }
+body.dark.login-page :is(.link-button, .auth-links a) { color: #7dd3fc; }
+.product-page .page-title { padding: 16px 0; background: var(--white); color: var(--text); border-radius: 0; }
+.product-page .page-title .crumbs { margin: 0; color: var(--muted); flex-wrap: wrap; }
+.product-page .page-title .crumbs a { color: var(--blue); }
+.product-page .product-info .buy-row { margin-top: 16px; }
+.product-page .product-info .spec-heading { margin-top: 28px; }
+@media (max-width: 850px) {
+  .login-page .auth-panel { grid-column: 1; grid-row: 1; border: 1px solid var(--border); border-radius: 20px 20px 0 0; }
+  .login-page .auth-visual { grid-column: 1; grid-row: 2; border-radius: 0 0 20px 20px; }
+}
+@media (max-width: 560px) {
+  .login-page .auth-wrap.auth-experience { margin-top: 16px; }
+  .login-page .auth-panel { padding: 24px 20px; }
+  .product-page .product-detail { gap: 20px; }
+  .product-page .product-gallery { padding: 12px; border-radius: 12px; }
+  .product-page .product-gallery-main { height: 200px; }
+  .product-page .product-gallery-main.gallery-tint { padding: 12px; border-radius: 10px; }
+  .product-page .product-gallery-main img { max-height: 176px; }
+  .product-page .gallery-note { margin: 8px 0 0; font-size: .8125rem; }
+  .product-page .product-info h1 { font-size: 1.625rem; line-height: 1.2; }
+  .product-page .buy-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-page .qty-stepper { grid-column: 1 / -1; justify-content: flex-start; }
+  .product-page .buy-row > button { justify-content: center; min-width: 0; white-space: normal; }
+}
+@media (max-width: 480px) {
+  .compare-tray { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .compare-tray strong { font-size: .8125rem; }
+  .compare-tray #trayCompareCount { font-size: .75rem; }
+  .compare-tray :is(#trayOpenCompare, #trayClearCompare) { min-height: 44px; }
+  .compare-tray #trayOpenCompare { white-space: nowrap; font-size: .8125rem; padding: 10px 12px; }
+}

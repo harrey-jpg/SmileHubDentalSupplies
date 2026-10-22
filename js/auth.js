@@ -610,12 +610,11 @@ function performLoginRedirect() {
     } catch (e) {}
   }
   if (typeof returnPage === 'string' && returnPage) {
-    var pathOnly = returnPage.split('?')[0].split('#')[0].split('/').pop();
-    var isSafe = /^[A-Za-z0-9._-]+\.html$/.test(pathOnly)
-      && returnPage.indexOf('//') === -1
-      && !returnPage.startsWith('/');
+    var pathOnly = returnPage.split('?')[0].split('#')[0];
+    var isSafe = /^[A-Za-z0-9_-]+\.html$/.test(pathOnly)
+      && !/[\\\u0000-\u0020\u007f]/.test(returnPage);
     var user = getCachedUser();
-    var canReturn = pathOnly.toLowerCase() !== 'admin.html'
+    var canReturn = ['admin.html', 'gcash-admin.html'].indexOf(pathOnly.toLowerCase()) === -1
       || (user && ['admin', 'staff', 'superadmin'].includes(user.role));
     if (isSafe && canReturn) {
       location.href = returnPage;

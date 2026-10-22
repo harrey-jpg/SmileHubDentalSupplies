@@ -77,6 +77,11 @@ function setupCheckout(f) {
     processPayment(order,total,callback){state.payments++;state.paymentOrder=order;callback(null,{status:'unpaid'});},
     SmileHubData:{saveOrder(order,callback){state.orderWrites.push({...order});state.orderCallback=callback;}} });
   context.window.validateCheckoutStep=()=>true;
+  context.window.SmileHubOrderApi = { request(action, payload) {
+    assert.equal(action, 'place');
+    state.orderWrites.push({ ...payload.order });
+    return new Promise((resolve, reject) => { state.orderCallback = error => error ? reject(error) : resolve({ order: payload.order }); });
+  } };
   const totals=checkout.slice(checkout.indexOf('  function getOrderTotals()'),checkout.indexOf('  function applyCouponFromInput()'));
   const start=checkout.indexOf('  var retryOrderSave = null;'),end=checkout.indexOf('\n  });\n});',start)+7;
   vm.runInContext(totals+checkout.slice(start,end),context);
@@ -92,7 +97,7 @@ test('Checkout requires current pricing, review after changes, and frozen order-
   const checking=submit();await next();const duplicate=submit();state.readResolve();await checking;await duplicate;
   assert.equal(state.payments,0);assert.equal(state.summary,200);assert.match(element('checkoutDeliveryStatus').textContent,/pricing changed/);
   const confirmed=submit();await next();state.readResolve();await confirmed;assert.equal(state.payments,1);assert.equal(state.orderWrites[0].shipping,200);
-  const original=JSON.stringify(state.orderWrites[0]);state.orderCallback(new Error('offline'));
+  const original=JSON.stringify(state.orderWrites[0]);state.orderCallback(new Error('offline'));await next();
   api.apply({standardFee:999,freeShippingThreshold:9999});
   const reads=state.reads;await submit();assert.equal(state.payments,1);assert.equal(state.reads,reads);assert.equal(JSON.stringify(state.orderWrites[1]),original);
 });

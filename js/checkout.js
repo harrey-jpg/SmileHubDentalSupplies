@@ -54,23 +54,38 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('paymentReturnOrder').textContent = orderId;
   title.focus();
   retry.addEventListener('click', async function() {
+    if (retry.disabled) return;
     retry.disabled = true;
+    var retryLabel = retry.textContent;
+    retry.textContent = 'Checking payment…';
     try {
+      var status = await paymongoRequest('status', orderId);
+      showPaymentStatus(status);
+      if (status.paid === true || retryLabel === 'Check payment status') return;
       var session = await paymongoRequest('checkout', orderId);
       if (session.mode !== 'test' || new URL(session.url).origin !== 'https://checkout.paymongo.com') throw new Error('Invalid test checkout.');
       window.location.href = session.url;
-    } catch (error) { notice.textContent = error.message; retry.disabled = false; }
+    } catch (error) {
+      title.textContent = 'Unable to confirm payment';
+      notice.textContent = 'We could not confirm your payment. Check its status before trying another payment. ' + error.message;
+      retry.textContent = 'Check payment status';
+      retry.hidden = false;
+    } finally { retry.disabled = false; }
   });
+  function showPaymentStatus(data) {
+    retry.hidden = data.paid === true;
+    retry.textContent = 'Retry payment';
+    title.textContent = data.paid ? 'Payment confirmed' : data.outcome === 'failed' ? 'Payment failed' : 'Payment not completed';
+    notice.textContent = data.paid ? 'Payment confirmed. View the order in Your Orders.'
+      : data.outcome === 'failed' ? 'Payment failed. Retry this saved order below.' : 'Payment is pending or cancelled. Check Your Orders for updates.';
+  }
   var checked = false;
   firebase.auth().onAuthStateChanged(function(user) {
     if (!user) { notice.textContent = 'Sign in to check your payment in this account.'; return; }
     if (checked) return; checked = true;
     paymongoRequest('status', orderId).then(function(data) {
-      retry.hidden = data.paid === true;
-      title.textContent = data.paid ? 'Payment confirmed' : data.outcome === 'failed' ? 'Payment failed' : 'Payment not completed';
-      notice.textContent = data.paid ? 'Payment confirmed. View the order in Your Orders.'
-        : data.outcome === 'failed' ? 'Payment failed. Retry this saved order below.' : 'Payment is pending or cancelled. Check Your Orders for updates.';
-    }).catch(function(error) { title.textContent = 'Unable to confirm payment'; notice.textContent = error.message; retry.hidden = false; });
+      showPaymentStatus(data);
+    }).catch(function(error) { title.textContent = 'Unable to confirm payment'; notice.textContent = 'Check payment status before trying another payment. ' + error.message; retry.textContent = 'Check payment status'; retry.hidden = false; });
   });
 });
 var GOOGLE_MAPS_KEY = ''; // Set your Google Maps API key for address autocomplete

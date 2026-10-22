@@ -239,6 +239,25 @@ body.admin-body button[hidden] { display: none !important; }
 body.admin-body .quick-rail { display: flex; flex-wrap: wrap; gap: 10px; }
 body.admin-body .rail-link + .rail-link { margin-left: 0; }
 body.admin-body .rail-link + .rail-link::before { content: none; }
+/* Stock updates contain a text label rather than an icon. */
+body.admin-body .icon-btn.update-stock {
+  width: auto !important;
+  min-width: 76px;
+  padding-inline: 12px !important;
+}
+body.admin-body .admin-data-scroll:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+body.admin-body .admin-scroll-hint { display: none; }
+@media (max-width: 640px) {
+  body.admin-body .admin-scroll-hint { display: block; margin: 0 0 8px; color: var(--muted); font-size: .8125rem; }
+  body.admin-body .admin-data-scroll table { min-width: 880px; }
+  body.admin-body #products .admin-data-scroll table { min-width: 1040px; }
+  body.admin-body .admin-data-scroll :is(th,td) { padding: 12px; }
+  body.admin-body .admin-data-scroll :is(.price-strong,.status) { white-space: nowrap; }
+  body.admin-body .admin-data-scroll input[type="checkbox"] { width: 24px; height: 24px; }
+}
 @media (prefers-reduced-motion: reduce) {
   body.admin-body :is(.btn, .rail-link, .dash-link, .icon-btn, .theme-button, .modal-close) { transition: none; }
 }

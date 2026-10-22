@@ -18,8 +18,17 @@
   window.showPremiumToast = SH.toast;
 
   function addAccessibility(){
-    if(!$(".sh-skip")) document.body.insertAdjacentHTML("afterbegin",'<a class="sh-skip" href="#main-content">Skip to content</a>');
-    const main=$("main"); if(main&&!main.id) main.id="main-content";
+    const main=$("main");
+    if(main){
+      if(!main.id) main.id="main-content";
+      if(!main.hasAttribute("tabindex")) main.setAttribute("tabindex","-1");
+      const target="#"+main.id;
+      const skip=$$('a[href^="#"]').find(a=>a.getAttribute("href")===target && /skip/i.test(a.className+" "+a.textContent));
+      if(!skip){
+        const link=document.createElement("a"); link.className="sh-skip"; link.href=target; link.textContent="Skip to content";
+        document.body.prepend(link);
+      }
+    }
     $$("img:not([alt])").forEach(i=>i.alt="");
     // Typeless standalone buttons must not submit anything, but typeless
     // buttons INSIDE a form default to submit — converting them breaks

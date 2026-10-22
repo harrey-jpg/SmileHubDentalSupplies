@@ -39,12 +39,27 @@ function setup(role = 'customer') {
   await test.context.redirectAfterLogin();
   assert.equal(test.context.location.href, 'homepage.html');
   assert(!test.values.has('return'));
+  for (const destination of ['gcash-admin.html?embedded=1', '../admin.html', './admin.html', 'folder/../admin.html', 'https://example.com/orders.html', '//example.com/orders.html', 'javascript:alert(1)/orders.html', 'folder\\admin.html', 'orders.html\n']) {
+    test = setup(); test.values.set('return', destination);
+    await test.context.redirectAfterLogin();
+    assert.equal(test.context.location.href, 'homepage.html', destination);
+    assert(!test.values.has('return'));
+  }
   for (const role of ['admin', 'staff', 'superadmin']) {
     test = setup(role); test.values.set('return', 'admin.html?tab=orders');
     await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'admin.html?tab=orders');
+    test = setup(role); test.values.set('return', 'gcash-admin.html?embedded=1');
+    await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'gcash-admin.html?embedded=1');
   }
   test = setup(); test.values.set('return', 'orders.html?status=pending');
   await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'orders.html?status=pending');
+  test = setup(); test.state.user = null;
+  assert.equal(test.context.requireLogin('compare.html'), false);
+  assert.equal(test.context.location.href, 'login.html?message=signin');
+  assert.equal(test.values.get('return'), 'compare.html');
+  test.state.user = test.auth.currentUser;
+  await test.context.redirectAfterLogin();
+  assert.equal(test.context.location.href, 'compare.html');
   test = setup('admin'); test.context.resolvedAuthUid = null; test.values.set('return', 'admin.html');
   const delayed = test.context.redirectAfterLogin();
   await Promise.resolve(); assert.equal(test.context.location.href, '');

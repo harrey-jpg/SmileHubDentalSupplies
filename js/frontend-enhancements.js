@@ -27,7 +27,9 @@
       var label = document.querySelector('label[for="' + field.id + '"]');
       if (!label) {
         var parentLabel = field.closest('label');
-        if (!parentLabel) field.setAttribute('aria-label', field.name || field.placeholder || field.id);
+        if (!parentLabel && !field.hasAttribute('aria-label') && !field.hasAttribute('aria-labelledby')) {
+          field.setAttribute('aria-label', field.placeholder || field.name || field.id);
+        }
       }
       field.addEventListener('invalid', function () {
         field.setAttribute('aria-invalid', 'true');

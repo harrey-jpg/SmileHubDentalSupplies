@@ -12,7 +12,7 @@
 <meta property="og:image" content="assets/og-cover.png"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Product Details | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.5" rel="stylesheet"/>
 <link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -21,18 +21,18 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.4">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.8.1">
-<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.10">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.1">
 <link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
 </head>
-<body class="">
+<body class="product-page">
 <div class="topbar">
 <div class="container"><span><span data-delivery-message="promotion">Free shipping on orders over ₱3,000</span></span> <span>Metro Manila delivery • Mon–Sat</span></div>
 </div>
 <header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
-<img alt="SmileHub logo" src="assets/Icon.png"/>
+<img alt="SmileHub logo" src="assets/icon-192.png" width="44" height="44" loading="eager"/>
 <span>
             SmileHub
             <br/>
@@ -87,18 +87,15 @@
 </div>
 </nav>
 </header>
-<section class="page-title hero-band compact">
+<section class="page-title">
 <div class="container">
 <nav class="crumbs" aria-label="Breadcrumb">
 <a href="homepage.html">Home</a>
 <span aria-hidden="true">/</span>
 <a href="products.html">Catalog</a>
 <span aria-hidden="true">/</span>
-<span aria-current="page">Product Details</span>
+<span aria-current="page" id="crumbProductName">Product Details</span>
 </nav>
-<div class="eyebrow">Product details</div>
-<h1 id="crumbProductName">Product Details</h1>
-<p>Images, specifications, ratings, and live stock information.</p>
 </div>
 </section>
 <main class="section-sm">
@@ -107,7 +104,7 @@
 <section class="product-gallery" aria-label="Product image">
 <div class="product-gallery-main gallery-tint" id="detailGalleryMain">
 <span class="gallery-chip" id="detailGalleryChip">Oral Care</span>
-<img alt="Product image" id="detailImage" src="assets/products/oral-care.svg"/>
+<img alt="Product image" id="detailImage" src="assets/products/oral-care.svg" loading="eager" fetchpriority="high"/>
 </div>
 <p class="gallery-note muted">Catalog image shown. Actual packaging may vary.</p>
 </section>
@@ -119,10 +116,6 @@
 <div class="big-price" id="detailPrice">₱0.00</div>
 <span class="stock-box is-in" id="detailStock">Checking stock…</span>
 <p id="detailDescription">Loading description…</p>
-<h2>Specifications</h2>
-<ul class="spec-list" id="detailSpecs">
-<li>Loading…</li>
-</ul>
 <div class="buy-row">
 <div class="qty-stepper">
 <button class="qty-btn" id="qtyMinus" type="button" aria-label="Decrease quantity">−</button>
@@ -140,6 +133,11 @@
 <li><svg width="16" height="16" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M200 148a88 88 0 1 1-8.4-37.4M200 32v40h-40" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/></svg> Invoice and return information</li>
 </ul>
 <p class="buy-explainer muted">Add to Cart keeps shopping. Buy Now jumps straight to checkout without clearing your cart.</p>
+<h2 class="spec-heading">Specifications</h2>
+<ul class="spec-list" id="detailSpecs">
+<li>Loading…</li>
+</ul>
+
 </section>
 </div>
 <div class="card not-found-card hidden" id="productNotFound">
@@ -250,8 +248,8 @@
 <script src="js/shared-data.js?v=1.0.0"></script>
 <script src="js/firestore-data.js"></script>
 <script src="js/chatbot.js?v=1.0.1"></script>
-<script src="js/product.js?v=6.3.0"></script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
+<script src="js/product.js?v=6.3.2"></script>
+<script src="js/frontend-enhancements.js?v=1.0.1"></script><script src="js/frontend-suite.js?v=6.4.2"></script><script src="js/premium.js?v=1.0.2"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 
 <script src="js/final-polish.js?v=6.3.0"></script>

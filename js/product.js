@@ -97,7 +97,7 @@ function renderRelatedRail(category, currentId) {
   if (!grid) return;
   var empty = document.getElementById('relatedEmpty');
   grid.setAttribute('aria-busy', 'true');
-  getProducts(function(list) {
+  function renderRelated(list) {
     grid.setAttribute('aria-busy', 'false');
     var picks = (list || []).filter(function(p) {
       return p.category === category && Number(p.id) !== Number(currentId) && Number(p.stock) > 0;
@@ -151,7 +151,9 @@ function renderRelatedRail(category, currentId) {
         buyNow(btn);
       });
     });
-  });
+  }
+  if (cachedProductList.length) renderRelated(cachedProductList);
+  else getProducts(renderRelated);
 }
 
 function clampQty(value, max) {
@@ -227,6 +229,10 @@ document.addEventListener('DOMContentLoaded', function() {
   function showNotFound() {
     detailLoaded = true;
     clearTimeout(loadTimer);
+    var title = document.getElementById('notFoundTitle');
+    var text = document.getElementById('notFoundText');
+    if (title) title.textContent = 'Product not found';
+    if (text) text.textContent = 'This product is not available in the catalog. Browse the catalog to find another product.';
     if (detail) { detail.classList.add('hidden'); detail.setAttribute('aria-hidden', 'true'); }
     if (tabs) { tabs.classList.add('hidden'); tabs.setAttribute('aria-hidden', 'true'); }
     var action = document.getElementById('notFoundAction');
@@ -262,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function retryDetails() {
     detailLoaded = false;
     if (notFound) notFound.classList.add('hidden');
-    if (detail) { detail.classList.remove('hidden'); detail.classList.add('is-loading'); detail.setAttribute('aria-busy', 'true'); }
+    if (detail) { detail.classList.remove('hidden'); detail.removeAttribute('aria-hidden'); detail.classList.add('is-loading'); detail.setAttribute('aria-busy', 'true'); }
     if (tabs) { tabs.classList.remove('hidden'); tabs.removeAttribute('aria-hidden'); }
     clearTimeout(loadTimer);
     loadTimer = setTimeout(function() {
@@ -291,7 +297,9 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    if (detail) { detail.classList.remove('is-loading'); detail.setAttribute('aria-busy', 'false'); }
+    if (notFound) { notFound.classList.add('hidden'); notFound.setAttribute('aria-hidden', 'true'); }
+    if (detail) { detail.classList.remove('hidden', 'is-loading'); detail.removeAttribute('aria-hidden'); detail.setAttribute('aria-busy', 'false'); }
+    if (tabs) { tabs.classList.remove('hidden'); tabs.removeAttribute('aria-hidden'); }
     paintHeaderRating(id);
 
     document.getElementById('detailName').textContent = product.name;

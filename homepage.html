@@ -12,7 +12,7 @@
 <meta property="og:image" content="assets/og-cover.png"/>
 <meta content="SmileHub Dental Supplies - dental products for clinics, dentists and students in the Philippines." name="description"/>
 <title>Home | SmileHub Dental Supplies</title>
-<link href="css/style.css?v=6.3.3" rel="stylesheet"/>
+<link href="css/style.css?v=6.3.5" rel="stylesheet"/>
 <link href="css/premium.css?v=6.3.2" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -21,8 +21,8 @@
 <script defer="" src="js/auth.js"></script>
   <link rel="stylesheet" href="css/release-hardening.css?v=6.3.1">
 <link rel="stylesheet" href="css/final-polish.css?v=6.3.4">
-<link rel="stylesheet" href="css/home-refresh.css?v=1.8.9">
-<link rel="stylesheet" href="css/navbar.css?v=1.0.0">
+<link rel="stylesheet" href="css/home-refresh.css?v=1.8.10">
+<link rel="stylesheet" href="css/navbar.css?v=1.0.1">
 <link rel="stylesheet" href="css/shopping-actions.css?v=1.0.0">
 </head>
 <body class="store-home">
@@ -32,7 +32,7 @@
 <header class="header store-navbar">
 <div class="container header-main">
 <a class="logo" href="homepage.html">
-<img alt="SmileHub logo" src="assets/Icon.png"/>
+<img alt="SmileHub logo" src="assets/icon-192.png" width="44" height="44" loading="eager"/>
 <span>
             SmileHub
             <br/>
@@ -100,23 +100,20 @@
 <a class="btn btn-primary" href="products.html">Shop Products</a>
 <a class="btn btn-light" href="contact.html?topic=Product%20Inquiry">Get Bulk Quote</a>
 </div>
-<div class="hero-proof">
-<div class="avatar-cluster" aria-hidden="true"><span>DR</span><span>MD</span><span>SC</span><span>+</span></div>
-<div><span class="stars" role="img" aria-label="Rated 4.9 out of 5">★★★★★</span><br/><small>Loved by clinics, dentists, and students across the Philippines</small></div>
-</div>
+<p class="hero-proof">For clinics, practitioners, and dental students across the Philippines.</p>
 <div class="trust-strip" aria-label="Trust signals">
 <div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><rect x="48" y="112" width="160" height="112" rx="24" stroke="currentColor" stroke-width="22"/><path d="M80 112V88a48 48 0 0 1 96 0v24" stroke="currentColor" stroke-width="22" stroke-linecap="round"/></svg> Protected account experience</strong><small>Your data is protected and your experience is secure.</small></div>
 <div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M16 96h136v96H16zM152 128h40l32 32v32h-72" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><circle cx="56" cy="200" r="16" stroke="currentColor" stroke-width="22"/><circle cx="184" cy="200" r="16" stroke="currentColor" stroke-width="22"/></svg> Delivery</strong><small>Metro Manila Mon–Sat</small></div>
-<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M232 56 88 200l-56-56" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg> Quality</strong><small>Verified products</small></div>
+<div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M232 56 88 200l-56-56" stroke="currentColor" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/></svg> Quality</strong><small>Specifications and stock</small></div>
 <div class="trust-item"><strong><svg width="15" height="15" viewBox="0 0 256 256" fill="none" aria-hidden="true"><path d="M48 176v-64a80 80 0 0 1 160 0v64" stroke="currentColor" stroke-width="22" stroke-linecap="round"/><rect x="24" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="22"/><rect x="176" y="168" width="56" height="64" rx="16" stroke="currentColor" stroke-width="22"/></svg> Support</strong><small>Responsive help</small></div>
 </div>
 </div>
 <div class="hero-card">
 <span class="float-card fc-ship"><span class="dot" aria-hidden="true"></span><span data-delivery-message="promotion">Free shipping over ₱3,000</span></span>
-<img alt="Dental equipment illustration" src="assets/products/equipment.svg"/>
+<img alt="Dental equipment illustration" src="assets/products/equipment.svg" loading="eager" fetchpriority="high"/>
 <h2>Clinic essentials, all in one hub</h2>
 <p class="muted">From oral care and PPE to restorative materials and equipment.</p>
-<span class="float-card fc-rate"><span aria-hidden="true">★★★★★</span> 99% satisfaction <a href="about.html" class="muted" style="font-size:0.78rem; text-decoration:underline;">(based on 3 demo testimonials)</a></span>
+<span class="float-card fc-rate"><a href="products.html">Browse dental supplies</a></span>
 </div>
 </div>
 </div>
@@ -150,7 +147,7 @@
 </div>
 <section class="section-sm stat-band" style="background: var(--sky);">
 <div class="container">
-<div class="trust-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center;">
+<div class="trust-stats" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; text-align: center;">
 <div class="stat">
 <div class="stat-value" data-count="57">0</div>
 <div class="stat-label muted">Products</div>
@@ -159,14 +156,8 @@
 <div class="stat-value" data-count="10">0</div>
 <div class="stat-label muted">Categories</div>
 </div>
-<div class="stat">
-<div class="stat-value" data-count="99">0</div>
-<div class="stat-label muted">% Satisfaction</div>
-</div>
-<div class="stat">
-<div class="stat-value" data-count="24">0</div>
-<div class="stat-label muted">Hour Support</div>
-</div>
+
+
 </div>
 </div>
 </section>
@@ -282,27 +273,27 @@
 <div class="container">
 <div class="testi-band">
 <div class="text-center">
-<div class="eyebrow">Patient-style trust, clinic-grade proof</div>
-<h2 class="section-title">What Customers Say</h2>
+<h2 class="section-title">Sample Customer Feedback</h2>
+<p class="muted">Illustrative scenarios for this academic project, not verified customer reviews.</p>
 </div>
 <div class="grid grid-3">
 <article class="card testimonial">
-<div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
+
 <p>"Composite and bonding that actually matches the shade guide. My Class II restorations have never finished faster."</p>
-<strong>Dr. Angela Reyes</strong>
-<div class="muted">General Dentist · <span class="verified-tag">✓ Verified order · Restorative</span></div>
+<strong>Example clinic feedback</strong>
+<div class="muted">General Dentist · <span class="verified-tag">Sample scenario · Restorative</span></div>
 </article>
 <article class="card testimonial">
-<div class="stars stars-svg" role="img" aria-label="Rated 5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
+
 <p>"Built my whole requirements kit — mirror, explorer, and hygiene essentials — without breaking my allowance. Sizing exchanges were painless."</p>
-<strong>Mark Dela Cruz</strong>
-<div class="muted">Dental Student · <span class="verified-tag">✓ Verified order · Student kit</span></div>
+<strong>Example student feedback</strong>
+<div class="muted">Dental Student · <span class="verified-tag">Sample scenario · Student kit</span></div>
 </article>
 <article class="card testimonial">
-<div class="stars stars-svg" role="img" aria-label="Rated 4.5 out of 5"><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="currentColor" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg><svg width="16" height="16" viewBox="0 0 256 256" aria-hidden="true"><path d="M128 32l30 62 68 10-49 48 12 68-61-32-61 32 12-68-49-48 68-10Z" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"/></svg></div>
+
 <p>"Restocked PPE and disposables for our 30-chair clinic in two days — with a proper invoice for accounting and 7-day returns behind it."</p>
-<strong>SmileCare Clinic</strong>
-<div class="muted">Quezon City · <span class="verified-tag">✓ Verified order · PPE restock</span></div>
+<strong>Example practice feedback</strong>
+<div class="muted">Quezon City · <span class="verified-tag">Sample scenario · PPE restock</span></div>
 </article>
 </div>
 <div class="testi-more"><a class="link-button" href="about.html">Read more about us →</a></div>
@@ -778,7 +769,7 @@
 
     </script>
 <script src="js/store-information.js?v=1.0.0"></script>
-<script src="js/frontend-enhancements.js"></script><script src="js/frontend-suite.js?v=6.4.0"></script><script src="js/premium.js?v=1.0.1"></script>
+<script src="js/frontend-enhancements.js?v=1.0.1"></script><script src="js/frontend-suite.js?v=6.4.2"></script><script src="js/premium.js?v=1.0.2"></script>
   <script src="js/release-hardening.js?v=6.3.0"></script>
 <script src="js/final-polish.js?v=6.3.0"></script>
 </body>

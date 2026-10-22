@@ -24,6 +24,8 @@
     function render(){
       var names=document.getElementById('trayCompareNames'), count=document.getElementById('trayCompareCount');
       count.textContent=selected.length+' selected'; names.innerHTML=selected.map(function(x){return '<span>'+esc(x.name)+'</span>';}).join('');
+      var user=window.SmileHubAuth && window.SmileHubAuth.getLoggedInUser();
+      document.getElementById('trayOpenCompare').textContent=user?'Compare now':'Sign in to compare';
       tray.classList.toggle('hidden', selected.length===0);
       document.body.classList.toggle('has-compare', selected.length>0);
     }
@@ -56,8 +58,12 @@
     }
     new MutationObserver(attach).observe(document.getElementById('productGrid'),{childList:true,subtree:true});
     attach(); render();
+    document.addEventListener('authReady',render);
     document.getElementById('trayClearCompare').onclick=function(){selected=[];STORE.set('smilehub_compare',[]);document.querySelectorAll('[data-compare-btn]').forEach(function(b){b.textContent='+ Compare';b.setAttribute('aria-pressed','false');});render();};
-    document.getElementById('trayOpenCompare').onclick=function(){location.href='compare.html';};
+    document.getElementById('trayOpenCompare').onclick=function(){
+      if(window.SmileHubAuth && !window.SmileHubAuth.requireLogin('compare.html'))return;
+      location.href='compare.html';
+    };
   }
 
   function currentProductId(){
@@ -280,7 +286,10 @@
   }
 
   function initGlobal(){
-    document.querySelectorAll('img').forEach(function(i){i.loading='lazy';});
+    document.querySelectorAll('img').forEach(function(i){
+      if(i.closest('.header')) i.loading='eager';
+      else if(!i.hasAttribute('loading')) i.loading='lazy';
+    });
     document.querySelectorAll('button:not([aria-label]),a.icon-link:not([aria-label])').forEach(function(el){if(!el.textContent.trim() && el.title)el.setAttribute('aria-label',el.title);});
     var header=document.querySelector('.header-actions');
   }
