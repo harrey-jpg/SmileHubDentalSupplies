@@ -47,9 +47,24 @@ function setup(role = 'customer') {
   }
   for (const role of ['admin', 'staff', 'superadmin']) {
     test = setup(role); test.values.set('return', 'admin.html?tab=orders');
-    await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'admin.html?tab=orders');
+    await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'admin.html');
     test = setup(role); test.values.set('return', 'gcash-admin.html?embedded=1');
-    await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'gcash-admin.html?embedded=1');
+    await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'admin.html');
+    for (const type of ['buy', 'cart', 'wish']) {
+      test = setup(role); test.state.pending = { type, item: { id: 1 } };
+      test.values.set('return', 'checkout.html');
+      await test.context.redirectAfterLogin();
+      assert.equal(test.context.location.href, 'admin.html');
+      assert.equal(test.state.pending, null);
+      assert.equal(test.state.cart.length, 0);
+      assert(!test.values.has('smilehub_buy_now'));
+    }
+    test = setup(role); test.context.currentPage = 'checkout.html';
+    test.context.protectPage();
+    assert.equal(test.context.location.href, 'admin.html');
+    test = setup(role); test.context.currentPage = 'admin.html';
+    test.context.protectPage();
+    assert.equal(test.context.location.href, '');
   }
   test = setup(); test.values.set('return', 'orders.html?status=pending');
   await test.context.redirectAfterLogin(); assert.equal(test.context.location.href, 'orders.html?status=pending');

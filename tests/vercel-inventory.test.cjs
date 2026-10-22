@@ -19,6 +19,12 @@ const db = { collection: name => ({ doc: id => ref(name + '/' + id) }), runTrans
 async function run() {
   const service = create(db), buyer = { uid: 'buyer' }, admin = { uid: 'admin' };
   const input = { number: 'SH-inventory', userId: 'spoof', payment: 'Bank Transfer (Simulation)', paymentStatus: 'paid', total: 374, items: [{ productId: 1, quantity: 2 }] };
+  for (const role of ['admin', 'staff', 'superadmin']) {
+    records.set('users/privileged', { role });
+    await assert.rejects(service.place({ ...input, number: 'SH-blocked-' + role }, { uid: 'privileged' }), error => error.status === 403);
+    assert(!records.has('orders/SH-blocked-' + role));
+    assert.equal(records.get('products/1').stock, 5);
+  }
   const results = await Promise.all([service.place(input, buyer), service.place(input, buyer)]);
   assert.equal(records.get('products/1').stock, 3, 'Retry reserves stock once');
   assert.equal(results[0].userId, 'buyer'); assert.equal(results[0].paymentStatus, 'unpaid');

@@ -183,6 +183,7 @@ function savePendingAction(type, button) {
 }
 
 function addToCart(button) {
+  if (window.SmileHubAuth && window.SmileHubAuth.redirectStaffToDashboard && window.SmileHubAuth.redirectStaffToDashboard()) return;
   if (!customerIsLoggedIn()) {
     savePendingAction('cart', button);
     askUserToLogin(location.pathname.split('/').pop() + location.search);
@@ -256,6 +257,7 @@ function addToCart(button) {
 const BUY_NOW_KEY = 'smilehub_buy_now';
 
 function buyNow(button) {
+  if (window.SmileHubAuth && window.SmileHubAuth.redirectStaffToDashboard && window.SmileHubAuth.redirectStaffToDashboard()) return;
   if (!customerIsLoggedIn()) {
     savePendingAction('buy', button);
     askUserToLogin(location.pathname.split('/').pop() + location.search);

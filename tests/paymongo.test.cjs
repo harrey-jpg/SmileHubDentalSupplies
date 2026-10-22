@@ -42,6 +42,12 @@ async function run() {
     return res;
   }
   assert.equal((await request('checkout', undefined, 'invalid')).code, 401);
+  for (const role of ['admin', 'staff', 'superadmin']) {
+    records.set('users/buyer', { role });
+    for (const action of ['checkout', 'bank']) assert.equal((await request(action)).code, 403);
+    assert.equal(calls, 0);
+  }
+  records.set('users/buyer', { role: 'customer' });
   assert.equal((await request('checkout', { orderId: '../escape' })).code, 400);
   key = 'sk_live_placeholder';
   assert.equal((await request('checkout')).code, 502); assert.equal(calls, 0);

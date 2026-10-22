@@ -569,7 +569,17 @@ function waitForResolvedUser(uid) {
   });
 }
 
+function redirectStaffToDashboard() {
+  var user = getCachedUser();
+  if (!user || ['admin', 'staff', 'superadmin'].indexOf(user.role) === -1) return false;
+  SmileHubStorage.remove(RETURN_KEY);
+  consumePendingAction();
+  location.replace('admin.html');
+  return true;
+}
+
 function performLoginRedirect() {
+  if (redirectStaffToDashboard()) return;
   var returnPage = SmileHubStorage.get(RETURN_KEY, null);
   SmileHubStorage.remove(RETURN_KEY);
   // Restore anything the user tried to buy as a guest before the login gate.
@@ -843,6 +853,10 @@ function logoutUser() {
 
 function requireLogin(returnPage) {
   var user = getCachedUser();
+  if (user && ['admin', 'staff', 'superadmin'].indexOf(user.role) !== -1) {
+    redirectStaffToDashboard();
+    return false;
+  }
   if (user) return true;
   SmileHubStorage.set(RETURN_KEY, returnPage || currentPage + location.search);
   location.href = 'login.html?message=signin';
@@ -853,6 +867,8 @@ function protectPage() {
   if (intentionalLogout) return;
   try { if (window.__suspendKick) return; } catch (e) {}
   var user = getCachedUser();
+
+  if (currentPage !== 'admin.html' && currentPage !== 'gcash-admin.html' && redirectStaffToDashboard()) return;
 
   if (!PUBLIC_PAGES.includes(currentPage) && !user) {
     SmileHubStorage.set(RETURN_KEY, currentPage + location.search);
@@ -1023,6 +1039,7 @@ window.SmileHubAuth = {
   getLoggedInUser: getLoggedInUser,
   getCurrentAccount: getCurrentAccount,
   requireLogin: requireLogin,
+  redirectStaffToDashboard: redirectStaffToDashboard,
   logoutUser: logoutUser,
   showMessage: showAuthMessage,
   getAccounts: getAccounts,

@@ -64,11 +64,15 @@ module.exports = function createPayments({ db, auth, secret, fetch: request = fe
       try { user = await auth.verifyIdToken(token); } catch (_) { return res.status(401).json({ error: 'Sign in to continue.' }); }
       if (req.method === 'POST' && path === '/place') {
         try { return res.json({ order: await orders.place(req.body?.order, user) }); }
-        catch (_) { return res.status(409).json({ error: 'Order could not be saved. Check stock and current pricing before retrying.' }); }
+        catch (error) { return res.status(error.status === 403 ? 403 : 409).json({ error: error.status === 403 ? error.message : 'Order could not be saved. Check stock and current pricing before retrying.' }); }
       }
       if (req.method === 'POST' && path === '/order-status') {
         try { return res.json(await orders.changeStatus(req.body?.orderId, req.body?.status, user)); }
         catch (_) { return res.status(409).json({ error: 'Order status could not be changed. Check access, current status, and stock.' }); }
+      }
+      if (req.method === 'POST' && ['/checkout', '/bank'].includes(path)) {
+        const profile = await db.collection('users').doc(user.uid).get();
+        if (profile.exists && (profile.data().role || 'customer') !== 'customer') return res.status(403).json({ error: 'Only customer accounts can make purchases. Open the dashboard to manage the store.' });
       }
       const orderId = req.body?.orderId;
       if (typeof orderId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(orderId)) return res.status(400).json({ error: 'Invalid order.' });

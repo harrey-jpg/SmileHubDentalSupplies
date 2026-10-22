@@ -136,6 +136,8 @@ service cloud.firestore {
       // Both the existing website and the mobile app must initially create
       // Pending orders; this prevents forged Paid/Delivered orders for ANY method.
       allow create: if signedIn()
+        && (!exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          || userDoc().data.get('role', 'customer') == 'customer')
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.get('paymentStatus', 'unpaid') in ['unpaid', 'pending', 'Pending']
         && request.resource.data.get('gcashPaymentStatus', 'Pending Payment')

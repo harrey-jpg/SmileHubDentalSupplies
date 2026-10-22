@@ -20,13 +20,18 @@ module.exports = function orderService(db) {
     const counts = quantities(input.items), orderRef = db.collection('orders').doc(input.number);
     let saved;
     await db.runTransaction(async tx => {
+      const profile = await tx.get(db.collection('users').doc(user.uid));
+      if (profile.exists && (profile.data().role || 'customer') !== 'customer') {
+        const error = new Error('Only customer accounts can place orders. Open the dashboard to manage the store.');
+        error.status = 403;
+        throw error;
+      }
+      if (profile.exists && profile.data().status === 'suspended') throw new Error('Account suspended');
       const existing = await tx.get(orderRef);
       if (existing.exists) {
         if (existing.data().userId !== user.uid || !existing.data().inventoryManaged) throw new Error('Order number already used');
         saved = existing.data(); return;
       }
-      const profile = await tx.get(db.collection('users').doc(user.uid));
-      if (profile.exists && profile.data().status === 'suspended') throw new Error('Account suspended');
       const delivery = await tx.get(db.collection('cms').doc('delivery'));
       const settings = delivery.exists ? delivery.data() : { standardFee: 150, freeShippingThreshold: 3000 };
       if (![settings.standardFee, settings.freeShippingThreshold].every(v => Number.isFinite(v) && v >= 0)) throw new Error('Invalid delivery pricing');
