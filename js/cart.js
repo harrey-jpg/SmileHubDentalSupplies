@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   renderCart();
   updateCartCount(); // Hide badge if empty
-  refreshLiveCatalog(function() { reconcileCart(); });
+  refreshLiveCatalog(function(error) {
+    if (!error) reconcileCart();
+  });
 });
 
 var liveCatalog = null;
@@ -31,7 +33,12 @@ function refreshLiveCatalog(cb) {
       if (cb) cb();
       return;
     }
-    SmileHubData.getProducts(function(products) {
+    SmileHubData.getProducts(function(products, error) {
+      if (error) {
+        liveCatalog = null;
+        if (cb) cb(error);
+        return;
+      }
       liveCatalog = {};
       (products || []).forEach(function(p) {
         liveCatalog[Number(p.id)] = {
@@ -41,10 +48,10 @@ function refreshLiveCatalog(cb) {
           name: p.name || ''
         };
       });
-      if (cb) cb();
+      if (cb) cb(null);
     });
   } catch (e) {
-    if (cb) cb();
+    if (cb) cb(e);
   }
 }
 

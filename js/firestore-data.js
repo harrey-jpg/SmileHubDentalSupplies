@@ -1,5 +1,60 @@
 var db = firebase.firestore();
 
+var PRODUCT_DATA_CACHE_KEY = 'smilehub_products_cache_v2';
+var PRODUCT_DATA_CACHE_AT_KEY = 'smilehub_products_cache_at_v1';
+var PRODUCT_META_CACHE_AT_KEY = 'smilehub_products_meta_at_v1';
+var PRODUCT_DATA_CACHE_TTL_MS = 2 * 60 * 1000;
+var productDataCache = null;
+var productDataCacheAt = 0;
+var productsFetchPending = false;
+var productsFetchCallbacks = [];
+
+function copyProductList(products) {
+  return (Array.isArray(products) ? products : []).map(function(product) {
+    var copy = Object.assign({}, product);
+    if (Array.isArray(copy.specs)) copy.specs = copy.specs.slice();
+    return copy;
+  });
+}
+
+function readProductCache() {
+  if (productDataCache && productDataCacheAt) {
+    return { products: productDataCache, fetchedAt: productDataCacheAt };
+  }
+  if (!window.SmileHubStorage) return null;
+  var products = window.SmileHubStorage.get(PRODUCT_DATA_CACHE_KEY, null);
+  var fetchedAt = Number(window.SmileHubStorage.get(PRODUCT_DATA_CACHE_AT_KEY, 0));
+  if (!Array.isArray(products) || !products.length || !fetchedAt) return null;
+  productDataCache = copyProductList(products);
+  productDataCacheAt = fetchedAt;
+  return { products: productDataCache, fetchedAt: fetchedAt };
+}
+
+function productsCacheIsFresh() {
+  var cached = readProductCache();
+  var age = cached ? Date.now() - cached.fetchedAt : Infinity;
+  return age >= 0 && age < PRODUCT_DATA_CACHE_TTL_MS;
+}
+
+function storeProductCache(products) {
+  productDataCache = copyProductList(products);
+  productDataCacheAt = Date.now();
+  if (window.SmileHubStorage) {
+    window.SmileHubStorage.set(PRODUCT_DATA_CACHE_KEY, productDataCache);
+    window.SmileHubStorage.set(PRODUCT_DATA_CACHE_AT_KEY, productDataCacheAt);
+  }
+}
+
+function clearProductCache() {
+  productDataCache = null;
+  productDataCacheAt = 0;
+  if (!window.SmileHubStorage) return;
+  window.SmileHubStorage.remove(PRODUCT_DATA_CACHE_KEY);
+  window.SmileHubStorage.remove(PRODUCT_DATA_CACHE_AT_KEY);
+  window.SmileHubStorage.remove('smilehub_products_meta');
+  window.SmileHubStorage.remove(PRODUCT_META_CACHE_AT_KEY);
+}
+
 // Seeding demo data requires admin privileges. Track attempts per browser
 // session so non-admin visitors don't fire denied writes on every page load.
 function seedAlreadyAttempted(key) {
@@ -116,14 +171,38 @@ var categoryImages = {
   'Cosmetic': 'assets/products/cosmetic.svg'
 };
 
-function getProducts(callback) {
+function getProducts(callback, options) {
+  options = options || {};
+  var cached = readProductCache();
+  if (!options.forceRefresh && cached && productsCacheIsFresh()) {
+    if (callback) callback(copyProductList(cached.products));
+    return;
+  }
+  if (productsFetchPending) {
+    if (callback) productsFetchCallbacks.push(callback);
+    return;
+  }
+
+  productsFetchPending = true;
+  productsFetchCallbacks = callback ? [callback] : [];
+  function finish(products, error, cacheResult) {
+    if (cacheResult && !error) storeProductCache(products);
+    var result = copyProductList(products);
+    var callbacks = productsFetchCallbacks;
+    productsFetchCallbacks = [];
+    productsFetchPending = false;
+    callbacks.forEach(function(done) { done(copyProductList(result), error || null); });
+  }
+
   db.collection('products').orderBy('id', 'asc').get().then(function(snapshot) {
     var products = [];
     snapshot.forEach(function(doc) {
       products.push(doc.data());
     });
     if (products.length === 0 && canAttemptSeed('smilehub_seed_products')) {
-      seedDefaultProducts(callback);
+      seedDefaultProducts(function(seeded, error) {
+        finish(seeded, error, !error);
+      });
     } else {
       // One-shot merge for live DBs that already have 32 docs — add missing 25 without wiping edits
       var missing = defaultProducts.filter(function(dp){ return !products.some(function(p){ return p.id === dp.id; }); });
@@ -134,19 +213,19 @@ function getProducts(callback) {
         mergeBatch.commit().then(function(){
           var merged = products.concat(missing);
           merged.sort(function(a,b){ return a.id - b.id; });
-          callback(merged);
+          finish(merged, null, true);
         }).catch(function(err){
           console.warn('Could not merge missing products:', err);
-          callback(products.length ? products : defaultProducts);
+          finish(products.length ? products : defaultProducts, null, Boolean(products.length));
         });
         return;
       }
-      callback(products.length ? products : defaultProducts);
+      finish(products.length ? products : defaultProducts, null, true);
     }
   }).catch(function(error) {
     console.warn('Could not load products from Firestore:', error);
     noteLoadError(error);
-    callback(defaultProducts, error);
+    finish(cached && cached.products.length ? cached.products : defaultProducts, error, false);
   });
 }
 
@@ -181,6 +260,7 @@ function saveProducts(products, callback) {
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
   batch.commit().then(function() {
+    clearProductCache();
     if (callback) callback();
   }).catch(function(error) {
     console.warn('Could not save products to Firestore:', error);
@@ -189,10 +269,23 @@ function saveProducts(products, callback) {
 }
 
 function getProductsMeta(callback) {
+  var cachedAt = window.SmileHubStorage
+    ? Number(window.SmileHubStorage.get(PRODUCT_META_CACHE_AT_KEY, 0))
+    : 0;
+  if (cachedAt && Date.now() - cachedAt >= 0 && Date.now() - cachedAt < PRODUCT_DATA_CACHE_TTL_MS) {
+    if (callback) callback(window.SmileHubStorage.get('smilehub_products_meta', null));
+    return;
+  }
   db.collection('products_meta').doc('latest').get().then(function(doc) {
-    callback(doc.exists ? doc.data() : null);
+    var meta = doc.exists ? doc.data() : null;
+    if (window.SmileHubStorage) {
+      if (meta) window.SmileHubStorage.set('smilehub_products_meta', meta);
+      else window.SmileHubStorage.remove('smilehub_products_meta');
+      window.SmileHubStorage.set(PRODUCT_META_CACHE_AT_KEY, Date.now());
+    }
+    if (callback) callback(meta);
   }).catch(function() {
-    callback(null);
+    if (callback) callback(null);
   });
 }
 
@@ -218,7 +311,7 @@ function addProduct(data, callback) {
     saveProducts(products, function() {
       if (callback) callback(newProduct);
     });
-  });
+  }, { forceRefresh: true });
 }
 
 function updateProductById(id, data, callback) {
@@ -231,7 +324,7 @@ function updateProductById(id, data, callback) {
     saveProducts(products, function() {
       if (callback) callback(products[index]);
     });
-  });
+  }, { forceRefresh: true });
 }
 
 function deleteProductById(id, callback) {
@@ -241,7 +334,7 @@ function deleteProductById(id, callback) {
       db.collection('products').doc(String(id)).delete().catch(function() {});
       if (callback) callback();
     });
-  });
+  }, { forceRefresh: true });
 }
 
 function getLocalOrders() {
@@ -416,6 +509,7 @@ function saveCms(data, callback) {
 
 var SmileHubData = {
   getProducts: getProducts,
+  productsCacheIsFresh: productsCacheIsFresh,
   getProductsSync: getProductsSync,
   getProductsMeta: getProductsMeta,
   saveProducts: saveProducts,

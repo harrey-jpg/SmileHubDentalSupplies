@@ -22,16 +22,17 @@ const list = [{ id: 1, category: 'Instruments', stock: 5 }];
 const values = new Map();
 const grid = { setAttribute() {}, querySelectorAll: () => [] };
 const context = vm.createContext({
-  SmileHubStorage: { get: key => values.get(key), set: (key, value) => values.set(key, value) },
-  SmileHubData: { getProductsMeta(cb) { metaReads++; cb({ version: 1 }); }, getProducts(cb) { productReads++; cb(list); } },
+  SmileHubStorage: { get: key => key === 'smilehub_products_cache_v2' ? list : values.get(key), set: (key, value) => values.set(key, value) },
+  SmileHubData: { productsCacheIsFresh() { return true; }, getProductsMeta(cb) { metaReads++; cb({ version: 1 }); }, getProducts(cb) { productReads++; cb(list); } },
   document: { getElementById: id => id === 'relatedGrid' ? grid : { classList: { remove() {}, add() {} } } }
 });
 vm.runInContext(source.slice(0, source.indexOf('var STAR_PATH')) + source.slice(source.indexOf('function escHtml('), source.indexOf('function clampQty(')), context);
 context.getProductDetails(1, () => context.renderRelatedRail('Instruments', 1));
-assert.equal(metaReads, 1);
-assert.equal(productReads, 1);
+assert.equal(metaReads, 0, 'fresh product cache avoids metadata reads');
+assert.equal(productReads, 0, 'fresh product cache avoids product reads');
 assert.equal(grid.innerHTML, '');
 context.cachedProductList = [];
 context.renderRelatedRail('Instruments', 1);
-assert.equal(metaReads, 2); // Standalone rail still loads its data.
+assert.equal(metaReads, 0);
+assert.equal(productReads, 0, 'related-product rail reuses the fresh cache too');
 console.log('Performance: explicit image priority preserved; product and related rail share one catalog load.');

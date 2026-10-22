@@ -1505,15 +1505,15 @@
 
 <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:0.82rem;">To <input id="reportEndDate" type="date" aria-label="Report end date" style="padding:8px 9px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--text);"></label>
 
-<button class="btn btn-light" id="downloadReportBtn" data-role-btn="admin,superadmin" type="button" title="CSV includes monthly breakdown + top 10 customers for the selected period and granularity"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Download report</span></button>
+<button class="btn btn-light" id="downloadReportBtn" data-role-btn="admin,superadmin" type="button" title="Download a CSV with order detail, sales, payment, status, and customer summaries for this period"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 10l5 5 5-5"/><path d="M3 17v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/></svg><span>Download report</span></button>
 
-<button class="btn btn-light" id="printReportBtn" data-role-btn="admin,superadmin" type="button"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M10 14h4"/></svg><span>Print</span></button>
-
-</div>
+<button class="btn btn-light" id="printReportBtn" data-role-btn="admin,superadmin" type="button" title="Open a print-ready report; choose Save as PDF in the print dialog"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/><path d="M10 14h4"/></svg><span>Print / Save PDF</span></button>
 
 </div>
 
-<p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: All Time • Trend: Automatic • Export adds breakdown + top 10 customers</p>
+</div>
+
+<p class="muted" id="reportsScopeNote" style="font-size:0.82rem; margin:8px 0 12px;">Period: All Time • Trend: Automatic • Product filter applies to Sales by Product only • CSV includes order details and report summaries</p>
 
 <div class="grid grid-4" style="margin-bottom:20px;">
 
@@ -1543,7 +1543,7 @@
 
 <strong id="reportAvgOrder">₱0</strong>
 
-<small>Per order</small>
+<small>Per active order</small>
 
 </article>
 
@@ -1695,7 +1695,7 @@
 
 <th scope="col">Units Sold</th>
 
-<th scope="col">Order value</th>
+<th scope="col">Item value</th>
 
 </tr>
 
@@ -2147,7 +2147,8 @@
 
 <script src="js/order-api.js?v=1.0.0"></script>
 <script src="js/order-payment.js?v=1.0.1"></script>
-<script src="js/admin.js?v=6.4.16"></script>
+<script src="js/report-utils.js?v=1.0.0"></script>
+<script src="js/admin.js?v=6.4.17"></script>
 
 <script src="js/frontend-enhancements.js?v=1.0.1"></script><script src="js/frontend-suite.js?v=6.4.2"></script><script src="js/premium.js?v=1.0.2"></script>
 

@@ -17,33 +17,21 @@ var PRODUCTS_CACHE_KEY = 'smilehub_products_cache_v2';
 
 function getProducts(callback) {
   var cached = SmileHubStorage.get(PRODUCTS_CACHE_KEY, null);
-  var cachedMeta = SmileHubStorage.get('smilehub_products_meta', null);
-
-  function useCached() {
-    if (cached && cached.length > 0) {
-      cachedProductList = cached;
-      if (callback) callback(cached);
-      return true;
-    }
-    return false;
+  var cacheFresh = typeof SmileHubData.productsCacheIsFresh === 'function' && SmileHubData.productsCacheIsFresh();
+  if (cacheFresh && cached && cached.length > 0) {
+    cachedProductList = cached;
+    if (callback) callback(cached);
+    return;
   }
 
-  SmileHubData.getProductsMeta(function(meta) {
-    if (meta && cached && cached.length > 0 && cachedMeta && cachedMeta.version === meta.version) {
-      cachedProductList = cached;
-      if (callback) callback(cached);
-      return;
-    }
-    // Meta unavailable (e.g. offline): fall back to the cached copy.
-    if (!meta && useCached()) return;
-
-    SmileHubData.getProducts(function(data) {
-      cachedProductList = data;
-      SmileHubStorage.set(PRODUCTS_CACHE_KEY, data);
-      if (meta) SmileHubStorage.set('smilehub_products_meta', meta);
-      if (callback) callback(data);
-    });
-  });
+  // Reuse the short-lived product cache instead of reading product metadata
+  // from Firestore before every product detail or related-products load.
+  SmileHubData.getProducts(function(data, error) {
+    if (error && cached && cached.length > 0) data = cached;
+    cachedProductList = data || [];
+    if (!error) SmileHubStorage.set(PRODUCTS_CACHE_KEY, cachedProductList);
+    if (callback) callback(cachedProductList);
+  }, { forceRefresh: true });
 }
 
 function getProduct(id, callback) {

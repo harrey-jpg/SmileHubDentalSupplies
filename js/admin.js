@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
       updateDashboard();
       if (callback) callback(products);
     }
-    try { SmileHubData.getProducts(finish); } catch (error) { finish(null, error); }
+    try { SmileHubData.getProducts(finish, { forceRefresh: true }); } catch (error) { finish(null, error); }
     return products;
   }
 
@@ -143,6 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
     var s = String(v == null ? '' : v).replace(/[\r\n]+/g, ' ');
     if (/^[=+\-@\t]/.test(s)) s = "'" + s;
     return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  function downloadCsv(csv, filename) {
+    var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
   }
 
   function deepClone(o) {
@@ -1091,13 +1103,13 @@ document.addEventListener('DOMContentLoaded', function() {
     return ['Delivered','Cancelled','Returned','Refunded'].indexOf(status) !== -1;
   }
   function isPaymentConfirmed(order) {
-    return order.paymentStatus === 'paid' && isActiveOrder(order.status);
+    return String(order && order.paymentStatus || '').trim().toLowerCase() === 'paid' && isActiveOrder(order && order.status);
   }
   function needsOrderWork(order) {
     return ['Pending', 'Pending Payment', 'Pending Quotation', 'Processing', 'Shipped'].indexOf(order.status) !== -1;
   }
   function isActiveOrder(status) {
-    return ['Cancelled','Returned','Refunded'].indexOf(status) === -1;
+    return ['cancelled','canceled','returned','refunded'].indexOf(String(status || '').trim().toLowerCase()) === -1;
   }
 
   function renderCharts() {
@@ -3470,6 +3482,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var selected = select.value || 'all';
     var names = {};
     orders.forEach(function(order) {
+      if (!isActiveOrder(order.status)) return;
       (order.items || []).forEach(function(item) { names[item.name || 'Unknown'] = true; });
     });
     var sorted = Object.keys(names).sort(function(a, b) { return a.localeCompare(b); });
@@ -3487,53 +3500,29 @@ document.addEventListener('DOMContentLoaded', function() {
     var dateRange = getReportDateRange(period);
     var filtered = filterOrdersByReportRange(orders, dateRange);
     var productFilter = syncReportProductFilter(orders);
+    var reportData = window.SmileHubReportUtils.buildModel(filtered, productFilter);
     var reportBuckets = buildReportBuckets(dateRange, filtered, 'auto');
     var trendBuckets = buildReportBuckets(dateRange, filtered, reportTrendGranularity);
 
-    // Stats (revenue excludes Cancelled/Returned/Refunded)
+    // Keep every monetary and product metric on the same active-order basis.
     var totalOrders = filtered.length;
-    var revenueRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
-    var totalRevenue = revenueRows.reduce(function(sum, o) { return sum + (Number(o.total) || 0); }, 0);
-    var totalItems = filtered.reduce(function(sum, o) {
-      return sum + (o.items ? o.items.reduce(function(s, i) { return s + (Number(i.quantity) || 1); }, 0) : 0);
-    }, 0);
-    var avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    var totalRevenue = reportData.totalRevenue;
+    var totalItems = reportData.itemsSold;
+    var avgOrder = reportData.averageOrderValue;
 
     setText('reportTotalOrders', totalOrders);
-    setText('reportRevenue', '₱' + totalRevenue.toLocaleString('en-PH', {minimumFractionDigits: 2}));
-    setText('reportAvgOrder', '₱' + avgOrder.toLocaleString('en-PH', {minimumFractionDigits: 2}));
+    setText('reportRevenue', '₱' + window.SmileHubReportUtils.formatMoney(totalRevenue));
+    setText('reportAvgOrder', '₱' + window.SmileHubReportUtils.formatMoney(avgOrder));
     setText('reportItemsSold', totalItems);
-
-    // Product breakdown (orders = distinct orders containing the product)
-    var productMap = {};
-    var seenPerProduct = {};
-    filtered.forEach(function(o) {
-      if (o.items) {
-        o.items.forEach(function(item) {
-          var name = item.name || 'Unknown';
-          if (productFilter !== 'all' && name !== productFilter) return;
-          if (!productMap[name]) { productMap[name] = { orders: 0, units: 0, revenue: 0 }; seenPerProduct[name] = {}; }
-          var qty = Number(item.quantity) || 1;
-          productMap[name].units += qty;
-          productMap[name].revenue += qty * (Number(item.price) || 0);
-          var orderKey = o.number || o.docId;
-          if (orderKey && !seenPerProduct[name][orderKey]) {
-            seenPerProduct[name][orderKey] = true;
-            productMap[name].orders += 1;
-          }
-        });
-      }
-    });
 
     var body = document.getElementById('reportProductBody');
     if (body) {
-      var sorted = Object.keys(productMap).sort(function(a, b) { return productMap[b].revenue - productMap[a].revenue; });
+      var sorted = reportData.productRows;
       if (sorted.length === 0) {
         body.innerHTML = '<tr><td colspan="4" class="text-center muted" style="padding:30px;">No sales data yet</td></tr>';
       } else {
-        body.innerHTML = sorted.map(function(name) {
-          var p = productMap[name];
-          return '<tr><td><strong>' + escapeHtml(name) + '</strong></td><td>' + p.orders + '</td><td>' + p.units + '</td><td>₱' + p.revenue.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</td></tr>';
+        body.innerHTML = sorted.map(function(product) {
+          return '<tr><td><strong>' + escapeHtml(product.name) + '</strong></td><td>' + product.orders + '</td><td>' + product.units + '</td><td>₱' + window.SmileHubReportUtils.formatMoney(product.value) + '</td></tr>';
         }).join('');
       }
     }
@@ -3573,15 +3562,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Payment summary (cancelled/returned/refunded excluded from revenue)
     var summary = document.getElementById('reportPaymentSummary');
     if (summary) {
-      var validRows = filtered.filter(function(o) { return isActiveOrder(o.status); });
-      var totalVal = validRows.reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var pendingVal = validRows.filter(function(o) { return !isPaymentConfirmed(o); }).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
-      var completedVal = validRows.filter(isPaymentConfirmed).reduce(function(s, o) { return s + (Number(o.total) || 0); }, 0);
       summary.innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Order value (excl. cancelled, returned, refunded)</span><strong>₱' + totalVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Payment not confirmed (unpaid or no record)</span><strong style="color:#f0a320;">₱' + pendingVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Confirmed paid</span><strong style="color:#1e9b61;">₱' + completedVal.toLocaleString('en-PH', {minimumFractionDigits: 2}) + '</strong></div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Orders Count</span><strong>' + filtered.length + '</strong></div>';
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Order value (excl. cancelled, returned, refunded)</span><strong>₱' + window.SmileHubReportUtils.formatMoney(reportData.totalRevenue) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span>Payment not confirmed (unpaid or no record)</span><strong style="color:#f0a320;">₱' + window.SmileHubReportUtils.formatMoney(reportData.notConfirmed) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>Confirmed paid</span><strong style="color:#1e9b61;">₱' + window.SmileHubReportUtils.formatMoney(reportData.confirmedPaid) + '</strong></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid var(--border);margin-top:4px;"><span>Active orders</span><strong>' + reportData.activeOrderCount + '</strong></div>';
     }
     // Reports header sub + scope disclosure
     var repSub = document.getElementById('reportsSub');
@@ -3589,16 +3574,18 @@ document.addEventListener('DOMContentLoaded', function() {
     var labelForSub = dateRange.label;
     var granForSub = trendBuckets.mode === 'annually' ? 'Annually' : trendBuckets.mode === 'monthly' ? 'Monthly' : 'Daily';
     if (repSub) {
-      if (!orders.length && ordersLoadError) {
+      if (!ordersReady && ordersLoading) {
+        repSub.textContent = 'Loading orders for this report…';
+      } else if (ordersLoadError && !ordersReady) {
         repSub.textContent = 'Orders could not load. Check your connection and staff access, then refresh orders.';
       } else if (!dateRange.valid) {
         repSub.textContent = 'Choose both dates and make sure the end date is not before the start date.';
       } else {
-        repSub.textContent = labelForSub + ' • ' + filtered.length + ' orders • ₱' + totalVal.toLocaleString('en-PH',{minimumFractionDigits:2}) + ' live';
+        repSub.textContent = labelForSub + ' • ' + filtered.length + ' orders • ₱' + window.SmileHubReportUtils.formatMoney(totalRevenue) + ' live';
       }
     }
     if (scopeNote) {
-      scopeNote.textContent = (dateRange.valid ? 'Period: ' + labelForSub + ' • Trend: ' + (reportTrendGranularity === 'auto' ? 'Automatic (' + granForSub.toLowerCase() + ')' : granForSub) : dateRange.label) + ' • Product filter applies to Sales by Product • Export adds breakdown + top 10 customers';
+      scopeNote.textContent = (dateRange.valid ? 'Period: ' + labelForSub + ' • Trend: ' + (reportTrendGranularity === 'auto' ? 'Automatic (' + granForSub.toLowerCase() + ')' : granForSub) : dateRange.label) + ' • Product filter applies to Sales by Product only • CSV includes order detail and report summaries';
     }
     // Inspiration: 4-card grid — real-time, theme-aware
     try {
@@ -3744,28 +3731,15 @@ document.addEventListener('DOMContentLoaded', function() {
         var body=document.getElementById('reportTopCustomersBody');
         var sub=document.getElementById('reportTopCustomersSub');
         if(!body) return;
-        var map={};
-        var totalRev=0;
-        filtered.forEach(function(o){
-          if(!o.customer && !o.email) return;
-          // Group by email when available to avoid merging same-name customers.
-          var k=String(o.email||o.customer||'Unknown').toLowerCase().trim();
-          var label=(o.customer||o.email||'Unknown').trim();
-          if(!map[k]) map[k]={ customer:label, orders:0, revenue:0 };
-          map[k].orders+=1;
-          map[k].revenue+= Number(o.total)||0;
-          totalRev+= Number(o.total)||0;
-        });
-        var sorted=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,5);
+        var sorted=reportData.topCustomers.slice(0,5);
         if(sub) sub.textContent = sorted.length ? sorted.length + ' customers' : '';
         if(!sorted.length){
           body.innerHTML='<tr><td colspan="4" class="text-center muted" style="padding:24px;">No customers yet</td></tr>';
           return;
         }
-        body.innerHTML = sorted.map(function(k){
-          var m=map[k];
-          var share = totalRev ? Math.round((m.revenue/totalRev)*100) : 0;
-          return '<tr><td><strong>' + escapeHtml(m.customer) + '</strong></td><td>' + m.orders + '</td><td>₱' + m.revenue.toLocaleString('en-PH',{minimumFractionDigits:2}) + '</td><td><span style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;">' + share + '%<span style="display:inline-block;width:60px;height:6px;border-radius:999px;background:var(--muted-light);overflow:hidden;vertical-align:middle;"><span style="display:block;height:100%;width:' + share + '%;background:var(--blue);border-radius:999px;"></span></span></span></td></tr>';
+        body.innerHTML = sorted.map(function(customer){
+          var share = customer.share;
+          return '<tr><td><strong>' + escapeHtml(customer.customer) + '</strong></td><td>' + customer.orders + '</td><td>₱' + window.SmileHubReportUtils.formatMoney(customer.value) + '</td><td><span style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;">' + share + '%<span style="display:inline-block;width:60px;height:6px;border-radius:999px;background:var(--muted-light);overflow:hidden;vertical-align:middle;"><span style="display:block;height:100%;width:' + share + '%;background:var(--blue);border-radius:999px;"></span></span></span></td></tr>';
         }).join('');
       })();
     } catch(e){ console.warn('Reports inspiration render failed', e); }
@@ -3776,6 +3750,10 @@ document.addEventListener('DOMContentLoaded', function() {
       showToast('Only admins can print reports.', true);
       return;
     }
+    if (!ordersReady || ordersLoading) {
+      showToast('Orders are still loading. Try again in a moment.', true);
+      return;
+    }
     var period = document.getElementById('reportPeriod');
     var range = getReportDateRange(period ? period.value : 'all');
     if (!range.valid) {
@@ -3783,31 +3761,25 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     var productSelect = document.getElementById('reportProductFilter');
-    var selectedProduct = productSelect && productSelect.value !== 'all' ? productSelect.options[productSelect.selectedIndex].text : 'All products';
-    var label = range.label + ' • ' + selectedProduct;
-    var section = document.getElementById('reports');
-    if (!section) return;
+    var selectedProduct = productSelect && productSelect.value !== 'all' && productSelect.selectedIndex >= 0
+      ? productSelect.options[productSelect.selectedIndex].text
+      : 'All products';
+    var trend = reportTrendGranularity === 'auto' ? 'Automatic' : reportTrendGranularity.charAt(0).toUpperCase() + reportTrendGranularity.slice(1);
+    var filtered = filterOrdersByReportRange(getOrders(), range);
+    var html = window.SmileHubReportUtils.buildPrintHtml(filtered, {
+      periodLabel: range.label,
+      granularity: trend,
+      selectedProduct: selectedProduct,
+      productKey: productSelect ? productSelect.value : 'all',
+      generatedAt: new Date().toLocaleString('en-PH')
+    });
     var win = window.open('', '_blank');
     if (!win) { showToast('Allow popups to print the report.', true); return; }
-    function rowText(tr) {
-      return Array.prototype.map.call(tr.querySelectorAll('th,td'), function(c) { return c.textContent.trim(); }).join(' | ');
-    }
-    var lines = ['SmileHub Sales Report — ' + label + ' — Generated ' + new Date().toLocaleString()];
-    lines.push('Totals: Orders ' + ((document.getElementById('reportTotalOrders') || {}).textContent || '') +
-      ', Order value ' + ((document.getElementById('reportRevenue') || {}).textContent || '') +
-      ', Avg ' + ((document.getElementById('reportAvgOrder') || {}).textContent || '') +
-      ', Units ' + ((document.getElementById('reportItemsSold') || {}).textContent || ''));
-    Array.prototype.forEach.call(section.querySelectorAll('#reportProductBody tr'), function(tr) { lines.push(' - ' + rowText(tr)); });
-    var escLines = lines.map(function(l) { return escapeHtml(l); }).join('<br>');
-    win.document.write('<html><head><title>Sales Report - ' + escapeHtml(label) + '</title>' +
-      '<style>body{font-family:"DM Sans",system-ui,sans-serif;padding:30px;color:#203047;}' +
-      'h2{margin:0 0 4px;}.muted{color:#6b7a8c;font-size:0.9rem;}' +
-      '@media print{body{padding:0;}}</style></head><body>' +
-      '<h1>Sales Report</h1><p class="muted">' + escapeHtml(label) + ' · Generated ' + escapeHtml(new Date().toLocaleString()) + '</p>' +
-      '<div>' + escLines + '</div>' +
-      '</body></html>');
+    win.document.open();
+    win.document.write(html);
     win.document.close();
-    setTimeout(function() { try { win.print(); } catch (e) {} }, 500);
+    try { win.focus(); } catch (e) {}
+    setTimeout(function() { try { win.print(); } catch (e) {} }, 350);
   }
 
   // --- PRINT ORDER SLIP (escaped, popup-safe) ---
@@ -4467,21 +4439,25 @@ document.addEventListener('DOMContentLoaded', function() {
       productsLoaded = true;
       tryRenderDashboard();
     });
-    fetchOrders(function(data) {
+    // Real-time orders sync — keeps Reports + Order by Status + KPIs + Customers live
+    var orderListenerStarted = false;
+    var orderFallbackAttempted = false;
+    function finishInitialOrderLoad() {
       renderOrders('all');
-      ordersLoaded = true;
+      ordersLoaded = ordersReady;
       tryRenderDashboard();
       renderRecentOrders();
-    });
-    // Real-time orders sync — keeps Reports + Order by Status + KPIs + Customers live
+    }
     try {
       if (typeof db !== 'undefined' && db.collection && db.collection('orders').onSnapshot) {
-        db.collection('orders').onSnapshot(function(snap){
+        var stopOrderSync = db.collection('orders').onSnapshot(function(snap){
           var live = [];
           snap.forEach(function(doc){ var d=doc.data()||{}; d.docId=doc.id; if(!d.number) d.number=doc.id; var pending=orderStatusWrites.get(d.number); if(pending) d.status=pending.old; live.push(d); });
           ordersReady = true; ordersLoading = false; ordersUpdatedAt = new Date();
           ordersCache = live;
           ordersLoadError = null;
+          ordersLoaded = true;
+          tryRenderDashboard();
           try { renderOrders((document.getElementById('orderStatusFilter')||{}).value||'all'); } catch(e){}
           try { updateDashboard(); } catch(e){}
           try { renderOrdersRail(getOrders()); } catch(e){}
@@ -4498,10 +4474,16 @@ document.addEventListener('DOMContentLoaded', function() {
           ordersLoading = false;
           updateDashboard();
           console.warn('Orders live sync denied:', err);
+          if (!ordersReady && !orderFallbackAttempted) {
+            orderFallbackAttempted = true;
+            fetchOrders(finishInitialOrderLoad);
+          }
           maybeShowBlockedBanner();
         });
+        orderListenerStarted = Boolean(stopOrderSync);
       }
     } catch(e){}
+    if (!orderListenerStarted) fetchOrders(finishInitialOrderLoad);
     // Orders inspired wiring: search/date/selection/bulk/rail already in renderOrders but wire inputs here
     (function(){
       var orderSearch = document.getElementById('orderSearch');
@@ -4579,17 +4561,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(selectedOrderIds.size===0){ showToast('Tick orders to print', true); return; }
         selectedOrderIds.forEach(function(num){ try{ printOrderSlip(num); }catch(e){} });
       });
-      function downloadCsv(csv, filename) {
-        var blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-      }
       var bulkExport = document.getElementById('ordersBulkExport');
       if (bulkExport) bulkExport.addEventListener('click', function(){
         var list = selectedOrderIds.size ? getOrders().filter(function(o){ return selectedOrderIds.has(o.number); }) : getOrders();
@@ -4621,40 +4592,30 @@ document.addEventListener('DOMContentLoaded', function() {
           showToast('Only admins can download reports.', true);
           return;
         }
+        if (!ordersReady || ordersLoading) {
+          showToast('Orders are still loading. Try again in a moment.', true);
+          return;
+        }
         var period=(document.getElementById('reportPeriod')||{}).value||'all';
         var dateRange=getReportDateRange(period);
         if(!dateRange.valid){ showToast('Choose valid report start and end dates', true); return; }
         var filtered=filterOrdersByReportRange(getOrders(), dateRange);
-        if(!filtered.length){ showToast('No data to download for this period', true); return; }
-        var csv='Period,'+csvCell(dateRange.label)+'\nGenerated,'+new Date().toLocaleString()+'\n\nOrder #,Customer,Date,Status,Total,Items\n' + filtered.map(function(o){
-          var items=(o.items||[]).map(function(it){ return (it.name||'')+' x'+(it.quantity||1); }).join('; ');
-          return [csvCell(o.number), csvCell(o.customer), csvCell(o.date), csvCell(o.status), (o.total||0), csvCell(items)].join(',');
-        }).join('\n');
         var productSelect=document.getElementById('reportProductFilter');
         var selectedProduct=productSelect ? productSelect.value : 'all';
-        var productSummary={};
-        filtered.forEach(function(o){
-          (o.items||[]).forEach(function(item){
-            var name=item.name||'Unknown';
-            if(selectedProduct!=='all' && name!==selectedProduct) return;
-            if(!productSummary[name]) productSummary[name]={orders:{},units:0,revenue:0};
-            var row=productSummary[name];
-            var qty=Number(item.quantity)||1;
-            row.units+=qty;
-            row.revenue+=qty*(Number(item.price)||0);
-            row.orders[o.number||o.docId||String(filtered.indexOf(o))]=true;
-          });
+        var selectedProductLabel = productSelect && productSelect.selectedIndex >= 0 && selectedProduct !== 'all'
+          ? productSelect.options[productSelect.selectedIndex].text
+          : 'All products';
+        var trend = reportTrendGranularity === 'auto' ? 'Automatic' : reportTrendGranularity.charAt(0).toUpperCase() + reportTrendGranularity.slice(1);
+        var csv = window.SmileHubReportUtils.buildCsv(filtered, {
+          periodLabel: dateRange.label,
+          granularity: trend,
+          selectedProduct: selectedProductLabel,
+          productKey: selectedProduct,
+          generatedAt: new Date().toLocaleString('en-PH')
         });
-        var productRows=Object.keys(productSummary).sort(function(a,b){ return productSummary[b].revenue-productSummary[a].revenue; });
-        csv+='\n\nSales by Product,Orders,Units Sold,Order Value\n' + productRows.map(function(name){ var p=productSummary[name]; return [csvCell(name),Object.keys(p.orders).length,p.units,p.revenue].join(','); }).join('\n');
-        // Add monthly summary
-        var months={}; filtered.forEach(function(o){ var ts=orderTime(o); if(!ts) return; var dt=new Date(ts); var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); if(!months[key]) months[key]={collected:0, pending:0, count:0}; var v=Number(o.total)||0; if(isPaymentConfirmed(o)) months[key].collected+=v; else if(isActiveOrder(o.status)) months[key].pending+=v; months[key].count+=1; });
-        csv+='\n\nMonth,Confirmed paid,Payment not confirmed,Orders\n' + Object.keys(months).sort().map(function(k){ var m=months[k]; return k+','+m.collected+','+m.pending+','+m.count; }).join('\n');
-        // Top customers (group by email when available to avoid same-name merges)
-        var map={}; filtered.forEach(function(o){ var key=String(o.email||o.customer||'Unknown').toLowerCase(); if(!map[key]) map[key]={label:(o.customer||o.email||'Unknown'), orders:0,revenue:0}; map[key].orders+=1; map[key].revenue+=Number(o.total)||0; });
-        var top=Object.keys(map).sort(function(a,b){ return map[b].revenue - map[a].revenue; }).slice(0,10);
-        csv+='\n\nTop Customers,Orders,Order value\n' + top.map(function(k){ var m=map[k]; return [csvCell(m.label), m.orders, m.revenue].join(','); }).join('\n');
-        downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv'); addAuditLog('Downloaded sales report ('+dateRange.label+', '+filtered.length+' orders)'); showToast('Report downloaded', false, true);
+        downloadCsv(csv, 'smilehub-sales-report-' + period + '-' + new Date().toISOString().slice(0,10)+'.csv');
+        addAuditLog('Downloaded sales report ('+dateRange.label+', '+filtered.length+' orders)');
+        showToast('Report downloaded', false, true);
       });
     })();
     // Notification bell dropdown wiring
