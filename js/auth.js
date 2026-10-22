@@ -578,6 +578,13 @@ function redirectStaffToDashboard() {
   return true;
 }
 
+function blockStaffPurchase() {
+  var user = getCachedUser();
+  if (!user || ['admin', 'staff', 'superadmin'].indexOf(user.role) === -1) return false;
+  window.alert("You can't make purchases with an admin, staff, or super admin account. Please use a customer account to shop.");
+  return true;
+}
+
 function performLoginRedirect() {
   if (redirectStaffToDashboard()) return;
   var returnPage = SmileHubStorage.get(RETURN_KEY, null);
@@ -853,10 +860,6 @@ function logoutUser() {
 
 function requireLogin(returnPage) {
   var user = getCachedUser();
-  if (user && ['admin', 'staff', 'superadmin'].indexOf(user.role) !== -1) {
-    redirectStaffToDashboard();
-    return false;
-  }
   if (user) return true;
   SmileHubStorage.set(RETURN_KEY, returnPage || currentPage + location.search);
   location.href = 'login.html?message=signin';
@@ -867,8 +870,6 @@ function protectPage() {
   if (intentionalLogout) return;
   try { if (window.__suspendKick) return; } catch (e) {}
   var user = getCachedUser();
-
-  if (currentPage !== 'admin.html' && currentPage !== 'gcash-admin.html' && redirectStaffToDashboard()) return;
 
   if (!PUBLIC_PAGES.includes(currentPage) && !user) {
     SmileHubStorage.set(RETURN_KEY, currentPage + location.search);
@@ -1040,6 +1041,7 @@ window.SmileHubAuth = {
   getCurrentAccount: getCurrentAccount,
   requireLogin: requireLogin,
   redirectStaffToDashboard: redirectStaffToDashboard,
+  blockStaffPurchase: blockStaffPurchase,
   logoutUser: logoutUser,
   showMessage: showAuthMessage,
   getAccounts: getAccounts,

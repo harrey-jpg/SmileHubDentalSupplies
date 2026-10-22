@@ -15,7 +15,7 @@ function setup(role = 'customer') {
     return Promise.resolve();
   } };
   const context = vm.createContext({
-    Promise, console, RETURN_KEY: 'return', PENDING_TOAST_KEY: 'toast',
+    Promise, console, window: { alert(message) { state.popup = message; } }, RETURN_KEY: 'return', PENDING_TOAST_KEY: 'toast',
     resolvedAuthUid: 'new-user', intentionalLogout: false, currentPage: 'admin.html',
     PUBLIC_PAGES: ['homepage.html', 'login.html'], DEMO_MODE_ENABLED: false,
     location: { href: '', search: '', replace(url) { this.href = url; } },
@@ -35,6 +35,8 @@ function setup(role = 'customer') {
 }
 (async () => {
   let test = setup();
+  assert.equal(test.context.blockStaffPurchase(), false);
+  assert.equal(test.state.popup, undefined);
   test.values.set('return', 'admin.html?tab=orders');
   await test.context.redirectAfterLogin();
   assert.equal(test.context.location.href, 'homepage.html');
@@ -61,7 +63,13 @@ function setup(role = 'customer') {
     }
     test = setup(role); test.context.currentPage = 'checkout.html';
     test.context.protectPage();
-    assert.equal(test.context.location.href, 'admin.html');
+    assert.equal(test.context.location.href, '');
+    assert.equal(test.context.blockStaffPurchase(), true);
+    assert(test.state.popup.includes("You can't make purchases"));
+    assert.equal(test.context.location.href, '');
+    test.context.currentPage = 'products.html';
+    test.context.protectPage();
+    assert.equal(test.context.location.href, '');
     test = setup(role); test.context.currentPage = 'admin.html';
     test.context.protectPage();
     assert.equal(test.context.location.href, '');

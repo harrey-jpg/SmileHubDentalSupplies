@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     var form = this;
-    if (window.SmileHubAuth && window.SmileHubAuth.redirectStaffToDashboard && window.SmileHubAuth.redirectStaffToDashboard()) return;
+    if (window.SmileHubAuth && window.SmileHubAuth.blockStaffPurchase && window.SmileHubAuth.blockStaffPurchase()) return;
     if (form.dataset.submitting === '1') return;
     if (window.__suspendKick) return;
     if (retryOrderSave) { retryOrderSave(); return; }
