@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderProducts(filter) {
     if (!productsBody) return;
 
-    const searchTerm = (filter || adminSearch?.value || '').toLowerCase();
+    const searchTerm = (filter || adminSearch?.value || '').toLowerCase().trim();
     const catSelect = document.getElementById('adminCategoryFilter');
     const selectedCat = catSelect ? catSelect.value : 'all';
     const stockSelect = document.getElementById('adminStockFilter');
@@ -511,9 +511,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (summary) { summary.textContent = activeFilters.join(' · '); summary.hidden = !activeFilters.length; }
     if (clear) clear.hidden = !activeFilters.length;
     const filtered = products.filter(function(p) {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm) ||
-             p.sku.toLowerCase().includes(searchTerm) ||
-             p.category.toLowerCase().includes(searchTerm);
+      const matchesSearch = [p.name, p.sku, p.category].some(function(value) {
+        return String(value || '').toLowerCase().includes(searchTerm);
+      });
       if (!matchesSearch || (selectedCat !== 'all' && p.category !== selectedCat)) return false;
       if (selectedStock === 'in') return p.stock > minOf(p);
       if (selectedStock === 'low') return p.stock > 0 && p.stock <= minOf(p);
@@ -1509,12 +1509,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function orderMatchesDate(order, dateVal) {
     if (!dateVal || dateVal === 'all') return true;
-    var t = order.sortTs || (order.date ? Date.parse(order.date) : Date.now());
-    if (isNaN(t)) return true;
+    var t = orderTime(order);
+    if (!t || !Number.isFinite(Number(t))) return false;
     var d = new Date(t);
     var now = new Date();
     if (dateVal === 'today') return d.toDateString() === now.toDateString();
-    if (dateVal === 'week') { var w = new Date(now); w.setDate(w.getDate()-7); return d >= w; }
+    if (dateVal === 'week') { var w = new Date(now); w.setDate(w.getDate()-7); return d >= w && d <= now; }
     if (dateVal === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     return true;
   }
@@ -2882,7 +2882,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    var search = (document.getElementById('accountSearch') || {}).value || '';
+    var search = ((document.getElementById('accountSearch') || {}).value || '').trim();
     var roleFilter = (document.getElementById('accountRoleFilter') || {}).value || 'all';
     var statusFilter = (document.getElementById('accountStatusFilter') || {}).value || 'all';
     var sortVal = (document.getElementById('accountSort') || {}).value || 'name';
@@ -2895,7 +2895,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(o.customerEmail && o.customerEmail.indexOf('@')>-1) keys.push(String(o.customerEmail).toLowerCase());
         if(o.customer) keys.push('name:'+String(o.customer).toLowerCase());
         if(!keys.length && o.customer) keys.push(String(o.customer).toLowerCase());
-        keys.forEach(function(k){
+        Array.from(new Set(keys)).forEach(function(k){
           if(!statsByEmail[k]) statsByEmail[k]={orders:0,spent:0};
           statsByEmail[k].orders+=1;
           statsByEmail[k].spent+= Number(o.total)||0;
@@ -4156,8 +4156,20 @@ document.addEventListener('DOMContentLoaded', function() {
     var headerSub=document.getElementById('messagesHeaderSub');
     if(headerSub) headerSub.textContent = n + ' unread • ' + total + ' total' + (n? ' • needs reply' : '');
   }
+  function syncMessageTopicFilter() {
+    var select = document.getElementById('msgTopicFilter');
+    if (!select) return;
+    var selected = select.value || 'all';
+    var topics = Array.from(new Set(messagesCache.map(function(message) { return message.topic; }).filter(Boolean)))
+      .sort(function(a, b) { return a.localeCompare(b); });
+    select.innerHTML = '<option value="all">All Topics</option>' + topics.map(function(topic) {
+      return '<option value="' + escapeHtml(topic) + '">' + escapeHtml(topic) + '</option>';
+    }).join('');
+    select.value = topics.indexOf(selected) !== -1 ? selected : 'all';
+  }
   function renderMessages(){
     var body=document.getElementById('messagesBody'); if(!body) return;
+    syncMessageTopicFilter();
     var q=((document.getElementById('msgSearch')||{}).value||'').toLowerCase().trim();
     var statusF=(document.getElementById('msgStatusFilter')||{}).value||'all';
     var topicF=(document.getElementById('msgTopicFilter')||{}).value||'all';
